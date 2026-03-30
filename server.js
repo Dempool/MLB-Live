@@ -374,4 +374,3 @@ server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
 });
 
- 
