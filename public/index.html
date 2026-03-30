@@ -322,17 +322,18 @@
     /* ── LINEUP TABLE ── */
     .lineup-side{padding:10px 13px;border-right:1px solid var(--border-soft)}
     .lineup-side:last-child{border-right:none}
-    .lineup-header{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)}
+    .lineup-header{display:flex;align-items:center;gap:7px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)}
     .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text)}
-    .lineup-row{display:grid;grid-template-columns:18px 1fr 28px auto;gap:6px;align-items:center;padding:4px 6px;border-radius:4px;margin-bottom:2px;transition:background .1s}
+    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-left:auto;min-width:70px;text-align:right}
+    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:80px;text-align:right}
+    .lineup-row{display:grid;grid-template-columns:18px 1fr 28px auto auto;gap:5px;align-items:center;padding:4px 6px;border-radius:4px;margin-bottom:2px;transition:background .1s}
     .lineup-row:hover{background:var(--card-2)}
     .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
     .lineup-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right}
-    .lineup-name{font-size:12px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px}
+    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);text-align:center}
-    .lineup-today{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right;white-space:nowrap}
-    .lineup-today.has-hit{color:var(--live)}
-    .lineup-today.has-hr{color:var(--gold)}
+    .lineup-today{font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;white-space:nowrap;min-width:70px}
+    .lineup-season{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right;white-space:nowrap;min-width:80px}
     /* ── IN-PLAY STATS ── */
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
@@ -517,10 +518,18 @@
           <div class="panel-body" id="inplayStats"><div class="empty">—</div></div>
         </div>
 
-        <!-- PITCHER CARD -->
-        <div class="panel">
-          <div class="panel-head"><span class="panel-title">Pitcher Intel</span></div>
-          <div class="panel-body" id="pitcherCard"><div class="empty">—</div></div>
+        <!-- DUAL PITCHER CARDS -->
+        <div class="panel grid-wide">
+          <div class="panel-head">
+            <span class="panel-title">Pitchers</span>
+            <span class="panel-badge" id="pitchersBadge"></span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div style="display:grid;grid-template-columns:1fr 1fr;height:100%">
+              <div id="awayPitcherCard" style="padding:10px 13px;border-right:1px solid var(--border-soft)"><div class="empty">—</div></div>
+              <div id="homePitcherCard" style="padding:10px 13px"><div class="empty">—</div></div>
+            </div>
+          </div>
         </div>
 
         <!-- BATTER CARD -->
@@ -985,10 +994,19 @@ function explain(t){
 function callClass(c=''){const l=c.toLowerCase();if(l.includes('strike')||l.includes('swinging')||l.includes('called'))return'call-strike';if(l.includes('ball')||l.includes('intentional'))return'call-ball';if(l.includes('hit')||l.includes('foul')||l.includes('in play'))return'call-hit';return'call-other';}
 function bar(label,pct,cls=''){return`<div class="bar-group"><div class="bar-label"><span>${label}</span><span>${pct}%</span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div></div>`;}
 
-function renderPitcherCard(p){
-  if(!p)return'<div class="empty">No data</div>';
-  const mix=p.pitchMix||{},vel=p.velocityByPitch||{};
-  return`<div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]||'—'} mph</div></div>`).join('')}</div>
+function renderPitcherCard(p, name, teamId, isActive){
+  if(!p) return '<div class="empty">No data</div>';
+  const mix=p.pitchMix||{}, vel=p.velocityByPitch||{};
+  const activeBadge=isActive
+    ? `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--live-dim);color:var(--live);padding:1px 6px;border-radius:3px;margin-left:6px">ON MOUND</span>`
+    : `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--border);color:var(--muted);padding:1px 6px;border-radius:3px;margin-left:6px">NEXT UP</span>`;
+  const header=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border-soft)">
+    <div style="width:20px;height:20px;border-radius:3px;overflow:hidden;flex-shrink:0">${logoImg(teamId,18)}</div>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text);flex:1">${name||'Pitcher'}</span>
+    ${activeBadge}
+  </div>`;
+  return`${header}
+  <div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]||'—'} mph</div></div>`).join('')}</div>
   ${bar('Whiff Rate',p.whiffRate,'green')}${bar('K%',p.strikeoutRate,'green')}${bar('BB%',p.walkRate,'red')}${bar('Hard Hit Allowed',p.hardHitAllowed,'amber')}
   <div class="stat-row"><span class="stat-key">1st Pitch Strike</span><span class="stat-val">${p.firstPitchStrikeTendency}%</span></div>
   <div class="stat-row"><span class="stat-key">2-Strike Putaway</span><span class="stat-val">${p.twoStrikePutawayTendency}%</span></div>
@@ -1030,21 +1048,23 @@ function renderLineups(data){
     const rows=team.lineup.map(p=>{
       const isUp=p.id===curId;
       const hasHR=p.todayHR>0;
-      const hasHit=p.todayH>0&&!hasHR;
-      const todayCls=hasHR?'has-hr':hasHit?'has-hit':'';
-      const todayTxt=p.note||`${p.todayAB}AB`;
+      const hasHit=p.todayH>0;
+      // Colour code today's line: HR=red, hit=green, 0fer=muted
+      const todayColor=hasHR?'var(--red)':hasHit?'var(--live)':p.todayAB>0?'var(--muted)':'var(--muted)';
       return `<div class="lineup-row ${isUp?'active-batter':''}">
         <div class="lineup-num">${p.order}</div>
-        <div class="lineup-name">${isUp?`<span style="color:var(--red)">${p.name}</span>`:p.name}</div>
+        <div class="lineup-name">${isUp?`<span style="color:var(--red);font-weight:700">${p.name}</span>`:p.name}</div>
         <div class="lineup-pos">${p.position}</div>
-        <div class="lineup-today ${todayCls}">${todayTxt}</div>
+        <div class="lineup-today" style="color:${todayColor}">${p.note}</div>
+        <div class="lineup-season">${p.avg} / ${p.obp}</div>
       </div>`;
     }).join('');
     return `<div class="lineup-side">
       <div class="lineup-header">
-        <div style="width:22px;height:22px;overflow:hidden">${logoImg(team.id,20)}</div>
+        <div style="width:20px;height:20px;overflow:hidden;flex-shrink:0">${logoImg(team.id,18)}</div>
         <span class="lineup-team-name">${team.abbr}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto">AVG · OBP</span>
+        <span class="lineup-col-today">Today</span>
+        <span class="lineup-col-season">AVG / OBP</span>
       </div>
       ${rows}
     </div>`;
@@ -1134,15 +1154,19 @@ async function fetchAndRenderLineups(gamePk, matchup){
         const todayK=stats.strikeOuts??0;
         const todayBB=stats.baseOnBalls??0;
         const season=p.seasonStats?.batting||{};
+        // Always show H/AB, then add HR/K/BB badges
         let note='';
-        if(todayHR>0) note=`${todayHR}HR`;
-        else if(todayH>0) note=`${todayH}/${todayAB}`;
-        else if(todayAB>0) note=`0/${todayAB}`;
-        else note='—';
-        if(todayK>0&&!todayHR) note+=` ${todayK}K`;
-        if(todayBB>0) note+=` ${todayBB}BB`;
-        const avg=season.avg||'.000';
-        const obp=season.obp||'.000';
+        if(todayAB>0){
+          note=`${todayH}/${todayAB}`;
+          if(todayHR>0) note+=` · ${todayHR}HR`;
+          if(todayRBI>0&&!todayHR) note+=` · ${todayRBI}RBI`;
+          if(todayK>0) note+=` · ${todayK}K`;
+          if(todayBB>0) note+=` · ${todayBB}BB`;
+        } else {
+          note='—';
+        }
+        const avg=season.avg||'—';
+        const obp=season.obp||'—';
         return{
           id:Number(pid),
           order:idx+1,
@@ -1285,7 +1309,7 @@ async function refreshGame(){
     $('pregamePanel').style.display='';
     $('liveTickerPanel').style.display='none';
     $('gameBuzzPanel').style.display='none';
-    ['currentMatchup','pitcherCard','batterCard','pitchByPitch','nextPitch','simpleAngles','pitcherVsBatter']
+    ['currentMatchup','awayPitcherCard','homePitcherCard','batterCard','pitchByPitch','nextPitch','simpleAngles','pitcherVsBatter']
       .forEach(id=>$(id).innerHTML='<div class="empty">Game not started</div>');
     $('pregameContent').innerHTML='<div class="loading"><div class="spin"></div> Loading pre-game data…</div>';
     await renderPregame(g);
@@ -1310,7 +1334,19 @@ async function refreshGame(){
     fetchAndRenderInplay(gamePk, matchup);
 
     $('liveTicker').innerHTML=feed.recentPlays.length
-      ?feed.recentPlays.slice().reverse().map(p=>`<div class="item"><span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'🔥 ':''}<span>${explain(p.description||'—')}</span></div>`).join('')
+      ?feed.recentPlays.slice().reverse().map(p=>{
+        const evLine=p.exitVelocity?`<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
+          ${p.launchAngle!=null?`<span style="font-size:11px;color:var(--muted)">LA ${p.launchAngle}°</span>`:''}
+          ${p.totalDistance?`<span style="font-size:11px;color:var(--muted)">${p.totalDistance} ft</span>`:''}
+          ${p.hardHit?`<span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
+        </div>`:'';
+        return `<div class="item">
+          <span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'🔥 ':''}
+          <span>${explain(p.description||'—')}</span>
+          ${evLine}
+        </div>`;
+      }).join('')
       :'<div class="empty">No recent plays</div>';
     $('tickerBadge').textContent=feed.recentPlays.length?`${feed.recentPlays.length} plays`:'';
 
@@ -1346,12 +1382,38 @@ async function refreshGame(){
 
     $('pitchBadge').textContent=feed.pitchEvents.length?`${feed.pitchEvents.length} pitches`:'';
     $('pitchByPitch').innerHTML=feed.pitchEvents.length
-      ?feed.pitchEvents.slice().reverse().map(p=>`<div class="pitch-row"><div class="pitch-num">#${p.pitchNumber}</div><div class="pitch-desc">${p.type||p.details||'—'}</div><div class="pitch-spd">${p.startSpeed?p.startSpeed+' mph':'—'}</div><div class="pitch-call ${callClass(p.call||p.details)}">${p.call||p.details||'—'}</div><div class="pitch-cnt">${p.count}</div></div>`).join('')
+      ?feed.pitchEvents.slice().reverse().map(p=>{
+        const evBadge=p.exitVelocity?`<span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity}mph${p.launchAngle!=null?' · '+p.launchAngle+'°':''}</span>`:'';
+        return `<div class="pitch-row" style="grid-template-columns:22px 1fr auto auto auto ${p.exitVelocity?'auto':''}">
+          <div class="pitch-num">#${p.pitchNumber}</div>
+          <div class="pitch-desc">${p.type||p.details||'—'}</div>
+          <div class="pitch-spd">${p.startSpeed?p.startSpeed+' mph':'—'}</div>
+          <div class="pitch-call ${callClass(p.call||p.details)}">${p.call||p.details||'—'}</div>
+          <div class="pitch-cnt">${p.count}</div>
+          ${evBadge?`<div>${evBadge}</div>`:''}
+        </div>`;
+      }).join('')
       :'<div class="empty">No pitches yet</div>';
 
-    const pid=matchup.currentPitcher?.id,bid=matchup.currentBatter?.id;
-    if(pid){try{const p=await api(`/api/savant/pitcher/${pid}`);$('pitcherCard').innerHTML=renderPitcherCard(p.data);}catch{$('pitcherCard').innerHTML='<div class="empty">Unavailable</div>';}}
-    else $('pitcherCard').innerHTML='<div class="empty">—</div>';
+    const pid=matchup.currentPitcher?.id;
+    const bid=matchup.currentBatter?.id;
+    const activePitcherId=matchup.activePitcherId||pid;
+
+    // Render both pitchers side by side
+    $('pitchersBadge').textContent=`${g.teams.away.abbr} vs ${g.teams.home.abbr}`;
+    async function renderSidePitcher(pitcherObj, teamId, containerId){
+      if(!pitcherObj?.id){ $(containerId).innerHTML='<div class="empty">TBD</div>'; return; }
+      const isActive=pitcherObj.id===activePitcherId||pitcherObj.id===pid;
+      try{
+        const p=await api(`/api/savant/pitcher/${pitcherObj.id}`);
+        $(containerId).innerHTML=renderPitcherCard(p.data, pitcherObj.fullName||pitcherObj.name, teamId, isActive);
+      }catch{
+        $(containerId).innerHTML=`<div class="empty">${pitcherObj.fullName||'Pitcher'} — intel unavailable</div>`;
+      }
+    }
+    renderSidePitcher(matchup.awayPitcher, g.teams.away.id, 'awayPitcherCard');
+    renderSidePitcher(matchup.homePitcher, g.teams.home.id, 'homePitcherCard');
+
     if(bid){try{const b=await api(`/api/savant/batter/${bid}`);$('batterCard').innerHTML=renderBatterCard(b.data);}catch{$('batterCard').innerHTML='<div class="empty">Unavailable</div>';}}
     else $('batterCard').innerHTML='<div class="empty">—</div>';
 
@@ -1373,6 +1435,10 @@ async function refreshGame(){
     const inning=Number(summary.inning)||1;
     const isBot=(summary.half||'').toLowerCase().includes('bot');
     const pitchCount=feed.pitchEvents?.length||0;
+
+    // Hard hit ball alert from most recent play
+    const lastPlay=feed.recentPlays?.[feed.recentPlays.length-1];
+    if(lastPlay?.hardHit) buzzItems.push({type:'contact',dot:'red',text:`Hard hit ball — exit velocity ${lastPlay.exitVelocity} mph${lastPlay.totalDistance?` · ${lastPlay.totalDistance} ft`:''} on the last play. High-damage contact.`});
 
     // Runner situations
     if(r.second&&r.third) buzzItems.push({type:'threat',dot:'red',text:'Runners on 2nd and 3rd — scoring position with multiple threats. Any contact could score runs.'});
@@ -1436,4 +1502,5 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
+
 
