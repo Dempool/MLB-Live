@@ -324,16 +324,16 @@
     .lineup-side:last-child{border-right:none}
     .lineup-header{display:flex;align-items:center;gap:7px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)}
     .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text)}
-    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-left:auto;min-width:70px;text-align:right}
-    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);min-width:80px;text-align:right}
+    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-left:auto;min-width:70px;text-align:right}
+    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);min-width:80px;text-align:right}
     .lineup-row{display:grid;grid-template-columns:18px 1fr 28px auto auto;gap:5px;align-items:center;padding:4px 6px;border-radius:4px;margin-bottom:2px;transition:background .1s}
     .lineup-row:hover{background:var(--card-2)}
     .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
-    .lineup-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right}
+    .lineup-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right}
     .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);text-align:center}
+    .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--sub);text-align:center}
     .lineup-today{font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;white-space:nowrap;min-width:70px}
-    .lineup-season{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right;white-space:nowrap;min-width:80px}
+    .lineup-season{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text);text-align:right;white-space:nowrap;min-width:80px}
     /* ── IN-PLAY STATS ── */
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
@@ -1509,3 +1509,5 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
+
+
