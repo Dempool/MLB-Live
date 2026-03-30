@@ -739,10 +739,11 @@ function updateBanner(g,summary){
       $('bnInning').textContent=`${inn}${suffix}`;
       $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
       $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
+      // Update SVG field bases (r1/r2/r3 now live in the field diagram SVG)
       const r=summary.runners||{};
-      $('r1').className='base'+(r.first?' on':'');
-      $('r2').className='base'+(r.second?' on':'');
-      $('r3').className='base'+(r.third?' on':'');
+      if($('r1')) $('r1').className='base'+(r.first?' on':'');
+      if($('r2')) $('r2').className='base'+(r.second?' on':'');
+      if($('r3')) $('r3').className='base'+(r.third?' on':'');
     } else {
       ['r1','r2','r3'].forEach(id=>{ if($(id)) $(id).className='base'; });
     }
@@ -1354,10 +1355,14 @@ async function loadSlate(renderOnly=false){
     const data=await api('/api/schedule');
     state.games=sortGames(data.games);
     if(data.date)$('sidebarDate').textContent=data.date;
-    if(!state.selectedGamePk&&state.games.length)state.selectedGamePk=state.games[0].gamePk;
+    if(!state.selectedGamePk&&state.games.length){
+      // Prefer first live game, fall back to first game
+      const liveGame=state.games.find(g=>g.status==='Live');
+      state.selectedGamePk=(liveGame||state.games[0]).gamePk;
+    }
     renderGames();
     if(state.selectedGamePk&&!renderOnly)await refreshGame();
-  }catch(e){$('games').innerHTML='<div class="empty" style="padding:16px">Failed to load schedule</div>';}
+  }catch(e){$('games').innerHTML='<div class="empty" style="padding:16px">Failed to load schedule</div>';console.error('loadSlate failed:',e);}
 }
 
 /* Poll the schedule every 20s to keep sidebar scores + inning live.
@@ -1397,9 +1402,9 @@ window.selectGame=selectGame;
 /* ── REFRESH ── */
 async function refreshGame(){
   const gamePk=state.selectedGamePk;
-  if(!gamePk)return;
-  const g=state.games.find(x=>x.gamePk===gamePk);
-  if(!g)return;
+  if(!gamePk){ console.warn('refreshGame: no gamePk'); return; }
+  const g=state.games.find(x=>x.gamePk===gamePk||String(x.gamePk)===String(gamePk));
+  if(!g){ console.warn('refreshGame: game not found for gamePk', gamePk, 'games:', state.games.map(x=>x.gamePk)); return; }
   updateBanner(g,null);
 
   if(g.status==='Preview'){
@@ -1643,5 +1648,4 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
-
 
