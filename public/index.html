@@ -39,6 +39,7 @@
       /* Gold — counts, amber alerts */
       --gold:      #f5b942;
       --gold-dim:  rgba(245,185,66,0.12);
+      --red-mid:   rgba(232,24,44,0.22);
       /* Header accent stripe */
       --accent-stripe: #e8182c;
     }
@@ -167,9 +168,27 @@
     .team-logo-lg img{width:100%;height:100%;object-fit:contain}
     .banner-score-block{text-align:center;min-width:100px}
     .banner-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;line-height:1;color:var(--text)}
-    .banner-live-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:62px}
-    .banner-inning{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--text);line-height:1;text-align:center}
-    .banner-outs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;text-align:center;letter-spacing:.5px}
+    .banner-live-state{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      min-width:72px;padding:0 4px;gap:4px;
+    }
+    .banner-inning-wrap{display:flex;flex-direction:column;align-items:center;line-height:1}
+    .banner-half{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
+    .banner-inning-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--text);line-height:1}
+    .banner-outs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.3px}
+    /* Runner diamond — fixed 32x28 box so it never shifts */
+    .runner-diamond{position:relative;width:32px;height:28px;flex-shrink:0}
+    .runner-diamond .base{
+      position:absolute;width:10px;height:10px;
+      border:1.5px solid var(--border);
+      transform:rotate(45deg);border-radius:1px;
+      background:transparent;transition:background .2s,border-color .2s;
+    }
+    .runner-diamond .base.on{background:var(--gold);border-color:var(--gold)}
+    /* Fixed positions: 2B top-centre, 3B left, 1B right */
+    .runner-diamond #r2{top:0;left:50%;margin-left:-5px}
+    .runner-diamond #r3{bottom:0;left:0}
+    .runner-diamond #r1{bottom:0;right:0}
     .banner-score-sub{font-size:11px;color:var(--sub);margin-top:2px;min-height:14px}
     .banner-sep{width:1px;height:34px;background:var(--border);margin:0 16px;flex-shrink:0}
     .banner-section{display:flex;flex-direction:column;justify-content:center}
@@ -179,10 +198,6 @@
     .banner-state{font-size:12px;color:var(--sub)}
     .live-dot{display:inline-block;width:7px;height:7px;background:var(--live);border-radius:50%;margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
-    .runners{display:flex;flex-direction:column;align-items:center;gap:3px}
-    .runners-row{display:flex;gap:4px}
-    .base{width:11px;height:11px;border:1.5px solid var(--border);transform:rotate(45deg);border-radius:1px;background:transparent;transition:background .2s,border-color .2s}
-    .base.on{background:var(--gold);border-color:var(--gold)}
 
     /* ── CONTENT ── */
     .content{flex:1;overflow-y:auto;padding:12px}
@@ -304,7 +319,43 @@
     .call-other{background:var(--border);color:var(--sub)}
     .pitch-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
 
-    /* ── ANGLE / BUZZ ── */
+    /* ── LINEUP TABLE ── */
+    .lineup-side{padding:10px 13px;border-right:1px solid var(--border-soft)}
+    .lineup-side:last-child{border-right:none}
+    .lineup-header{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)}
+    .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text)}
+    .lineup-row{display:grid;grid-template-columns:18px 1fr 28px auto;gap:6px;align-items:center;padding:4px 6px;border-radius:4px;margin-bottom:2px;transition:background .1s}
+    .lineup-row:hover{background:var(--card-2)}
+    .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
+    .lineup-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right}
+    .lineup-name{font-size:12px;color:var(--text);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px}
+    .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);text-align:center}
+    .lineup-today{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right;white-space:nowrap}
+    .lineup-today.has-hit{color:var(--live)}
+    .lineup-today.has-hr{color:var(--gold)}
+    /* ── IN-PLAY STATS ── */
+    .inplay-section{margin-bottom:12px}
+    .inplay-section:last-child{margin-bottom:0}
+    .inplay-player{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px}
+    .inplay-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .inplay-summary{font-size:13px;color:var(--sub);margin-bottom:6px}
+    .inplay-summary strong{color:var(--gold)}
+    .pitch-meter{margin:6px 0 8px}
+    .pitch-meter-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
+    .pitch-meter-fill{height:100%;border-radius:3px;transition:width .4s ease}
+    .pitch-meter-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+    .pa-log{display:flex;flex-direction:column;gap:3px;margin-top:4px}
+    .pa-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);padding:3px 6px;background:var(--card-2);border-radius:3px}
+    .pa-inn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);min-width:36px}
+    .pa-result{color:var(--text)}
+    .pa-result.positive{color:var(--live)}
+    .pa-result.hr{color:var(--gold)}
+    /* ── BUZZ TYPE TAGS ── */
+    .buzz-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-right:5px;flex-shrink:0}
+    .buzz-type.scoring{background:var(--live-dim);color:var(--live)}
+    .buzz-type.warning{background:var(--red-dim);color:var(--red)}
+    .buzz-type.info{background:var(--blue-dim);color:var(--blue)}
+    .buzz-type.high{background:var(--gold-dim);color:var(--gold)}
     .angle-card{background:var(--card-2);border:1px solid var(--border-soft);border-left:3px solid var(--red);border-radius:0 5px 5px 0;padding:8px 10px;margin-bottom:6px}
     .angle-card:last-child{margin-bottom:0}
     .angle-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:2px}
@@ -366,12 +417,16 @@
     <div class="banner" id="banner">
       <!-- LEFT: live game state (inning + runners) — hidden until live -->
       <div class="banner-live-state" id="bnLiveState" style="display:none">
-        <div class="banner-label">Inning</div>
-        <div class="banner-inning" id="bnInning">—</div>
-        <div class="runners" style="margin-top:6px">
-          <div class="runners-row"><div class="base" id="r2"></div></div>
-          <div class="runners-row"><div class="base" id="r3"></div><div class="base" id="r1"></div></div>
+        <div class="banner-inning-wrap">
+          <span class="banner-half" id="bnHalf">TOP</span>
+          <span class="banner-inning-num" id="bnInning">1st</span>
         </div>
+        <div class="runner-diamond">
+          <div class="base" id="r2"></div>
+          <div class="base" id="r3"></div>
+          <div class="base" id="r1"></div>
+        </div>
+        <div class="banner-outs" id="bnOuts">0 outs</div>
       </div>
       <div class="banner-sep" id="bnLiveSep" style="display:none"></div>
 
@@ -404,7 +459,6 @@
       <div class="banner-section" id="bnCountSection" style="display:none">
         <div class="banner-label">Count</div>
         <div class="banner-count" id="bnCount">—</div>
-        <div class="banner-outs" id="bnOuts"></div>
       </div>
     </div>
 
@@ -437,13 +491,30 @@
           <div class="panel-body" id="gameBuzz"><div class="empty">—</div></div>
         </div>
 
-        <!-- CURRENT MATCHUP -->
+        <!-- LINEUPS -->
+        <div class="panel grid-full" id="lineupsPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">Line-ups</span>
+            <span class="panel-badge" id="lineupsBadge"></span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div style="display:grid;grid-template-columns:1fr 1fr" id="lineupsContent"></div>
+          </div>
+        </div>
+
+        <!-- CURRENT MATCHUP + IN-PLAY STATS -->
         <div class="panel grid-wide">
           <div class="panel-head">
             <span class="panel-title">Current Matchup</span>
             <span class="panel-badge" id="matchupHand"></span>
           </div>
           <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
+        </div>
+
+        <!-- IN-PLAY STATS -->
+        <div class="panel" id="inplayPanel" style="display:none">
+          <div class="panel-head"><span class="panel-title">Today's Stats</span></div>
+          <div class="panel-body" id="inplayStats"><div class="empty">—</div></div>
         </div>
 
         <!-- PITCHER CARD -->
@@ -609,17 +680,22 @@ function updateBanner(g,summary){
     }
 
     if(isLive){
-      // Format inning: "TOP 4th" / "BOT 7th"
+      // Format inning half and number separately
       const half=(summary.half||'').toLowerCase().includes('bot')?'BOT':'TOP';
-      const inn=summary.inning||'';
+      const inn=Number(summary.inning)||1;
       const suffix=inn===1?'st':inn===2?'nd':inn===3?'rd':'th';
-      $('bnInning').innerHTML=`<span style="font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">${half}</span><br>${inn}${suffix}`;
+      $('bnHalf').textContent=half;
+      $('bnInning').textContent=`${inn}${suffix}`;
       $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
       $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
+      // Always explicitly set all three bases — never leave stale state
       const r=summary.runners||{};
       $('r1').className='base'+(r.first?' on':'');
       $('r2').className='base'+(r.second?' on':'');
       $('r3').className='base'+(r.third?' on':'');
+    } else {
+      // Clear runners when not live so stale state never shows
+      ['r1','r2','r3'].forEach(id=>{ if($(id)) $(id).className='base'; });
     }
   } else {
     // No summary yet — just show score from game card data
@@ -843,51 +919,65 @@ async function renderPregame(g){
 function explain(t){
   if(!t) return '';
   if(state.level==='experienced') return t;
-
   const lower=t.toLowerCase();
   let note='';
 
   if(state.level==='new'){
-    // Plain-English cues based on what the text is about
-    if(lower.includes('strikeout')||lower.includes(' k%')||lower.includes('whiff'))
-      note='A high strikeout rate means the pitcher gets batters to swing and miss often — good for the defence.';
-    else if(lower.includes('walk')||lower.includes('bb%'))
-      note='Walks put a free runner on base and raise the pitcher\'s pitch count — a warning sign.';
-    else if(lower.includes('hard hit')||lower.includes('barrel'))
-      note='Hard-hit balls travel fast and far — a high rate means danger for the fielding team.';
-    else if(lower.includes('fastball')||lower.includes('slider')||lower.includes('changeup')||lower.includes('curveball'))
-      note='Knowing which pitch is coming helps the batter prepare — pitchers try to keep them guessing.';
-    else if(lower.includes('count')||lower.includes('ahead')||lower.includes('behind'))
-      note='The count (balls vs strikes) shapes what both pitcher and batter do next.';
-    else if(lower.includes('hot')||lower.includes('streak'))
-      note='A player on a hot streak has been hitting well recently — they\'re a bigger threat right now.';
-    else if(lower.includes('score')||lower.includes('run'))
-      note='Runs decide the game — scoring plays directly shift the lead.';
+    if(lower.includes('home run')||lower.includes('homers'))
+      note='A home run scores everyone on base plus the batter — the biggest single play in baseball.';
+    else if(lower.includes('single'))
+      note='A single puts the batter on first base and can advance other runners.';
+    else if(lower.includes('double'))
+      note='A double gets the batter to second base — runners can often score from first on this.';
+    else if(lower.includes('triple'))
+      note='A triple puts the batter on third — very rare and usually scores any runners already on base.';
+    else if(lower.includes('grounds out')||lower.includes('ground out'))
+      note='The batter hit a ball on the ground that was fielded for an out — a routine play for the defence.';
+    else if(lower.includes('flies out')||lower.includes('fly out')||lower.includes('on a fly ball'))
+      note='The batter hit the ball in the air and it was caught before it landed — an out for the defence.';
+    else if(lower.includes('strikeout')||lower.includes('struck out')||lower.includes('called out on strikes'))
+      note='The pitcher got three strikes on the batter without them making contact — a big win for the pitcher.';
+    else if(lower.includes('walk')||lower.includes('on a walk')||lower.includes('intentional'))
+      note='The pitcher threw four balls, giving the batter a free pass to first base — adds a runner without a hit.';
+    else if(lower.includes('wild pitch')||lower.includes('passed ball'))
+      note='The pitch got away from the catcher, which can allow runners to advance to the next base for free.';
+    else if(lower.includes('stolen base')||lower.includes('steals'))
+      note='The runner on base sprinted to the next base while the pitcher was throwing — a momentum shift.';
+    else if(lower.includes('error'))
+      note='A fielder made a mistake that let the play continue — gives the batting team a free base.';
+    else if(lower.includes('scores')||lower.includes('run scores'))
+      note='A run crossed home plate — that goes on the scoreboard and can shift the game.';
+    else if(lower.includes('double play'))
+      note='Two outs recorded on the same play — the best outcome for the fielding team, ends threats instantly.';
+    else if(lower.includes('force out')||lower.includes('fielder\'s choice'))
+      note='The defence chose to get an out on a runner already on base rather than the batter — smart fielding.';
     else if(lower.includes('bullpen')||lower.includes('pitcher used'))
       note='The bullpen is the relief pitching staff. Using many pitchers early can leave a team thin late.';
+    else if(lower.includes('score')||lower.includes('run'))
+      note='Runs decide the game — scoring plays directly shift the lead.';
     else
-      note='This can directly affect what happens on the next pitch or play.';
-
+      note='';
+    if(!note) return t;
     return `${t}<div style="margin-top:4px;font-size:11px;color:var(--muted);line-height:1.4;border-left:2px solid var(--border);padding-left:6px">${note}</div>`;
   }
 
-  // Intermediate — one tactical sentence
-  if(lower.includes('strikeout')||lower.includes('whiff'))
-    note='Watch for the punchout — pitcher has the edge.';
-  else if(lower.includes('walk')||lower.includes('bb%'))
-    note='Free base could shift the inning.';
-  else if(lower.includes('hard hit')||lower.includes('barrel'))
-    note='Contact quality is the real damage indicator here.';
-  else if(lower.includes('fastball'))
-    note='Hitter will need to be quick on the heater.';
-  else if(lower.includes('slider')||lower.includes('curveball')||lower.includes('changeup'))
-    note='Off-speed can generate chases out of zone.';
-  else if(lower.includes('count'))
-    note='Count leverage shapes both pitch selection and swing decisions.';
-  else if(lower.includes('hot')||lower.includes('streak'))
-    note='Recent form carries real predictive weight — don\'t fade the hot bat.';
-  else if(lower.includes('score')||lower.includes('run'))
-    note='Momentum can shift with runs — watch how the pitcher responds.';
+  // Intermediate
+  if(lower.includes('home run')||lower.includes('homers'))
+    note='Momentum swing — all runners score.';
+  else if(lower.includes('double play'))
+    note='Inning killer — defence eliminates two threats at once.';
+  else if(lower.includes('strikeout')||lower.includes('struck out'))
+    note='Pitcher dominates — K adds pressure on the batting side.';
+  else if(lower.includes('walk'))
+    note='Free base raises scoring threat, especially with runners on.';
+  else if(lower.includes('stolen base')||lower.includes('steals'))
+    note='Speed play — shifts run probability without a hit.';
+  else if(lower.includes('wild pitch')||lower.includes('passed ball'))
+    note='Passed ball advances runners — free base, no hit required.';
+  else if(lower.includes('error'))
+    note='Defensive miscue — extends the inning for the batting team.';
+  else if(lower.includes('single')||lower.includes('double')||lower.includes('triple'))
+    note='Hit puts pressure on — runner in scoring position matters here.';
 
   if(!note) return t;
   return `${t}<span style="display:block;margin-top:3px;font-size:11px;color:var(--muted)">${note}</span>`;
@@ -928,7 +1018,216 @@ function renderBatterCard(b){
   ${b.summary?`<div class="item" style="margin-top:8px;font-size:11px">${b.summary.handlesFastballs||''} ${b.summary.chaseNote||''}</div>`:''}`;
 }
 
-/* ── SCHEDULE ── */
+/* ── LINEUPS ── */
+function renderLineups(data){
+  if(!data||(!data.away.lineup.length&&!data.home.lineup.length)){
+    $('lineupsPanel').style.display='none';return;
+  }
+  $('lineupsPanel').style.display='';
+  $('lineupsBadge').textContent='Live batting orders';
+  const curId=data.currentBatterId;
+  function side(team){
+    const rows=team.lineup.map(p=>{
+      const isUp=p.id===curId;
+      const hasHR=p.todayHR>0;
+      const hasHit=p.todayH>0&&!hasHR;
+      const todayCls=hasHR?'has-hr':hasHit?'has-hit':'';
+      const todayTxt=p.note||`${p.todayAB}AB`;
+      return `<div class="lineup-row ${isUp?'active-batter':''}">
+        <div class="lineup-num">${p.order}</div>
+        <div class="lineup-name">${isUp?`<span style="color:var(--red)">${p.name}</span>`:p.name}</div>
+        <div class="lineup-pos">${p.position}</div>
+        <div class="lineup-today ${todayCls}">${todayTxt}</div>
+      </div>`;
+    }).join('');
+    return `<div class="lineup-side">
+      <div class="lineup-header">
+        <div style="width:22px;height:22px;overflow:hidden">${logoImg(team.id,20)}</div>
+        <span class="lineup-team-name">${team.abbr}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto">AVG · OBP</span>
+      </div>
+      ${rows}
+    </div>`;
+  }
+  $('lineupsContent').innerHTML=side(data.away)+side(data.home);
+}
+
+/* ── IN-PLAY STATS ── */
+function renderInplayStats(data){
+  if(!data||(!data.pitcher&&!data.batter)){
+    $('inplayPanel').style.display='none';return;
+  }
+  $('inplayPanel').style.display='';
+  let html='';
+
+  if(data.pitcher){
+    const p=data.pitcher;
+    const pct=Math.min(100,Math.round((p.pitchCount/p.avgHook)*100));
+    const meterColor=pct>=90?'var(--red)':pct>=70?'var(--gold)':'var(--live)';
+    html+=`<div class="inplay-section">
+      <div class="inplay-role">Pitcher — Today</div>
+      <div class="inplay-player">${p.name}</div>
+      <div class="inplay-summary">
+        <strong>${p.pitchCount}</strong> pitches · <strong>${p.inningsPitched}</strong> IP ·
+        <strong>${p.strikeouts}K</strong> · <strong>${p.walksAllowed}BB</strong> ·
+        ${p.hitsAllowed}H · ${p.earnedRuns}ER · ERA ${p.era}
+      </div>
+      <div class="pitch-meter">
+        <div style="font-size:11px;color:var(--muted)">Pitch count vs avg hook (${p.avgHook})</div>
+        <div class="pitch-meter-track">
+          <div class="pitch-meter-fill" style="width:${pct}%;background:${meterColor}"></div>
+        </div>
+        <div class="pitch-meter-label">
+          <span>0</span>
+          <span style="color:${meterColor}">${p.pitchCount} pitches</span>
+          <span>${p.avgHook}</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);padding:4px 6px;background:var(--card-2);border-radius:4px">${p.stressNote}</div>
+    </div>`;
+  }
+
+  if(data.batter){
+    const b=data.batter;
+    const paRows=b.paDetails.map(pa=>{
+      const isHit=['Single','Double','Triple','Home Run'].some(h=>pa.result.includes(h));
+      const isHR=pa.result.includes('Home Run');
+      const halfShort=(pa.half||'').toLowerCase().startsWith('bot')?'B':'T';
+      return `<div class="pa-row">
+        <span class="pa-inn">${halfShort}${pa.inning||'?'}</span>
+        <span class="pa-result ${isHR?'hr':isHit?'positive':''}">${pa.result}</span>
+        <span style="margin-left:auto;color:var(--muted)">${pa.pitchCount}p</span>
+        ${pa.scoringPlay?'<span style="color:var(--live);font-size:10px">🔥</span>':''}
+      </div>`;
+    }).join('');
+    html+=`<div class="inplay-section">
+      <div class="inplay-role">Batter — Today</div>
+      <div class="inplay-player">${b.name}</div>
+      <div class="inplay-summary"><strong>${b.summary}</strong> · Season: ${b.seasonAvg} AVG / ${b.seasonOBP} OBP</div>
+      ${paRows?`<div class="pa-log">${paRows}</div>`:'<div style="font-size:11px;color:var(--muted)">No plate appearances yet</div>'}
+    </div>`;
+  }
+  $('inplayStats').innerHTML=html;
+}
+
+
+/* ── DIRECT MLB API LINEUP FETCH ── */
+async function fetchAndRenderLineups(gamePk, matchup){
+  try{
+    const r=await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
+    if(!r.ok)throw new Error('lineup fetch failed');
+    const d=await r.json();
+    const box=d.liveData?.boxscore?.teams||{};
+    const currentBatterId=matchup?.currentBatter?.id;
+
+    function buildSide(side,teamObj){
+      const battingOrder=teamObj.battingOrder||[];
+      const players=teamObj.players||{};
+      const lineup=battingOrder.map((pid,idx)=>{
+        const p=players[`ID${pid}`];
+        if(!p)return null;
+        const stats=p.stats?.batting||{};
+        const todayAB=stats.atBats??0;
+        const todayH=stats.hits??0;
+        const todayHR=stats.homeRuns??0;
+        const todayRBI=stats.rbi??0;
+        const todayK=stats.strikeOuts??0;
+        const todayBB=stats.baseOnBalls??0;
+        const season=p.seasonStats?.batting||{};
+        let note='';
+        if(todayHR>0) note=`${todayHR}HR`;
+        else if(todayH>0) note=`${todayH}/${todayAB}`;
+        else if(todayAB>0) note=`0/${todayAB}`;
+        else note='—';
+        if(todayK>0&&!todayHR) note+=` ${todayK}K`;
+        if(todayBB>0) note+=` ${todayBB}BB`;
+        const avg=season.avg||'.000';
+        const obp=season.obp||'.000';
+        return{
+          id:Number(pid),
+          order:idx+1,
+          name:p.person?.fullName||`Player ${pid}`,
+          position:p.position?.abbreviation||'',
+          todayH,todayHR,todayAB,note,
+          avg,obp
+        };
+      }).filter(Boolean);
+      return{id:teamObj.team?.id,abbr:teamObj.team?.abbreviation||side,lineup};
+    }
+
+    const data={
+      away:buildSide('away',box.away||{}),
+      home:buildSide('home',box.home||{}),
+      currentBatterId
+    };
+    renderLineups(data);
+  }catch(e){
+    $('lineupsPanel').style.display='none';
+  }
+}
+
+/* ── DIRECT MLB API IN-PLAY STATS FETCH ── */
+async function fetchAndRenderInplay(gamePk, matchup){
+  try{
+    const r=await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
+    if(!r.ok)throw new Error();
+    const d=await r.json();
+    const box=d.liveData?.boxscore?.teams||{};
+    const allPlays=d.liveData?.plays?.allPlays||[];
+    const pitcherId=matchup?.currentPitcher?.id;
+    const batterId=matchup?.currentBatter?.id;
+
+    let pitcherData=null, batterData=null;
+
+    // Pitcher today
+    if(pitcherId){
+      const findInTeam=(team)=>Object.values(team.players||{}).find(p=>p.person?.id===pitcherId);
+      const pp=findInTeam(box.home)||findInTeam(box.away);
+      if(pp){
+        const s=pp.stats?.pitching||{};
+        const season=pp.seasonStats?.pitching||{};
+        const avgHook=Math.round(Number(season.inningsPitched||6)*15)||90;
+        const pitchCount=s.numberOfPitches??0;
+        const ip=s.inningsPitched||'0.0';
+        const k=s.strikeOuts??0;
+        const bb=s.baseOnBalls??0;
+        const h=s.hits??0;
+        const er=s.earnedRuns??0;
+        const era=season.era||'—';
+        const stressNote=pitchCount>=avgHook?`⚠ Over avg hook point (${avgHook}) — bullpen likely warming`
+          :pitchCount>=avgHook*0.85?`Approaching hook point — watch for pull at ${avgHook} pitches`
+          :`Comfortably within pitch count limit`;
+        pitcherData={name:pp.person?.fullName||'Pitcher',pitchCount,inningsPitched:ip,strikeouts:k,walksAllowed:bb,hitsAllowed:h,earnedRuns:er,era,avgHook,stressNote};
+      }
+    }
+
+    // Batter today — scan play log
+    if(batterId){
+      const findInTeam=(team)=>Object.values(team.players||{}).find(p=>p.person?.id===batterId);
+      const bp=findInTeam(box.home)||findInTeam(box.away);
+      if(bp){
+        const s=bp.stats?.batting||{};
+        const season=bp.seasonStats?.batting||{};
+        const h=s.hits??0; const ab=s.atBats??0; const hr=s.homeRuns??0; const rbi=s.rbi??0;
+        const summary=ab>0?`${h}/${ab}${hr>0?` · ${hr}HR`:''}${rbi>0?` · ${rbi}RBI`:''}` :'No AB yet';
+        // Build PA log from play history
+        const pas=allPlays.filter(p=>p.matchup?.batter?.id===batterId).map(p=>({
+          inning:p.about?.inning,
+          half:p.about?.halfInning,
+          result:p.result?.description||p.result?.event||'—',
+          pitchCount:p.playEvents?.filter(e=>e.isPitch).length||0,
+          scoringPlay:p.about?.isScoringPlay||false
+        }));
+        batterData={name:bp.person?.fullName||'Batter',summary,seasonAvg:season.avg||'.000',seasonOBP:season.obp||'.000',paDetails:pas};
+      }
+    }
+
+    renderInplayStats({pitcher:pitcherData,batter:batterData});
+  }catch(e){
+    $('inplayPanel').style.display='none';
+  }
+}
+
 async function loadSlate(renderOnly=false){
   try{
     const data=await api('/api/schedule');
@@ -948,13 +1247,14 @@ async function pollAllGames(){
     const hadLive=state.games.some(g=>g.status==='Live');
     state.games=sortGames(data.games);
     renderGames(); // update sidebar scores/inning for all games
-    // If the selected game is live, also check if play state changed
+    // If the selected game is live, refresh the main panel every poll cycle
+    // (runners + count change on every pitch, not just play token changes)
     const sel=state.games.find(x=>x.gamePk===state.selectedGamePk);
     if(sel&&sel.status==='Live'){
       try{
         const feed=await api(`/api/pitch-feed?gamePk=${state.selectedGamePk}`);
-        if(state.playStateToken&&state.playStateToken!==feed.playStateToken)await refreshGame();
-        else updateBannerScore(sel); // at minimum keep banner score fresh
+        // Always do a full refresh so runners/count/inning stay current
+        await refreshGame();
       }catch{}
     }
     // If a game just went live (was Preview, now Live) and it's selected, full refresh
@@ -1005,28 +1305,40 @@ async function refreshGame(){
     ]);
     updateBanner(g,summary);
 
+    // Fetch lineups and in-play stats directly from MLB API
+    fetchAndRenderLineups(gamePk, matchup);
+    fetchAndRenderInplay(gamePk, matchup);
+
     $('liveTicker').innerHTML=feed.recentPlays.length
       ?feed.recentPlays.slice().reverse().map(p=>`<div class="item"><span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'🔥 ':''}<span>${explain(p.description||'—')}</span></div>`).join('')
       :'<div class="empty">No recent plays</div>';
     $('tickerBadge').textContent=feed.recentPlays.length?`${feed.recentPlays.length} plays`:'';
 
+    // Determine which team is pitching vs batting from the inning half
+    // Top = away bats, home pitches | Bottom = home bats, away pitches
+    const isBottom=(summary.half||'').toLowerCase().includes('bot');
+    const pitcherTeamId=isBottom?g.teams.away.id:g.teams.home.id;
+    const batterTeamId=isBottom?g.teams.home.id:g.teams.away.id;
+    const pitcherHand=matchup.pitcherVsBatter?.handedness?.split(' vs ')?.[0]||'R';
+    const batterSide=matchup.pitcherVsBatter?.handedness?.split(' vs ')?.[1]||'R';
+
     $('currentMatchup').innerHTML=`<div class="matchup-display">
       <div class="matchup-player">
         <div class="matchup-role">Pitcher</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(g.teams.home.id,18)}</div>
+          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(pitcherTeamId,18)}</div>
           <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
         </div>
-        <div class="matchup-hand">${matchup.currentPitcher?'RHP':'—'}</div>
+        <div class="matchup-hand">${pitcherHand}HP</div>
       </div>
       <div class="matchup-vs">VS</div>
       <div class="matchup-player">
         <div class="matchup-role">Batter</div>
         <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(g.teams.away.id,18)}</div>
+          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,18)}</div>
           <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
         </div>
-        <div class="matchup-hand">${matchup.currentBatter?'BAT':'—'}</div>
+        <div class="matchup-hand">Bats ${batterSide}</div>
       </div>
     </div>
     ${matchup.pitcherVsBatter?.handedness?`<div style="margin-top:8px;font-size:12px;color:var(--sub);text-align:center">Handedness: <strong style="color:var(--text)">${matchup.pitcherVsBatter.handedness}</strong></div>`:''}`;
@@ -1048,7 +1360,65 @@ async function refreshGame(){
 
     const exp=matchup.nextPitchExpectation;
     $('nextPitch').innerHTML=exp?`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${levelCopy[state.level].nextPitch(exp)}</div><div class="pitch-probs">${exp.probabilities.map((p,i)=>`<div class="pitch-chip ${i===0?'top':''}"><div class="pitch-type">${p.pitchType}</div><div class="pitch-pct">${p.probability}%</div><div class="pitch-unit">probability</div></div>`).join('')}</div>`:'<div class="empty">—</div>';
-    $('gameBuzz').innerHTML=buzz.buzz.length?buzz.buzz.map(b=>`<div class="buzz-item"><div class="buzz-dot"></div><div class="buzz-text"><strong>${levelCopy[state.level].buzzPrefix}:</strong> ${explain(b.text)}</div></div>`).join(''):'<div class="empty">No buzz yet</div>';
+    // ── GAME BUZZ — built client-side for richer, runner-aware signals ──
+    const buzzItems=[];
+    const r=summary.runners||{};
+    const runnersOn=[r.first,r.second,r.third].filter(Boolean).length;
+    const balls=summary.count?.balls??0;
+    const strikes=summary.count?.strikes??0;
+    const outs=summary.outs??0;
+    const awayScore=summary.score?.away??0;
+    const homeScore=summary.score?.home??0;
+    const scoreDiff=Math.abs(awayScore-homeScore);
+    const inning=Number(summary.inning)||1;
+    const isBot=(summary.half||'').toLowerCase().includes('bot');
+    const pitchCount=feed.pitchEvents?.length||0;
+
+    // Runner situations
+    if(r.second&&r.third) buzzItems.push({type:'threat',dot:'red',text:'Runners on 2nd and 3rd — scoring position with multiple threats. Any contact could score runs.'});
+    else if(r.first&&r.second) buzzItems.push({type:'threat',dot:'red',text:'Runners on 1st and 2nd — double play in order but also a gap hit scores two.'});
+    else if(r.first&&r.third) buzzItems.push({type:'threat',dot:'red',text:'Runners on the corners — a single, wild pitch or passed ball could score the runner from 3rd.'});
+    else if(r.third) buzzItems.push({type:'threat',dot:'amber',text:'Runner on 3rd — in scoring position. A sacrifice fly, single or wild pitch could score here.'});
+    else if(r.second) buzzItems.push({type:'threat',dot:'amber',text:'Runner on 2nd — in scoring position. A single to the outfield likely scores this runner.'});
+
+    // Count pressure
+    if(balls===3&&strikes===2) buzzItems.push({type:'count',dot:'red',text:'Full count — 3-2. Next pitch decides the at-bat. Batter can run on contact, maximum pressure on the pitcher.'});
+    else if(balls===3) buzzItems.push({type:'count',dot:'amber',text:'3 balls — pitcher one away from a walk. Likely throwing a strike here, batter can look for something to drive.'});
+    else if(strikes===2&&runnersOn>0) buzzItems.push({type:'count',dot:'amber',text:'2-strike count with runners on — pitcher has the edge but one mistake could do damage.'});
+
+    // Outs context
+    if(outs===2&&runnersOn>0) buzzItems.push({type:'situational',dot:'blue',text:`2 outs with ${runnersOn===1?'a runner':'runners'} on — 2-out RBI situation. Pitcher needs just one more out to escape.`});
+
+    // Late inning pressure
+    if(inning>=7&&scoreDiff<=2) buzzItems.push({type:'leverage',dot:'red',text:`Late game (${scoreDiff===0?'tied':scoreDiff+'-run game'}) in the ${inning>=9?'9th':'late innings'} — every pitch is high leverage now.`});
+    else if(inning>=7&&scoreDiff===0) buzzItems.push({type:'leverage',dot:'red',text:'Tie game in the late innings — maximum leverage situation.'});
+
+    // Long at-bat
+    if(pitchCount>=6) buzzItems.push({type:'battle',dot:'blue',text:`${pitchCount}-pitch at-bat in progress — extended battle means more pitches on the starter, could force bullpen earlier.`});
+
+    // Recent scoring
+    const recentScoring=feed.recentPlays?.filter(p=>p.scoringPlay)?.slice(-2)||[];
+    if(recentScoring.length>=2) buzzItems.push({type:'momentum',dot:'live',text:'Back-to-back scoring plays — significant momentum swing. Watch for a pitching change or adjustment.'});
+    else if(recentScoring.length===1) buzzItems.push({type:'momentum',dot:'amber',text:`Scoring play just recorded: ${recentScoring[0].description||'run scored'}. Game state changed.`});
+
+    // Bullpen watch from pitch feed play count
+    const totalPlays=feed.recentPlays?.length||0;
+    const starterNote=matchup.starterInfo;
+    if(inning>=6) buzzItems.push({type:'bullpen',dot:'blue',text:`${inning>=7?'Late game':'Middle innings'} — bullpen decisions become critical. Relief arm quality could determine the result.`});
+
+    // Close game general
+    if(scoreDiff===0&&inning>=5) buzzItems.push({type:'general',dot:'blue',text:'Tied game — both teams pitching and defending for every out. Run environment is tight.'});
+    else if(scoreDiff===1&&inning>=6) buzzItems.push({type:'general',dot:'amber',text:'One-run game in the late innings — a single swing can flip this.'});
+
+    // Fallback
+    if(!buzzItems.length) buzzItems.push({type:'steady',dot:'muted',text:'Game state is stable — no immediate high-leverage situation flagged.'});
+
+    const dotColor={red:'var(--red)',amber:'var(--gold)',blue:'var(--blue)',live:'var(--live)',muted:'var(--muted)'};
+    $('gameBuzz').innerHTML=buzzItems.slice(0,5).map(b=>`
+      <div class="buzz-item">
+        <div class="buzz-dot" style="background:${dotColor[b.dot]||'var(--blue)'}"></div>
+        <div class="buzz-text">${state.level!=='new'?`<strong>${b.type.charAt(0).toUpperCase()+b.type.slice(1)}:</strong> `:''}${b.text}</div>
+      </div>`).join('');
 
     state.playStateToken=feed.playStateToken;
   }catch(e){console.error('Refresh failed:',e);}
@@ -1066,3 +1436,4 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
+
