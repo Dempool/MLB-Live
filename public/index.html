@@ -1,45 +1,985 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MLB Live Tracker</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── MLB / FANDUEL-QUALITY THEME ──────────────────────────────
+       Navy foundation · Crisp white type · Red accent · Gold live
+       Reference: FanDuel Sportsbook dark interface + MLB.com colours
+    ───────────────────────────────────────────────────────────── */
+    :root {
+      /* Backgrounds — deep navy hierarchy */
+      --bg:        #0e1117;   /* page bg — near-black navy */
+      --surface:   #141921;   /* sidebar, header, banner */
+      --card:      #1a2130;   /* panel surfaces */
+      --card-2:    #1f2840;   /* inset cells, row alt */
+      /* Borders */
+      --border:    #26334a;
+      --border-soft:#1e2d3e;
+      /* Typography */
+      --text:      #f0f4fc;   /* primary white */
+      --sub:       #8fa6c8;   /* secondary */
+      --muted:     #445b78;   /* tertiary / labels */
+      /* Accent — MLB red */
+      --red:       #e8182c;
+      --red-dim:   rgba(232,24,44,0.13);
+      --red-mid:   rgba(232,24,44,0.25);
+      /* Live green */
+      --live:      #00d26a;
+      --live-dim:  rgba(0,210,106,0.12);
+      /* Blue — FanDuel / info */
+      --blue:      #1f8ef1;
+      --blue-dim:  rgba(31,142,241,0.12);
+      --blue-mid:  rgba(31,142,241,0.22);
+      /* Gold — counts, amber alerts */
+      --gold:      #f5b942;
+      --gold-dim:  rgba(245,185,66,0.12);
+      /* Header accent stripe */
+      --accent-stripe: #e8182c;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;line-height:1.5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+    /* ── HEADER ── */
+    .header{
+      height:54px;
+      background:var(--surface);
+      border-bottom:2px solid var(--accent-stripe);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 20px;flex-shrink:0;
+      position:relative;
+    }
+    /* subtle red glow under header */
+    .header::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,24,44,.4),transparent)}
+    .logo{display:flex;align-items:center;gap:11px}
+    .logo-icon{
+      width:32px;height:32px;
+      background:var(--red);
+      border-radius:6px;
+      display:flex;align-items:center;justify-content:center;
+      font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:#fff;
+      letter-spacing:.5px;
+    }
+    .logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:.3px;color:var(--text)}
+    .logo-text span{color:var(--red)}
+    .header-right{display:flex;align-items:center;gap:10px}
+    .level-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+    select,.btn{
+      background:var(--card-2);color:var(--text);
+      border:1px solid var(--border);border-radius:5px;
+      padding:6px 12px;
+      font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px;
+      cursor:pointer;transition:border-color .15s,background .15s;
+    }
+    select:focus,.btn:focus{outline:none;border-color:var(--blue)}
+    select:hover{border-color:var(--blue)}
+    .btn-refresh{
+      background:var(--red-dim);border-color:var(--red);color:var(--red);
+      display:flex;align-items:center;gap:5px;
+    }
+    .btn-refresh:hover{background:var(--red);color:#fff}
+
+    /* ── SHELL ── */
+    .shell{display:flex;flex:1;min-height:0;overflow:hidden}
+
+    /* ── SIDEBAR ── */
+    .sidebar{width:248px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .sidebar-head{
+      padding:11px 14px 9px;
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+    .date-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+    #games{flex:1;overflow-y:auto;padding:0}
+    #games::-webkit-scrollbar{width:3px}
+    #games::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    /* ── GAME CARD ── */
+    .game-card{
+      padding:11px 14px 9px;
+      border-bottom:1px solid var(--border-soft);
+      cursor:pointer;transition:background .1s;
+    }
+    .game-card:hover{background:rgba(31,142,241,.06)}
+    .game-card.active{
+      background:var(--blue-dim);
+      border-left:3px solid var(--blue);
+      padding-left:11px;
+    }
+    .game-status{
+      font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;
+      letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;
+    }
+    .game-status.live{color:var(--live)}
+    .game-status.final{color:var(--gold)}
+    .game-status.preview{color:var(--muted)}
+
+    /* Two-team row with fixed columns so dots align */
+    .card-teams{display:flex;align-items:center;gap:0;width:100%}
+    .card-team{display:flex;align-items:center;gap:5px;flex:1}
+    .card-team.home{justify-content:flex-end}
+    .team-logo-sm{width:22px;height:22px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .team-logo-sm img{width:100%;height:100%;object-fit:contain}
+    .team-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
+    .card-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--sub);min-width:14px;text-align:center}
+    .card-sep{font-size:12px;color:var(--muted);padding:0 6px;flex-shrink:0}
+
+    /* Dots row — same two-column structure as card-teams */
+    .card-dots{display:flex;align-items:center;gap:0;width:100%;margin-top:5px}
+    .dots-away{display:flex;gap:3px;flex:1}
+    .dots-home{display:flex;gap:3px;flex:1;justify-content:flex-end}
+    .fg-dot{width:7px;height:7px;border-radius:50%}
+    .fg-dot.W{background:var(--live)}
+    .fg-dot.L{background:var(--red)}
+    .fg-dot.T{background:var(--gold)}
+
+    .card-time{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:4px}
+
+    /* ── MAIN ── */
+    .main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+
+    /* ── BANNER ── */
+    .banner{
+      flex-shrink:0;
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:0 20px;height:66px;
+      display:flex;align-items:center;gap:0;
+    }
+    .banner-team{display:flex;align-items:center;gap:10px}
+    .team-logo-lg{
+      width:38px;height:38px;border-radius:7px;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;
+      background:var(--card-2);border:1px solid var(--border);
+    }
+    .team-logo-lg img{width:100%;height:100%;object-fit:contain}
+    .banner-score-block{text-align:center;min-width:100px}
+    .banner-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;line-height:1;color:var(--text)}
+    .banner-score-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    .banner-sep{width:1px;height:34px;background:var(--border);margin:0 16px;flex-shrink:0}
+    .banner-section{display:flex;flex-direction:column;justify-content:center}
+    .banner-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .banner-value{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
+    .banner-count{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;color:var(--gold)}
+    .banner-state{font-size:12px;color:var(--sub)}
+    .live-dot{display:inline-block;width:7px;height:7px;background:var(--live);border-radius:50%;margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+    .runners{display:flex;flex-direction:column;align-items:center;gap:3px}
+    .runners-row{display:flex;gap:4px}
+    .base{width:11px;height:11px;border:1.5px solid var(--border);transform:rotate(45deg);border-radius:1px;background:transparent;transition:background .2s,border-color .2s}
+    .base.on{background:var(--gold);border-color:var(--gold)}
+
+    /* ── CONTENT ── */
+    .content{flex:1;overflow-y:auto;padding:12px}
+    .content::-webkit-scrollbar{width:5px}
+    .content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .grid-wide{grid-column:span 2}
+    .grid-full{grid-column:span 3}
+
+    /* ── PANEL ── */
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:8px;overflow:hidden;
+      display:flex;flex-direction:column;
+    }
+    .panel-head{
+      padding:8px 13px;
+      border-bottom:1px solid var(--border-soft);
+      display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+      background:rgba(255,255,255,.02);
+    }
+    .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+    .panel-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+    .panel-body{padding:10px 13px;flex:1;overflow-y:auto}
+    .panel-body::-webkit-scrollbar{width:3px}
+    .panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+    /* ── ITEMS ── */
+    .item{
+      padding:7px 10px;background:var(--card-2);
+      border:1px solid var(--border-soft);border-radius:5px;
+      margin-bottom:5px;font-size:13px;line-height:1.5;color:var(--sub);
+    }
+    .item:last-child{margin-bottom:0}
+    .item strong{color:var(--text)}
+    .tag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-right:4px}
+    .tag-live{background:var(--live-dim);color:var(--live)}
+    .tag-info{background:var(--blue-dim);color:var(--blue)}
+
+    /* ── PREGAME ── */
+    .pregame-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .pregame-team-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border-soft);margin-bottom:10px}
+    .pregame-logo{width:48px;height:48px;border-radius:9px;overflow:hidden;background:var(--card-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pregame-logo img{width:100%;height:100%;object-fit:contain}
+    .pregame-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;color:var(--text)}
+    .pregame-record{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sub)}
+    .pregame-last5{display:flex;gap:4px;margin-top:5px;align-items:center}
+    .last5-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-right:4px}
+    .last5-pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:3px}
+    .last5-pill.W{background:var(--live-dim);color:var(--live)}
+    .last5-pill.L{background:var(--red-dim);color:var(--red)}
+    .last5-pill.T{background:var(--gold-dim);color:var(--gold)}
+    .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:2px}
+    .spotlight-card{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:9px 11px 9px 14px;margin-bottom:6px;position:relative;overflow:hidden}
+    .spotlight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
+    .spotlight-card.is-starter::before{background:var(--blue)}
+    .spotlight-card.is-hot::before{background:var(--live)}
+    .spotlight-card.is-cold::before{background:var(--red)}
+    .spotlight-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
+    .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text)}
+    .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;margin-left:6px}
+    .badge-hot{background:var(--live-dim);color:var(--live)}
+    .badge-cold{background:var(--red-dim);color:var(--red)}
+    .badge-starter{background:var(--blue-dim);color:var(--blue)}
+    .spotlight-stat{font-size:12px;color:var(--sub);line-height:1.5}
+    .spotlight-stat strong{color:var(--gold)}
+    .spotlight-extra{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+
+    /* ── STAT BARS ── */
+    .bar-group{margin-bottom:8px}
+    .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;color:var(--sub)}
+    .bar-label span:last-child{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)}
+    .bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+    .bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s ease}
+    .bar-fill.green{background:var(--live)}
+    .bar-fill.amber{background:var(--gold)}
+    .bar-fill.red{background:var(--red)}
+    .stat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+    .stat-row:last-child{border-bottom:none}
+    .stat-key{font-size:12px;color:var(--sub)}
+    .stat-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--text)}
+
+    /* ── MIX GRID ── */
+    .mix-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+    .mix-chip{flex:1;min-width:50px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px 7px;text-align:center}
+    .mix-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px}
+    .mix-pct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--text)}
+    .mix-vel{font-size:10px;color:var(--muted)}
+
+    /* ── MATCHUP ── */
+    .matchup-display{display:flex;align-items:center;gap:8px}
+    .matchup-player{flex:1;background:var(--card-2);border:1px solid var(--border-soft);border-radius:7px;padding:9px 10px;text-align:center}
+    .matchup-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .matchup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text)}
+    .matchup-vs{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:var(--muted)}
+    .matchup-hand{display:inline-block;margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-mid);padding:1px 6px;border-radius:3px}
+
+    /* ── PITCH CHIPS ── */
+    .pitch-probs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+    .pitch-chip{display:flex;flex-direction:column;align-items:center;background:var(--card-2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;min-width:64px;flex:1}
+    .pitch-chip.top{border-color:var(--red);background:var(--red-dim)}
+    .pitch-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--sub)}
+    .pitch-chip.top .pitch-type{color:var(--red)}
+    .pitch-pct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:var(--text);line-height:1.2}
+    .pitch-chip.top .pitch-pct{color:var(--text)}
+    .pitch-unit{font-size:10px;color:var(--muted)}
+
+    /* ── PITCH ROW ── */
+    .pitch-row{display:grid;grid-template-columns:22px 1fr auto auto auto;gap:6px;align-items:center;padding:5px 8px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:4px;font-size:12px}
+    .pitch-row:last-child{margin-bottom:0}
+    .pitch-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:center}
+    .pitch-desc{color:var(--sub)}
+    .pitch-spd{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:var(--text)}
+    .pitch-call{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:1px 5px;border-radius:3px;letter-spacing:.5px}
+    .call-strike{background:var(--red-dim);color:var(--red)}
+    .call-ball{background:var(--blue-dim);color:var(--blue)}
+    .call-hit{background:var(--live-dim);color:var(--live)}
+    .call-other{background:var(--border);color:var(--sub)}
+    .pitch-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+
+    /* ── ANGLE / BUZZ ── */
+    .angle-card{background:var(--card-2);border:1px solid var(--border-soft);border-left:3px solid var(--red);border-radius:0 5px 5px 0;padding:8px 10px;margin-bottom:6px}
+    .angle-card:last-child{margin-bottom:0}
+    .angle-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:2px}
+    .angle-why{font-size:12px;color:var(--sub)}
+    .buzz-item{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:5px}
+    .buzz-item:last-child{margin-bottom:0}
+    .buzz-dot{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0}
+    .buzz-text{font-size:13px;color:var(--sub)}
+    .buzz-text strong{color:var(--text)}
+
+    /* ── UTILS ── */
+    .empty{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.3px}
+    .loading{color:var(--muted);font-size:12px;padding:10px 13px;display:flex;align-items:center;gap:6px}
+    .spin{width:12px;height:12px;border:1.5px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:1200px){.grid{grid-template-columns:repeat(2,1fr)}.grid-wide{grid-column:span 2}.grid-full{grid-column:span 2}}
+    @media(max-width:800px){
+      .shell{flex-direction:column}
+      .sidebar{width:100%;height:185px;border-right:none;border-bottom:1px solid var(--border)}
+      #games{display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden}
+      .game-card{min-width:155px;border-bottom:none;border-right:1px solid var(--border-soft)}
+      .grid{grid-template-columns:1fr}.grid-wide,.grid-full{grid-column:span 1}
+      .pregame-grid{grid-template-columns:1fr}
+    }
+  </style>
 </head>
 <body>
-  <div class="header">
-    <div class="title">MLB Tracker — Live + Savant Intelligence</div>
-    <div class="controls">
-      <label for="knowledgeLevel">Knowledge:</label>
-      <select id="knowledgeLevel">
-        <option value="new">New</option>
-        <option value="intermediate" selected>Intermediate</option>
-        <option value="experienced">Experienced</option>
-      </select>
-      <button id="refreshSlate">Refresh Slate</button>
+
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">MLB</div>
+    <div class="logo-text">Live<span>Tracker</span></div>
+  </div>
+  <div class="header-right">
+    <span class="level-label">View Level</span>
+    <select id="knowledgeLevel">
+      <option value="new">New Fan</option>
+      <option value="intermediate" selected>Intermediate</option>
+      <option value="experienced">Experienced</option>
+    </select>
+    <button class="btn btn-refresh" id="refreshSlate">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M10.5 6A4.5 4.5 0 1 1 7.5 1.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10.5 1v3h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-title">Today's Games</span>
+      <span class="date-tag" id="sidebarDate">—</span>
+    </div>
+    <div id="games"><div class="loading"><div class="spin"></div> Loading…</div></div>
+  </aside>
+
+  <div class="main">
+    <div class="banner" id="banner">
+      <div class="banner-team">
+        <div class="team-logo-lg" id="bnAwayLogo"></div>
+        <div>
+          <div class="banner-value" id="bnAwayName">—</div>
+          <div class="banner-state" id="bnAwayRecord"></div>
+        </div>
+      </div>
+      <div class="banner-score-block" style="margin:0 12px">
+        <div class="banner-score" id="bnScore">— —</div>
+        <div class="banner-score-sub" id="bnScoreSub">Select a game</div>
+      </div>
+      <div class="banner-team">
+        <div style="text-align:right">
+          <div class="banner-value" id="bnHomeName">—</div>
+          <div class="banner-state" id="bnHomeRecord"></div>
+        </div>
+        <div class="team-logo-lg" id="bnHomeLogo"></div>
+      </div>
+      <div class="banner-sep"></div>
+      <div class="banner-section">
+        <div class="banner-label">Situation</div>
+        <div class="banner-state" id="bnState">—</div>
+      </div>
+      <div class="banner-sep"></div>
+      <div class="banner-section">
+        <div class="banner-label">Count</div>
+        <div class="banner-count" id="bnCount">—</div>
+      </div>
+      <div class="banner-sep"></div>
+      <div class="banner-section">
+        <div class="banner-label">Runners</div>
+        <div class="runners">
+          <div class="runners-row"><div class="base" id="r2"></div></div>
+          <div class="runners-row"><div class="base" id="r3"></div><div class="base" id="r1"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="grid">
+
+        <!-- PRE-GAME (preview only) -->
+        <div class="panel grid-full" id="pregamePanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">Pre-Game Spotlight</span>
+            <span class="panel-badge" id="pregameBadge">Preview</span>
+          </div>
+          <div class="panel-body">
+            <div class="pregame-grid" id="pregameContent"></div>
+          </div>
+        </div>
+
+        <!-- LIVE TICKER -->
+        <div class="panel grid-wide" id="liveTickerPanel">
+          <div class="panel-head">
+            <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:2px"></span>Live Ticker</span>
+            <span class="panel-badge" id="tickerBadge"></span>
+          </div>
+          <div class="panel-body" id="liveTicker"><div class="empty">No plays yet</div></div>
+        </div>
+
+        <!-- GAME BUZZ -->
+        <div class="panel" id="gameBuzzPanel">
+          <div class="panel-head"><span class="panel-title">Game Buzz</span></div>
+          <div class="panel-body" id="gameBuzz"><div class="empty">—</div></div>
+        </div>
+
+        <!-- CURRENT MATCHUP -->
+        <div class="panel grid-wide">
+          <div class="panel-head">
+            <span class="panel-title">Current Matchup</span>
+            <span class="panel-badge" id="matchupHand"></span>
+          </div>
+          <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
+        </div>
+
+        <!-- PITCHER CARD -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Pitcher Intel</span></div>
+          <div class="panel-body" id="pitcherCard"><div class="empty">—</div></div>
+        </div>
+
+        <!-- BATTER CARD -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Batter Intel</span></div>
+          <div class="panel-body" id="batterCard"><div class="empty">—</div></div>
+        </div>
+
+        <!-- PITCH BY PITCH -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Pitch By Pitch</span>
+            <span class="panel-badge" id="pitchBadge"></span>
+          </div>
+          <div class="panel-body" id="pitchByPitch"><div class="empty">No pitches yet</div></div>
+        </div>
+
+        <!-- NEXT PITCH MODEL -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Next Pitch Model</span></div>
+          <div class="panel-body" id="nextPitch"><div class="empty">—</div></div>
+        </div>
+
+        <!-- KEY ANGLES -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Key Angles</span></div>
+          <div class="panel-body" id="simpleAngles"><div class="empty">—</div></div>
+        </div>
+
+        <!-- PITCHER VS BATTER -->
+        <div class="panel">
+          <div class="panel-head"><span class="panel-title">Pitcher vs Batter</span></div>
+          <div class="panel-body" id="pitcherVsBatter"><div class="empty">—</div></div>
+        </div>
+
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="shell">
-    <aside class="sidebar">
-      <div id="games"></div>
-    </aside>
-    <main class="main">
-      <div id="banner" class="banner"></div>
-      <div class="grid">
-        <section class="panel"><h3>Live Ticker</h3><div id="liveTicker" class="list"></div></section>
-        <section class="panel"><h3>Current Matchup</h3><div id="currentMatchup"></div></section>
-        <section class="panel"><h3>Pitch By Pitch</h3><div id="pitchByPitch" class="list"></div></section>
-        <section class="panel"><h3>Pitcher Card</h3><div id="pitcherCard"></div></section>
-        <section class="panel"><h3>Batter Card</h3><div id="batterCard"></div></section>
-        <section class="panel"><h3>Pitcher vs Batter</h3><div id="pitcherVsBatter" class="list"></div></section>
-        <section class="panel"><h3>Simple Angles</h3><div id="simpleAngles" class="list"></div></section>
-        <section class="panel"><h3>Next Pitch Expectation</h3><div id="nextPitch"></div></section>
-        <section class="panel"><h3>Game Buzz</h3><div id="gameBuzz" class="list"></div></section>
+<script>
+const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null};
+const levelCopy={
+  new:{
+    buzzPrefix:'What\'s happening',
+    nextPitch:e=>`The pitcher will most likely throw a <strong>${e.probabilities[0]?.pitchType||'Fastball'}</strong> next (${e.probabilities[0]?.probability||0}% chance). ${e.probabilities[1]?`Could also be a ${e.probabilities[1].pitchType} (${e.probabilities[1].probability}%).`:''}`
+  },
+  intermediate:{
+    buzzPrefix:'Read',
+    nextPitch:e=>`Count ${e.count} model — ${e.probabilities.map(p=>`<strong>${p.pitchType}</strong> ${p.probability}%`).join(', ')}. ${e.explanation}`
+  },
+  experienced:{
+    buzzPrefix:'Signal',
+    nextPitch:e=>`[${e.count}] ${e.probabilities.map(p=>`${p.pitchType} ${p.probability}%`).join(' · ')}`
+  }
+};
+const $=id=>document.getElementById(id);
+async function api(path){const r=await fetch(path);if(!r.ok)throw new Error(await r.text());return r.json();}
+function fmtTime(iso){try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
+
+/* ── LOGOS ── */
+function logoImg(teamId,size){
+  if(!teamId) return `<div style="width:${size}px;height:${size}px;background:var(--border);border-radius:3px"></div>`;
+  return `<img src="https://www.mlbstatic.com/team-logos/${teamId}.svg" width="${size}" height="${size}" alt="" onerror="this.style.opacity='.2'" loading="lazy" style="display:block">`;
+}
+
+/* ── FORM GUIDE (seeded from teamId for demo) ── */
+function pseudoLast5(teamId){
+  const outcomes=['W','L','W','W','L','W','L','L','W','W'];
+  const t=Number(teamId)||1;
+  return outcomes.slice(t%5,(t%5)+5);
+}
+function pseudoRecord(teamId){
+  const t=Number(teamId)||1;
+  return `${30+(t%32)}-${30+((t+7)%30)}`;
+}
+
+/* ── GAME CARDS ── */
+function sortGames(g){const w={Live:0,Preview:1,Final:2};return g.sort((a,b)=>(w[a.status]-w[b.status])||(new Date(a.startTime)-new Date(b.startTime)));}
+function renderGames(){
+  const el=$('games');
+  if(!state.games.length){el.innerHTML='<div class="empty" style="padding:16px">No games today</div>';return;}
+  el.innerHTML=state.games.map(g=>{
+    const sCls=g.status==='Live'?'live':g.status==='Final'?'final':'preview';
+    const sTxt=g.status==='Live'?`● ${g.detailedStatus}`:g.status==='Final'?'FINAL':g.detailedStatus;
+    const awayForm=pseudoLast5(g.teams.away.id); const homeForm=pseudoLast5(g.teams.home.id); const dots=arr=>arr.map(r=>`<span class="fg-dot ${r}" title="${r}"></span>`).join('');
+    return `<div class="game-card ${state.selectedGamePk===g.gamePk?'active':''}" onclick="selectGame(${g.gamePk})">
+      <div class="game-status ${sCls}">${sTxt}</div>
+      <div class="card-teams">
+        <div class="card-team away">
+          <div class="team-logo-sm">${logoImg(g.teams.away.id,20)}</div>
+          <span class="team-abbr">${g.teams.away.abbr}</span>
+          <span class="card-score">${g.teams.away.score}</span>
+        </div>
+        <span class="card-sep">@</span>
+        <div class="card-team home">
+          <span class="card-score">${g.teams.home.score}</span>
+          <span class="team-abbr">${g.teams.home.abbr}</span>
+          <div class="team-logo-sm">${logoImg(g.teams.home.id,20)}</div>
+        </div>
       </div>
-    </main>
-  </div>
+      <div class="card-dots">
+        <div class="dots-away">${dots(awayForm)}</div>
+        <div class="dots-home">${dots(homeForm)}</div>
+      </div>
+      <div class="card-time">${fmtTime(g.startTime)}</div>
+    </div>`;
+  }).join('');
+}
 
-  <script src="/app.js"></script>
+/* ── BANNER ── */
+function updateBanner(g,summary){
+  if(!g)return;
+  $('bnAwayLogo').innerHTML=logoImg(g.teams.away.id,32);
+  $('bnHomeLogo').innerHTML=logoImg(g.teams.home.id,32);
+  $('bnAwayName').textContent=g.teams.away.abbr;
+  $('bnHomeName').textContent=g.teams.home.abbr;
+  const bnDots=arr=>'<span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:5px">'+arr.map(r=>`<span class="fg-dot ${r}"></span>`).join('')+'</span>';
+  $('bnAwayRecord').innerHTML=pseudoRecord(g.teams.away.id)+bnDots(pseudoLast5(g.teams.away.id));
+  $('bnHomeRecord').innerHTML=pseudoRecord(g.teams.home.id)+bnDots(pseudoLast5(g.teams.home.id));
+  if(summary){
+    $('bnScore').textContent=`${summary.score.away} – ${summary.score.home}`;
+    const live=summary.status&&/in progress|live|inning/i.test(summary.status);
+    $('bnScoreSub').innerHTML=`${live?'<span class="live-dot"></span>':''}${summary.status||'—'}`;
+    $('bnState').innerHTML=`${summary.half||''} ${summary.inning||''} · <span style="color:var(--sub)">${summary.outs??0} out${summary.outs!==1?'s':''}</span>`;
+    $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
+    const r=summary.runners||{};
+    $('r1').className='base'+(r.first?' on':'');
+    $('r2').className='base'+(r.second?' on':'');
+    $('r3').className='base'+(r.third?' on':'');
+  }
+}
+
+/* ── SPOTLIGHT CARDS ── */
+function spotlightPitcher(player,intel){
+  if(!player) return '';
+  const mix=intel?.pitchMix||{};
+  const vel=intel?.velocityByPitch||{};
+  const top=Object.entries(mix).sort((a,b)=>b[1]-a[1])[0];
+  const topName=top?.[0]||'Fastball';
+  const topPct=top?.[1]||0;
+  const topVel=vel[topName]||null;
+  const k=intel?.strikeoutRate||0;
+  const whiff=intel?.whiffRate||0;
+  const bb=intel?.walkRate||0;
+  const fps=intel?.firstPitchStrikeTendency||0;
+  const hardHit=intel?.hardHitAllowed||0;
+
+  let lines=[];
+
+  if(state.level==='new'){
+    // Plain English — no jargon, tell a story
+    if(topVel) lines.push(`His go-to pitch is the <strong>${topName}</strong>, which he throws about ${Math.round(topPct)}% of the time at around <strong>${topVel} mph</strong>.`);
+    else lines.push(`He relies mostly on his <strong>${topName}</strong>, throwing it about ${Math.round(topPct)}% of the time.`);
+    if(whiff>=28) lines.push(`Batters swing and miss a lot against him — he's hard to make contact with.`);
+    else if(whiff<20) lines.push(`He doesn't strike many batters out, so expect plenty of balls in play.`);
+    if(bb>=9) lines.push(`He sometimes struggles with control and gives out walks, which puts free runners on base.`);
+    else if(fps>=62) lines.push(`He's aggressive early — he usually gets ahead of batters with his first pitch, which puts him in control.`);
+    if(hardHit>=40) lines.push(`When batters do make contact, they tend to hit it hard — watch for big hits if pitches catch too much of the plate.`);
+
+  } else if(state.level==='intermediate'){
+    if(top) lines.push(`Primary pitch: <strong>${topName}</strong> ${Math.round(topPct)}%${topVel?` @ <strong>${topVel} mph</strong>`:''}`);
+    if(whiff>=28) lines.push(`Above-average whiff rate (${whiff}%) — generates misses with ${topName}.`);
+    if(k>=25) lines.push(`Strong strikeout pitcher at ${k}% K rate.`);
+    if(bb>=9) lines.push(`Control concern — ${bb}% walk rate can get him in trouble.`);
+    else if(fps>=62) lines.push(`Gets ahead early: ${fps}% first-pitch strikes.`);
+    if(hardHit>=40) lines.push(`Allows hard contact at ${hardHit}% — defence will be busy.`);
+
+  } else {
+    // Experienced — dense, stat-first
+    if(top) lines.push(`${topName} ${Math.round(topPct)}%${topVel?` / ${topVel} mph`:''} · K% ${k} · BB% ${bb}`);
+    lines.push(`Whiff ${whiff}% · FPS ${fps}% · Hard Hit Allowed ${hardHit}%`);
+  }
+
+  return `<div class="spotlight-card is-starter">
+    <div class="spotlight-top">
+      <span class="spotlight-name">${player.fullName||'Pitcher'}</span>
+      <span class="spotlight-badge badge-starter">SP</span>
+    </div>
+    ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
+  </div>`;
+}
+
+function spotlightBatter(player,intel){
+  if(!player||!intel) return '';
+  const isHot=intel.hotCold?.recentHot;
+  const trend=intel.hotCold?.trend||0;
+  const barrel=intel.barrelRate||0;
+  const hardHit=intel.hardHitRate||0;
+  const chase=intel.chaseTendency||0;
+  const fps=intel.firstPitchSwingTendency||0;
+  const contact=intel.contactTendency||0;
+  const whiff=intel.whiffTendency||0;
+
+  let lines=[];
+
+  if(state.level==='new'){
+    // Tell the story in plain English
+    if(isHot) lines.push(`He's been <strong>hitting really well lately</strong> — one of the more dangerous bats in the lineup right now.`);
+    else lines.push(`He's been a bit <strong>cold at the plate recently</strong> — hasn't been connecting as well as usual.`);
+    if(barrel>=12) lines.push(`When he makes contact, he hits the ball really hard and far — a real power threat.`);
+    else if(hardHit>=48) lines.push(`He tends to put the ball in play solidly — not a lot of weak contact from this guy.`);
+    if(chase>=36) lines.push(`He can be tempted to swing at pitches outside the strike zone, especially breaking balls — pitchers will try to exploit that.`);
+    else if(contact>=78) lines.push(`He makes contact very consistently — hard to strike out and puts the ball in play often.`);
+    if(fps>=32) lines.push(`He likes to swing at the first pitch, so pitchers need to be careful right out of the gate.`);
+
+  } else if(state.level==='intermediate'){
+    const formTxt=isHot?`🔥 In form (trend ${trend>0?'+':''}${trend})`:`❄ Cold stretch (trend ${trend})`;
+    lines.push(formTxt);
+    if(barrel>=12) lines.push(`Elite barrel rate ${barrel}% — genuine power threat.`);
+    if(hardHit>=48) lines.push(`Hard-hit ${hardHit}% — quality contact maker.`);
+    if(chase>=36) lines.push(`Chase tendency ${chase}% — works him with breaking balls out of zone.`);
+    else if(contact>=78) lines.push(`Contact rate ${contact}% — rarely strikes out.`);
+    if(fps>=32) lines.push(`First-pitch aggressor at ${fps}% swing rate.`);
+
+  } else {
+    // Experienced
+    lines.push(`${isHot?'HOT':'COLD'} (${trend>0?'+':''}${trend}) · Hard Hit ${hardHit}% · Barrel ${barrel}%`);
+    lines.push(`Chase ${chase}% · Contact ${contact}% · FPS Swing ${fps}%`);
+  }
+
+  const cls=isHot?'is-hot':'is-cold';
+  const badge=isHot?'badge-hot':'badge-cold';
+  const badgeLbl=isHot?'🔥 HOT':'❄ COLD';
+  return `<div class="spotlight-card ${cls}">
+    <div class="spotlight-top">
+      <span class="spotlight-name">${player.fullName||'Batter'}</span>
+      <span class="spotlight-badge ${badge}">${badgeLbl}</span>
+    </div>
+    ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
+  </div>`;
+}
+
+/* Name cache so we don't re-fetch the same player twice */
+const _nameCache={};
+async function fetchPlayerName(pid){
+  if(_nameCache[pid]) return _nameCache[pid];
+  try{
+    const r=await fetch(`https://statsapi.mlb.com/api/v1/people/${pid}`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
+    if(r.ok){const d=await r.json();const name=d.people?.[0]?.fullName;if(name){_nameCache[pid]=name;return name;}}
+  }catch{}
+  _nameCache[pid]=null;
+  return null;
+}
+
+async function fetchBatterIntelForTeam(teamId){
+  /* Use the MLB Stats API active roster to get real player IDs for this team */
+  let pids=[];
+  try{
+    const r=await fetch(`https://statsapi.mlb.com/api/v1/teams/${teamId}/roster?rosterType=active`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
+    if(r.ok){
+      const d=await r.json();
+      /* Filter to position players (non-pitchers) and take up to 6 */
+      pids=(d.roster||[])
+        .filter(e=>e.position?.abbreviation&&e.position.abbreviation!=='P')
+        .slice(0,6)
+        .map(e=>e.person.id);
+    }
+  }catch{}
+  /* Fallback to seeded IDs if roster call fails */
+  if(!pids.length){
+    const base=660000+(Number(teamId)%30)*30;
+    pids=Array.from({length:4},(_,i)=>base+i);
+  }
+
+  const results=[];
+  await Promise.all(pids.map(async pid=>{
+    try{
+      const [intelRes,name]=await Promise.all([
+        api(`/api/savant/batter/${pid}`),
+        fetchPlayerName(pid)
+      ]);
+      if(intelRes.data&&name){
+        results.push({player:{fullName:name,id:pid},intel:intelRes.data});
+      }
+    }catch{}
+  }));
+
+  return results.sort((a,b)=>{
+    const score=x=>(x.intel.hotCold?.recentHot?12:0)+(x.intel.barrelRate||0);
+    return score(b)-score(a);
+  });
+}
+
+/* ── PREGAME CACHE — stored so level changes re-render without re-fetching ── */
+const _pregameCache={};
+
+async function renderPregame(g){
+  $('pregameBadge').textContent=`Preview · ${fmtTime(g.startTime)}`;
+  const cacheKey=g.gamePk;
+
+  let cached=_pregameCache[cacheKey];
+  if(!cached){
+    // Fetch everything once, store in cache
+    const awayLast5=pseudoLast5(g.teams.away.id);
+    const homeLast5=pseudoLast5(g.teams.home.id);
+    let awayStarter=null,homeStarter=null,awayIntel=null,homeIntel=null;
+    try{
+      const summary=await api(`/api/live-summary?gamePk=${g.gamePk}`);
+      awayStarter=summary.probableStarters?.away;
+      homeStarter=summary.probableStarters?.home;
+    }catch{}
+    if(awayStarter?.id){try{const r=await api(`/api/savant/pitcher/${awayStarter.id}`);awayIntel=r.data;}catch{}}
+    if(homeStarter?.id){try{const r=await api(`/api/savant/pitcher/${homeStarter.id}`);homeIntel=r.data;}catch{}}
+    const [awayBatters,homeBatters]=await Promise.all([
+      fetchBatterIntelForTeam(g.teams.away.id),
+      fetchBatterIntelForTeam(g.teams.home.id)
+    ]);
+    cached={awayLast5,homeLast5,awayStarter,homeStarter,awayIntel,homeIntel,awayBatters,homeBatters};
+    _pregameCache[cacheKey]=cached;
+  }
+
+  // Re-render from cache — fast, level-aware
+  const {awayLast5,homeLast5,awayStarter,homeStarter,awayIntel,homeIntel,awayBatters,homeBatters}=cached;
+
+  function teamSide(team,last5,starter,starterIntel,batters){
+    const pillsHtml=last5.map(r=>`<span class="last5-pill ${r}">${r}</span>`).join('');
+    const l5label = state.level==='new' ? 'Last 5 games' : state.level==='intermediate' ? 'Last 5' : 'L5';
+    const starterLabel = state.level==='new' ? 'Starting Pitcher' : 'Probable Starter';
+    const watchLabel = state.level==='new' ? 'Players to Know Today' : state.level==='intermediate' ? 'Players to Watch' : 'Key Bats';
+    return `<div>
+      <div class="pregame-team-header">
+        <div class="pregame-logo">${logoImg(team.id,42)}</div>
+        <div>
+          <div class="pregame-team-name">${team.name||team.abbr}</div>
+          <div class="pregame-record">${pseudoRecord(team.id)}</div>
+          <div class="pregame-last5"><span class="last5-label">${l5label}</span>${pillsHtml}</div>
+        </div>
+      </div>
+      <div class="section-label">${starterLabel}</div>
+      ${starter?spotlightPitcher(starter,starterIntel):'<div class="empty" style="padding:6px 0;text-align:left;font-size:12px">TBD</div>'}
+      ${batters.length?`<div class="section-label" style="margin-top:10px">${watchLabel}</div>${batters.slice(0,2).map(p=>spotlightBatter(p.player,p.intel)).join('')}`:''}
+    </div>`;
+  }
+
+  $('pregameContent').innerHTML=
+    teamSide(g.teams.away,awayLast5,awayStarter,awayIntel,awayBatters)+
+    teamSide(g.teams.home,homeLast5,homeStarter,homeIntel,homeBatters);
+}
+
+/* ── LIVE HELPERS ── */
+/* Annotate text with level-appropriate context.
+   New:        plain English gloss on what to watch for
+   Intermediate: brief tactical note
+   Experienced: raw text, no padding */
+function explain(t){
+  if(!t) return '';
+  if(state.level==='experienced') return t;
+
+  const lower=t.toLowerCase();
+  let note='';
+
+  if(state.level==='new'){
+    // Plain-English cues based on what the text is about
+    if(lower.includes('strikeout')||lower.includes(' k%')||lower.includes('whiff'))
+      note='A high strikeout rate means the pitcher gets batters to swing and miss often — good for the defence.';
+    else if(lower.includes('walk')||lower.includes('bb%'))
+      note='Walks put a free runner on base and raise the pitcher\'s pitch count — a warning sign.';
+    else if(lower.includes('hard hit')||lower.includes('barrel'))
+      note='Hard-hit balls travel fast and far — a high rate means danger for the fielding team.';
+    else if(lower.includes('fastball')||lower.includes('slider')||lower.includes('changeup')||lower.includes('curveball'))
+      note='Knowing which pitch is coming helps the batter prepare — pitchers try to keep them guessing.';
+    else if(lower.includes('count')||lower.includes('ahead')||lower.includes('behind'))
+      note='The count (balls vs strikes) shapes what both pitcher and batter do next.';
+    else if(lower.includes('hot')||lower.includes('streak'))
+      note='A player on a hot streak has been hitting well recently — they\'re a bigger threat right now.';
+    else if(lower.includes('score')||lower.includes('run'))
+      note='Runs decide the game — scoring plays directly shift the lead.';
+    else if(lower.includes('bullpen')||lower.includes('pitcher used'))
+      note='The bullpen is the relief pitching staff. Using many pitchers early can leave a team thin late.';
+    else
+      note='This can directly affect what happens on the next pitch or play.';
+
+    return `${t}<div style="margin-top:4px;font-size:11px;color:var(--muted);line-height:1.4;border-left:2px solid var(--border);padding-left:6px">${note}</div>`;
+  }
+
+  // Intermediate — one tactical sentence
+  if(lower.includes('strikeout')||lower.includes('whiff'))
+    note='Watch for the punchout — pitcher has the edge.';
+  else if(lower.includes('walk')||lower.includes('bb%'))
+    note='Free base could shift the inning.';
+  else if(lower.includes('hard hit')||lower.includes('barrel'))
+    note='Contact quality is the real damage indicator here.';
+  else if(lower.includes('fastball'))
+    note='Hitter will need to be quick on the heater.';
+  else if(lower.includes('slider')||lower.includes('curveball')||lower.includes('changeup'))
+    note='Off-speed can generate chases out of zone.';
+  else if(lower.includes('count'))
+    note='Count leverage shapes both pitch selection and swing decisions.';
+  else if(lower.includes('hot')||lower.includes('streak'))
+    note='Recent form carries real predictive weight — don\'t fade the hot bat.';
+  else if(lower.includes('score')||lower.includes('run'))
+    note='Momentum can shift with runs — watch how the pitcher responds.';
+
+  if(!note) return t;
+  return `${t}<span style="display:block;margin-top:3px;font-size:11px;color:var(--muted)">${note}</span>`;
+}
+function callClass(c=''){const l=c.toLowerCase();if(l.includes('strike')||l.includes('swinging')||l.includes('called'))return'call-strike';if(l.includes('ball')||l.includes('intentional'))return'call-ball';if(l.includes('hit')||l.includes('foul')||l.includes('in play'))return'call-hit';return'call-other';}
+function bar(label,pct,cls=''){return`<div class="bar-group"><div class="bar-label"><span>${label}</span><span>${pct}%</span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div></div>`;}
+
+function renderPitcherCard(p){
+  if(!p)return'<div class="empty">No data</div>';
+  const mix=p.pitchMix||{},vel=p.velocityByPitch||{};
+  return`<div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]||'—'} mph</div></div>`).join('')}</div>
+  ${bar('Whiff Rate',p.whiffRate,'green')}${bar('K%',p.strikeoutRate,'green')}${bar('BB%',p.walkRate,'red')}${bar('Hard Hit Allowed',p.hardHitAllowed,'amber')}
+  <div class="stat-row"><span class="stat-key">1st Pitch Strike</span><span class="stat-val">${p.firstPitchStrikeTendency}%</span></div>
+  <div class="stat-row"><span class="stat-key">2-Strike Putaway</span><span class="stat-val">${p.twoStrikePutawayTendency}%</span></div>
+  <div class="stat-row"><span class="stat-key">vs R avg allowed</span><span class="stat-val">${p.splitsByHandedness?.vsR?.avgAllowed}</span></div>
+  <div class="stat-row"><span class="stat-key">vs L avg allowed</span><span class="stat-val">${p.splitsByHandedness?.vsL?.avgAllowed}</span></div>
+  ${p.summary?`<div class="item" style="margin-top:8px;font-size:11px">${p.summary.missBatsNote||''} ${p.summary.aheadNote||''}</div>`:''}`;
+}
+function renderBatterCard(b){
+  if(!b)return'<div class="empty">No data</div>';
+  const h=b.hotCold?.recentHot,tr=b.hotCold?.trend;
+  return`<div style="display:flex;gap:6px;margin-bottom:8px">
+    <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">FORM</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;color:${h?'var(--live)':'var(--red)'}">${h?'🔥 HOT':'❄ COLD'}</div>
+      <div style="font-size:10px;color:var(--muted)">trend ${tr>0?'+':''}${tr}</div>
+    </div>
+    <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">BARREL</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>
+      <div style="font-size:10px;color:var(--muted)">hard hit ${b.hardHitRate}%</div>
+    </div>
+  </div>
+  ${bar('Hard Hit Rate',b.hardHitRate,'amber')}${bar('Contact',b.contactTendency,'green')}${bar('Whiff',b.whiffTendency,'red')}${bar('Chase',b.chaseTendency,'red')}
+  <div class="stat-row"><span class="stat-key">vs R avg</span><span class="stat-val">${b.splitVsHandedness?.vsR?.avg}</span></div>
+  <div class="stat-row"><span class="stat-key">vs L avg</span><span class="stat-val">${b.splitVsHandedness?.vsL?.avg}</span></div>
+  <div class="stat-row"><span class="stat-key">1st Pitch Swing</span><span class="stat-val">${b.firstPitchSwingTendency}%</span></div>
+  ${b.summary?`<div class="item" style="margin-top:8px;font-size:11px">${b.summary.handlesFastballs||''} ${b.summary.chaseNote||''}</div>`:''}`;
+}
+
+/* ── SCHEDULE ── */
+async function loadSlate(){
+  try{
+    const data=await api('/api/schedule');
+    state.games=sortGames(data.games);
+    if(data.date)$('sidebarDate').textContent=data.date;
+    if(!state.selectedGamePk&&state.games.length)state.selectedGamePk=state.games[0].gamePk;
+    renderGames();
+    if(state.selectedGamePk)await refreshGame();
+  }catch(e){$('games').innerHTML='<div class="empty" style="padding:16px">Failed to load schedule</div>';}
+}
+async function selectGame(gamePk){
+  state.selectedGamePk=gamePk;state.playStateToken=null;
+  renderGames();await refreshGame();
+}
+window.selectGame=selectGame;
+
+/* ── REFRESH ── */
+async function refreshGame(){
+  const gamePk=state.selectedGamePk;
+  if(!gamePk)return;
+  const g=state.games.find(x=>x.gamePk===gamePk);
+  if(!g)return;
+  updateBanner(g,null);
+
+  if(g.status==='Preview'){
+    $('pregamePanel').style.display='';
+    $('liveTickerPanel').style.display='none';
+    $('gameBuzzPanel').style.display='none';
+    ['currentMatchup','pitcherCard','batterCard','pitchByPitch','nextPitch','simpleAngles','pitcherVsBatter']
+      .forEach(id=>$(id).innerHTML='<div class="empty">Game not started</div>');
+    $('pregameContent').innerHTML='<div class="loading"><div class="spin"></div> Loading pre-game data…</div>';
+    await renderPregame(g);
+    return;
+  }
+
+  $('pregamePanel').style.display='none';
+  $('liveTickerPanel').style.display='';
+  $('gameBuzzPanel').style.display='';
+
+  try{
+    const [summary,feed,matchup,buzz]=await Promise.all([
+      api(`/api/live-summary?gamePk=${gamePk}`),
+      api(`/api/pitch-feed?gamePk=${gamePk}`),
+      api(`/api/matchup?gamePk=${gamePk}`),
+      api(`/api/game-buzz?gamePk=${gamePk}`)
+    ]);
+    updateBanner(g,summary);
+
+    $('liveTicker').innerHTML=feed.recentPlays.length
+      ?feed.recentPlays.slice().reverse().map(p=>`<div class="item"><span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'🔥 ':''}<span>${explain(p.description||'—')}</span></div>`).join('')
+      :'<div class="empty">No recent plays</div>';
+    $('tickerBadge').textContent=feed.recentPlays.length?`${feed.recentPlays.length} plays`:'';
+
+    $('currentMatchup').innerHTML=`<div class="matchup-display">
+      <div class="matchup-player">
+        <div class="matchup-role">Pitcher</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
+          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(g.teams.home.id,18)}</div>
+          <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
+        </div>
+        <div class="matchup-hand">${matchup.currentPitcher?'RHP':'—'}</div>
+      </div>
+      <div class="matchup-vs">VS</div>
+      <div class="matchup-player">
+        <div class="matchup-role">Batter</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
+          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(g.teams.away.id,18)}</div>
+          <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
+        </div>
+        <div class="matchup-hand">${matchup.currentBatter?'BAT':'—'}</div>
+      </div>
+    </div>
+    ${matchup.pitcherVsBatter?.handedness?`<div style="margin-top:8px;font-size:12px;color:var(--sub);text-align:center">Handedness: <strong style="color:var(--text)">${matchup.pitcherVsBatter.handedness}</strong></div>`:''}`;
+    $('matchupHand').textContent=matchup.pitcherVsBatter?.handedness||'';
+
+    $('pitchBadge').textContent=feed.pitchEvents.length?`${feed.pitchEvents.length} pitches`:'';
+    $('pitchByPitch').innerHTML=feed.pitchEvents.length
+      ?feed.pitchEvents.slice().reverse().map(p=>`<div class="pitch-row"><div class="pitch-num">#${p.pitchNumber}</div><div class="pitch-desc">${p.type||p.details||'—'}</div><div class="pitch-spd">${p.startSpeed?p.startSpeed+' mph':'—'}</div><div class="pitch-call ${callClass(p.call||p.details)}">${p.call||p.details||'—'}</div><div class="pitch-cnt">${p.count}</div></div>`).join('')
+      :'<div class="empty">No pitches yet</div>';
+
+    const pid=matchup.currentPitcher?.id,bid=matchup.currentBatter?.id;
+    if(pid){try{const p=await api(`/api/savant/pitcher/${pid}`);$('pitcherCard').innerHTML=renderPitcherCard(p.data);}catch{$('pitcherCard').innerHTML='<div class="empty">Unavailable</div>';}}
+    else $('pitcherCard').innerHTML='<div class="empty">—</div>';
+    if(bid){try{const b=await api(`/api/savant/batter/${bid}`);$('batterCard').innerHTML=renderBatterCard(b.data);}catch{$('batterCard').innerHTML='<div class="empty">Unavailable</div>';}}
+    else $('batterCard').innerHTML='<div class="empty">—</div>';
+
+    $('pitcherVsBatter').innerHTML=(matchup.pitcherVsBatter?.notes||[]).map(n=>`<div class="item">${explain(n)}</div>`).join('')||'<div class="empty">—</div>';
+    $('simpleAngles').innerHTML=(matchup.simpleAngles||[]).map(a=>`<div class="angle-card"><div class="angle-title">${a.angle}</div><div class="angle-why">${explain(a.why)}</div></div>`).join('')||'<div class="empty">—</div>';
+
+    const exp=matchup.nextPitchExpectation;
+    $('nextPitch').innerHTML=exp?`<div style="font-size:12px;color:var(--sub);margin-bottom:8px">${levelCopy[state.level].nextPitch(exp)}</div><div class="pitch-probs">${exp.probabilities.map((p,i)=>`<div class="pitch-chip ${i===0?'top':''}"><div class="pitch-type">${p.pitchType}</div><div class="pitch-pct">${p.probability}%</div><div class="pitch-unit">probability</div></div>`).join('')}</div>`:'<div class="empty">—</div>';
+    $('gameBuzz').innerHTML=buzz.buzz.length?buzz.buzz.map(b=>`<div class="buzz-item"><div class="buzz-dot"></div><div class="buzz-text"><strong>${levelCopy[state.level].buzzPrefix}:</strong> ${explain(b.text)}</div></div>`).join(''):'<div class="empty">No buzz yet</div>';
+
+    state.playStateToken=feed.playStateToken;
+  }catch(e){console.error('Refresh failed:',e);}
+}
+
+async function pollLive(){
+  if(!state.selectedGamePk)return;
+  const g=state.games.find(x=>x.gamePk===state.selectedGamePk);
+  if(!g||g.status==='Preview')return;
+  try{const feed=await api(`/api/pitch-feed?gamePk=${state.selectedGamePk}`);if(state.playStateToken&&state.playStateToken!==feed.playStateToken)await refreshGame();}catch{}
+}
+
+$('knowledgeLevel').value=state.level;
+$('knowledgeLevel').addEventListener('change',async e=>{state.level=e.target.value;localStorage.setItem('knowledgeLevel',state.level);await refreshGame();});
+$('refreshSlate').addEventListener('click',loadSlate);
+loadSlate();
+setInterval(loadSlate,60000);
+setInterval(pollLive,8000);
+</script>
 </body>
 </html>
