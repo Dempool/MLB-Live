@@ -1309,7 +1309,12 @@ async function refreshGame(){
     $('pregamePanel').style.display='';
     $('liveTickerPanel').style.display='none';
     $('gameBuzzPanel').style.display='none';
-    ['currentMatchup','awayPitcherCard','homePitcherCard','batterCard','pitchByPitch','nextPitch','simpleAngles','pitcherVsBatter']
+    $('lineupsPanel').style.display='none';
+    $('inplayPanel').style.display='none';
+    // Clear dual pitcher panel
+    $('awayPitcherCard').innerHTML='<div class="empty">Game not started</div>';
+    $('homePitcherCard').innerHTML='<div class="empty">Game not started</div>';
+    ['currentMatchup','batterCard','pitchByPitch','nextPitch','simpleAngles','pitcherVsBatter']
       .forEach(id=>$(id).innerHTML='<div class="empty">Game not started</div>');
     $('pregameContent').innerHTML='<div class="loading"><div class="spin"></div> Loading pre-game data…</div>';
     await renderPregame(g);
@@ -1319,6 +1324,8 @@ async function refreshGame(){
   $('pregamePanel').style.display='none';
   $('liveTickerPanel').style.display='';
   $('gameBuzzPanel').style.display='';
+  $('lineupsPanel').style.display='';
+  $('inplayPanel').style.display='';
 
   try{
     const [summary,feed,matchup,buzz]=await Promise.all([
@@ -1504,3 +1511,5 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </html>
 
 
+
+ 
