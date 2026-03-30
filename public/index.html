@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MLB Live Tracker</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="header">
+    <div class="title">MLB Tracker — Live + Savant Intelligence</div>
+    <div class="controls">
+      <label for="knowledgeLevel">Knowledge:</label>
+      <select id="knowledgeLevel">
+        <option value="new">New</option>
+        <option value="intermediate" selected>Intermediate</option>
+        <option value="experienced">Experienced</option>
+      </select>
+      <button id="refreshSlate">Refresh Slate</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <div id="games"></div>
+    </aside>
+    <main class="main">
+      <div id="banner" class="banner"></div>
+      <div class="grid">
+        <section class="panel"><h3>Live Ticker</h3><div id="liveTicker" class="list"></div></section>
+        <section class="panel"><h3>Current Matchup</h3><div id="currentMatchup"></div></section>
+        <section class="panel"><h3>Pitch By Pitch</h3><div id="pitchByPitch" class="list"></div></section>
+        <section class="panel"><h3>Pitcher Card</h3><div id="pitcherCard"></div></section>
+        <section class="panel"><h3>Batter Card</h3><div id="batterCard"></div></section>
+        <section class="panel"><h3>Pitcher vs Batter</h3><div id="pitcherVsBatter" class="list"></div></section>
+        <section class="panel"><h3>Simple Angles</h3><div id="simpleAngles" class="list"></div></section>
+        <section class="panel"><h3>Next Pitch Expectation</h3><div id="nextPitch"></div></section>
+        <section class="panel"><h3>Game Buzz</h3><div id="gameBuzz" class="list"></div></section>
+      </div>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
