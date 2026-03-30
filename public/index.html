@@ -631,6 +631,7 @@ const levelCopy={
 const $=id=>document.getElementById(id);
 async function api(path){const r=await fetch(path);if(!r.ok)throw new Error(await r.text());return r.json();}
 function fmtTime(iso){try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
+function fmtPlayTime(iso){if(!iso)return '';try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch{return '';}}
 
 /* ── LOGOS ── */
 function logoImg(teamId,size){
@@ -1347,6 +1348,8 @@ function renderFieldDiagram(summary, feed){
   $('fieldBadge').textContent=runnerCount?`${runnerCount} on · ${outs} out${outs!==1?'s':''}`:
     `${outs} out${outs!==1?'s':''}`;
 }
+
+async function loadSlate(renderOnly=false){
   try{
     const data=await api('/api/schedule');
     state.games=sortGames(data.games);
@@ -1436,11 +1439,6 @@ async function refreshGame(){
     fetchAndRenderLineups(gamePk, matchup);
     fetchAndRenderInplay(gamePk, matchup);
 
-    function fmtPlayTime(iso){
-      if(!iso) return '';
-      try{ return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-      catch{ return ''; }
-    }
     $('liveTicker').innerHTML=feed.recentPlays.length
       ?feed.recentPlays.slice().reverse().map(p=>{
         const time=fmtPlayTime(p.endTime||p.startTime);
@@ -1645,3 +1643,5 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
+
+
