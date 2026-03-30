@@ -141,6 +141,11 @@
     .fg-dot.T{background:var(--gold)}
 
     .card-time{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:4px}
+    .card-live-row{display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:1px}
+    .card-inning{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--live);letter-spacing:.5px}
+    .card-final-tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--gold)}
+    .card-score-lead{color:var(--text)!important;font-weight:700}
+    .card-live-pip{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--live);animation:pulse 1.4s ease-in-out infinite;vertical-align:middle}
 
     /* ── MAIN ── */
     .main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
@@ -162,7 +167,10 @@
     .team-logo-lg img{width:100%;height:100%;object-fit:contain}
     .banner-score-block{text-align:center;min-width:100px}
     .banner-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;line-height:1;color:var(--text)}
-    .banner-score-sub{font-size:11px;color:var(--sub);margin-top:2px}
+    .banner-live-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:62px}
+    .banner-inning{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;color:var(--text);line-height:1;text-align:center}
+    .banner-outs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;text-align:center;letter-spacing:.5px}
+    .banner-score-sub{font-size:11px;color:var(--sub);margin-top:2px;min-height:14px}
     .banner-sep{width:1px;height:34px;background:var(--border);margin:0 16px;flex-shrink:0}
     .banner-section{display:flex;flex-direction:column;justify-content:center}
     .banner-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
@@ -356,6 +364,18 @@
 
   <div class="main">
     <div class="banner" id="banner">
+      <!-- LEFT: live game state (inning + runners) — hidden until live -->
+      <div class="banner-live-state" id="bnLiveState" style="display:none">
+        <div class="banner-label">Inning</div>
+        <div class="banner-inning" id="bnInning">—</div>
+        <div class="runners" style="margin-top:6px">
+          <div class="runners-row"><div class="base" id="r2"></div></div>
+          <div class="runners-row"><div class="base" id="r3"></div><div class="base" id="r1"></div></div>
+        </div>
+      </div>
+      <div class="banner-sep" id="bnLiveSep" style="display:none"></div>
+
+      <!-- AWAY TEAM -->
       <div class="banner-team">
         <div class="team-logo-lg" id="bnAwayLogo"></div>
         <div>
@@ -363,10 +383,14 @@
           <div class="banner-state" id="bnAwayRecord"></div>
         </div>
       </div>
-      <div class="banner-score-block" style="margin:0 12px">
+
+      <!-- SCORE -->
+      <div class="banner-score-block" style="margin:0 14px">
         <div class="banner-score" id="bnScore">— —</div>
-        <div class="banner-score-sub" id="bnScoreSub">Select a game</div>
+        <div class="banner-score-sub" id="bnScoreSub"></div>
       </div>
+
+      <!-- HOME TEAM -->
       <div class="banner-team">
         <div style="text-align:right">
           <div class="banner-value" id="bnHomeName">—</div>
@@ -374,23 +398,13 @@
         </div>
         <div class="team-logo-lg" id="bnHomeLogo"></div>
       </div>
-      <div class="banner-sep"></div>
-      <div class="banner-section">
-        <div class="banner-label">Situation</div>
-        <div class="banner-state" id="bnState">—</div>
-      </div>
-      <div class="banner-sep"></div>
-      <div class="banner-section">
+
+      <!-- RIGHT: count (live only) -->
+      <div class="banner-sep" id="bnCountSep" style="display:none"></div>
+      <div class="banner-section" id="bnCountSection" style="display:none">
         <div class="banner-label">Count</div>
         <div class="banner-count" id="bnCount">—</div>
-      </div>
-      <div class="banner-sep"></div>
-      <div class="banner-section">
-        <div class="banner-label">Runners</div>
-        <div class="runners">
-          <div class="runners-row"><div class="base" id="r2"></div></div>
-          <div class="runners-row"><div class="base" id="r3"></div><div class="base" id="r1"></div></div>
-        </div>
+        <div class="banner-outs" id="bnOuts"></div>
       </div>
     </div>
 
@@ -522,31 +536,47 @@ function renderGames(){
     const sCls=g.status==='Live'?'live':g.status==='Final'?'final':'preview';
     const sTxt=g.status==='Live'?`● ${g.detailedStatus}`:g.status==='Final'?'FINAL':g.detailedStatus;
     const awayForm=pseudoLast5(g.teams.away.id); const homeForm=pseudoLast5(g.teams.home.id); const dots=arr=>arr.map(r=>`<span class="fg-dot ${r}" title="${r}"></span>`).join('');
+
+    // Live game inline state
+    const isLive=g.status==='Live';
+    const isFinal=g.status==='Final';
+    let liveRow='';
+    if(isLive&&g.inning){
+      const half=(g.inningHalf||'').toLowerCase().includes('bot')?'▼':'▲';
+      liveRow=`<div class="card-live-row">
+        <span class="card-inning">${half} ${g.inning}</span>
+      </div>`;
+    }
+    if(isFinal){
+      liveRow=`<div class="card-live-row"><span class="card-final-tag">FINAL</span></div>`;
+    }
     return `<div class="game-card ${state.selectedGamePk===g.gamePk?'active':''}" onclick="selectGame(${g.gamePk})">
       <div class="game-status ${sCls}">${sTxt}</div>
       <div class="card-teams">
         <div class="card-team away">
           <div class="team-logo-sm">${logoImg(g.teams.away.id,20)}</div>
           <span class="team-abbr">${g.teams.away.abbr}</span>
-          <span class="card-score">${g.teams.away.score}</span>
+          <span class="card-score ${isLive&&g.teams.away.score>g.teams.home.score?'card-score-lead':''}">${g.teams.away.score}</span>
         </div>
-        <span class="card-sep">@</span>
+        <span class="card-sep">${isLive?'<span class="card-live-pip"></span>':'@'}</span>
         <div class="card-team home">
-          <span class="card-score">${g.teams.home.score}</span>
+          <span class="card-score ${isLive&&g.teams.home.score>g.teams.away.score?'card-score-lead':''}">${g.teams.home.score}</span>
           <span class="team-abbr">${g.teams.home.abbr}</span>
           <div class="team-logo-sm">${logoImg(g.teams.home.id,20)}</div>
         </div>
       </div>
+      ${liveRow}
       <div class="card-dots">
         <div class="dots-away">${dots(awayForm)}</div>
         <div class="dots-home">${dots(homeForm)}</div>
       </div>
-      <div class="card-time">${fmtTime(g.startTime)}</div>
+      <div class="card-time">${isLive||isFinal?'':fmtTime(g.startTime)}</div>
     </div>`;
   }).join('');
 }
 
 /* ── BANNER ── */
+function show(id,visible){$(id).style.display=visible?'':'none';}
 function updateBanner(g,summary){
   if(!g)return;
   $('bnAwayLogo').innerHTML=logoImg(g.teams.away.id,32);
@@ -556,16 +586,45 @@ function updateBanner(g,summary){
   const bnDots=arr=>'<span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:5px">'+arr.map(r=>`<span class="fg-dot ${r}"></span>`).join('')+'</span>';
   $('bnAwayRecord').innerHTML=pseudoRecord(g.teams.away.id)+bnDots(pseudoLast5(g.teams.away.id));
   $('bnHomeRecord').innerHTML=pseudoRecord(g.teams.home.id)+bnDots(pseudoLast5(g.teams.home.id));
+
+  const isLive = g.status==='Live';
+  const isFinal = g.status==='Final';
+
+  // Live state panel (left of score) — only during live games
+  show('bnLiveState', isLive);
+  show('bnLiveSep', isLive);
+  show('bnCountSection', isLive);
+  show('bnCountSep', isLive);
+
   if(summary){
     $('bnScore').textContent=`${summary.score.away} – ${summary.score.home}`;
-    const live=summary.status&&/in progress|live|inning/i.test(summary.status);
-    $('bnScoreSub').innerHTML=`${live?'<span class="live-dot"></span>':''}${summary.status||'—'}`;
-    $('bnState').innerHTML=`${summary.half||''} ${summary.inning||''} · <span style="color:var(--sub)">${summary.outs??0} out${summary.outs!==1?'s':''}</span>`;
-    $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
-    const r=summary.runners||{};
-    $('r1').className='base'+(r.first?' on':'');
-    $('r2').className='base'+(r.second?' on':'');
-    $('r3').className='base'+(r.third?' on':'');
+
+    // Score sub: live dot + status for live, FINAL for final, start time for preview
+    if(isLive){
+      $('bnScoreSub').innerHTML=`<span class="live-dot"></span>${summary.status||'In Progress'}`;
+    } else if(isFinal){
+      $('bnScoreSub').innerHTML=`<span style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px">FINAL</span>`;
+    } else {
+      $('bnScoreSub').innerHTML=`<span style="color:var(--muted);font-size:11px">${fmtTime(g.startTime)}</span>`;
+    }
+
+    if(isLive){
+      // Format inning: "TOP 4th" / "BOT 7th"
+      const half=(summary.half||'').toLowerCase().includes('bot')?'BOT':'TOP';
+      const inn=summary.inning||'';
+      const suffix=inn===1?'st':inn===2?'nd':inn===3?'rd':'th';
+      $('bnInning').innerHTML=`<span style="font-size:11px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px">${half}</span><br>${inn}${suffix}`;
+      $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
+      $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
+      const r=summary.runners||{};
+      $('r1').className='base'+(r.first?' on':'');
+      $('r2').className='base'+(r.second?' on':'');
+      $('r3').className='base'+(r.third?' on':'');
+    }
+  } else {
+    // No summary yet — just show score from game card data
+    $('bnScore').textContent=`${g.teams.away.score} – ${g.teams.home.score}`;
+    $('bnScoreSub').innerHTML='';
   }
 }
 
@@ -870,16 +929,44 @@ function renderBatterCard(b){
 }
 
 /* ── SCHEDULE ── */
-async function loadSlate(){
+async function loadSlate(renderOnly=false){
   try{
     const data=await api('/api/schedule');
     state.games=sortGames(data.games);
     if(data.date)$('sidebarDate').textContent=data.date;
     if(!state.selectedGamePk&&state.games.length)state.selectedGamePk=state.games[0].gamePk;
     renderGames();
-    if(state.selectedGamePk)await refreshGame();
+    if(state.selectedGamePk&&!renderOnly)await refreshGame();
   }catch(e){$('games').innerHTML='<div class="empty" style="padding:16px">Failed to load schedule</div>';}
 }
+
+/* Poll the schedule every 20s to keep sidebar scores + inning live.
+   Only re-render the selected game panel when the play token changes. */
+async function pollAllGames(){
+  try{
+    const data=await api('/api/schedule');
+    const hadLive=state.games.some(g=>g.status==='Live');
+    state.games=sortGames(data.games);
+    renderGames(); // update sidebar scores/inning for all games
+    // If the selected game is live, also check if play state changed
+    const sel=state.games.find(x=>x.gamePk===state.selectedGamePk);
+    if(sel&&sel.status==='Live'){
+      try{
+        const feed=await api(`/api/pitch-feed?gamePk=${state.selectedGamePk}`);
+        if(state.playStateToken&&state.playStateToken!==feed.playStateToken)await refreshGame();
+        else updateBannerScore(sel); // at minimum keep banner score fresh
+      }catch{}
+    }
+    // If a game just went live (was Preview, now Live) and it's selected, full refresh
+    if(!hadLive&&state.games.some(g=>g.status==='Live')&&sel?.status==='Live')await refreshGame();
+  }catch{}
+}
+
+function updateBannerScore(g){
+  if(!g||!state.selectedGamePk||g.gamePk!==state.selectedGamePk)return;
+  $('bnScore').textContent=`${g.teams.away.score} – ${g.teams.home.score}`;
+}
+
 async function selectGame(gamePk){
   state.selectedGamePk=gamePk;state.playStateToken=null;
   renderGames();await refreshGame();
@@ -968,18 +1055,14 @@ async function refreshGame(){
 }
 
 async function pollLive(){
-  if(!state.selectedGamePk)return;
-  const g=state.games.find(x=>x.gamePk===state.selectedGamePk);
-  if(!g||g.status==='Preview')return;
-  try{const feed=await api(`/api/pitch-feed?gamePk=${state.selectedGamePk}`);if(state.playStateToken&&state.playStateToken!==feed.playStateToken)await refreshGame();}catch{}
+  // kept as no-op — polling now handled by pollAllGames
 }
 
 $('knowledgeLevel').value=state.level;
 $('knowledgeLevel').addEventListener('change',async e=>{state.level=e.target.value;localStorage.setItem('knowledgeLevel',state.level);await refreshGame();});
-$('refreshSlate').addEventListener('click',loadSlate);
+$('refreshSlate').addEventListener('click',()=>loadSlate());
 loadSlate();
-setInterval(loadSlate,60000);
-setInterval(pollLive,8000);
+setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check for play changes
 </script>
 </body>
 </html>
