@@ -264,13 +264,28 @@ async function handleApi(reqUrl, res) {
       const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
       const live = gameData.liveData || {};
       const { currentPlay, events, allPlays } = getCurrentPitchEvents(live);
-      const recentPlays = allPlays.slice(-8).map((play) => ({
-        atBatIndex: play.atBatIndex,
-        inning: play.about?.inning,
-        half: play.about?.halfInning,
-        description: play.result?.description,
-        scoringPlay: Boolean(play.about?.isScoringPlay)
-      }));
+      const recentPlays = allPlays.slice(-8).map((play) => {
+        const desc = play.result?.description || '';
+        const eventType = play.result?.eventType || play.result?.event || '';
+        const isSteal = /stolen base|steals|steal of/i.test(desc) || /stolen_base/i.test(eventType);
+        const isCaughtStealing = /caught stealing/i.test(desc) || /caught_stealing/i.test(eventType);
+        const bipEvent = (play.playEvents || []).find(e => e.hitData?.launchSpeed);
+        return {
+          atBatIndex: play.atBatIndex,
+          inning: play.about?.inning,
+          half: play.about?.halfInning,
+          description: desc,
+          scoringPlay: Boolean(play.about?.isScoringPlay),
+          startTime: play.about?.startTime || null,
+          endTime: play.about?.endTime || null,
+          isSteal,
+          isCaughtStealing,
+          exitVelocity: bipEvent?.hitData?.launchSpeed || null,
+          launchAngle: bipEvent?.hitData?.launchAngle || null,
+          totalDistance: bipEvent?.hitData?.totalDistance || null,
+          hardHit: bipEvent?.hitData?.launchSpeed >= 95 || false
+        };
+      });
       return sendJson(res, 200, {
         gamePk: Number(gamePk),
         pitchEvents: events,
@@ -296,29 +311,10 @@ async function handleApi(reqUrl, res) {
       const batterIntel = batter ? ensurePlayerIntel(intel, batter.id).batter : null;
       const prevPitch = current?.playEvents?.filter((e) => e.isPitch).at(-1)?.details?.type?.description;
       const nextPitchExpectation = buildNextPitchExpectation({ pitcherIntel, batterIntel, count: current?.count || { balls: 0, strikes: 0 }, previousPitchType: prevPitch, batterSide });
-
-      // Get current pitcher for each team from the boxscore (handles mid-game reliever changes)
-      const boxTeams = live?.boxscore?.teams || {};
-      const getActivePitcher = (teamSide) => {
-        const pitcherIds = boxTeams[teamSide]?.pitchers || [];
-        const players = boxTeams[teamSide]?.players || {};
-        // Last pitcher in the list is the most recent/current one
-        const lastId = pitcherIds[pitcherIds.length - 1];
-        if (!lastId) return null;
-        const p = players[`ID${lastId}`];
-        return p ? { id: lastId, fullName: p.person?.fullName || null } : null;
-      };
-      const awayCurrentPitcher = getActivePitcher('away');
-      const homeCurrentPitcher = getActivePitcher('home');
-
       return sendJson(res, 200, {
         gamePk: Number(gamePk),
         currentBatter: batter,
         currentPitcher: pitcher,
-        // Both teams' pitchers
-        awayPitcher: awayCurrentPitcher || gameData.gameData?.probablePitchers?.away || null,
-        homePitcher: homeCurrentPitcher || gameData.gameData?.probablePitchers?.home || null,
-        activePitcherId: pitcher?.id || null,
         starterInfo: gameData.gameData?.probablePitchers || {},
         pitcherVsBatter: {
           handedness: `${current?.matchup?.pitchHand?.code || '?'} vs ${current?.matchup?.batSide?.code || '?'}`,
