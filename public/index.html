@@ -6,7 +6,7 @@
   <title>MLB Live Tracker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet" />
   <style>
     /* ── MLB / FANDUEL-QUALITY THEME ──────────────────────────────
        Navy foundation · Crisp white type · Red accent · Gold live
@@ -45,7 +45,7 @@
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-    body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:14px;line-height:1.5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
     /* ── HEADER ── */
     .header{
@@ -97,7 +97,7 @@
       display:flex;align-items:center;justify-content:space-between;
     }
     .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-    .date-tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+    .date-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
     #games{flex:1;overflow-y:auto;padding:0}
     #games::-webkit-scrollbar{width:3px}
     #games::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -129,7 +129,7 @@
     .team-logo-sm{width:22px;height:22px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .team-logo-sm img{width:100%;height:100%;object-fit:contain}
     .team-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
-    .card-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--sub);min-width:14px;text-align:center}
+    .card-score{font-family:'DM Mono',monospace;font-weight:700;font-size:13px;color:var(--sub);min-width:14px;text-align:center}
     .card-sep{font-size:12px;color:var(--muted);padding:0 6px;flex-shrink:0}
 
     /* Dots row — same two-column structure as card-teams */
@@ -141,7 +141,7 @@
     .fg-dot.L{background:var(--red)}
     .fg-dot.T{background:var(--gold)}
 
-    .card-time{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:4px}
+    .card-time{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:4px}
     .card-live-row{display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:1px}
     .card-inning{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--live);letter-spacing:.5px}
     .card-final-tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--gold)}
@@ -155,48 +155,41 @@
     .banner{
       flex-shrink:0;
       background:var(--surface);
-      border-bottom:1px solid var(--border);
-      padding:0 20px;height:66px;
+      border-bottom:2px solid var(--border);
+      padding:0 28px;
+      height:96px;
       display:flex;align-items:center;gap:0;
+      position:relative;
     }
-    .banner-team{display:flex;align-items:center;gap:10px}
+    .banner::before{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(90deg,rgba(232,24,44,.06) 0%,transparent 40%,transparent 60%,rgba(31,142,241,.06) 100%);
+      pointer-events:none;
+    }
+    .banner-team{display:flex;align-items:center;gap:14px}
     .team-logo-lg{
-      width:38px;height:38px;border-radius:7px;overflow:hidden;
+      width:60px;height:60px;border-radius:10px;overflow:hidden;
       display:flex;align-items:center;justify-content:center;
       background:var(--card-2);border:1px solid var(--border);
     }
     .team-logo-lg img{width:100%;height:100%;object-fit:contain}
-    .banner-score-block{text-align:center;min-width:100px}
-    .banner-score{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:28px;line-height:1;color:var(--text)}
-    .banner-live-state{
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      min-width:72px;padding:0 4px;gap:4px;
-    }
+    .banner-team-info{display:flex;flex-direction:column;gap:3px}
+    .banner-score-block{text-align:center;min-width:160px}
+    .banner-score{font-family:'DM Mono',monospace;font-weight:700;font-size:48px;line-height:1;color:var(--text);letter-spacing:-1px}
+    .banner-live-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:70px;padding:0 4px;gap:3px}
     .banner-inning-wrap{display:flex;flex-direction:column;align-items:center;line-height:1}
-    .banner-half{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase}
-    .banner-inning-num{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;color:var(--text);line-height:1}
-    .banner-outs{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.3px}
-    /* Runner diamond — fixed 32x28 box so it never shifts */
-    .runner-diamond{position:relative;width:32px;height:28px;flex-shrink:0}
-    .runner-diamond .base{
-      position:absolute;width:10px;height:10px;
-      border:1.5px solid var(--border);
-      transform:rotate(45deg);border-radius:1px;
-      background:transparent;transition:background .2s,border-color .2s;
-    }
-    .runner-diamond .base.on{background:var(--gold);border-color:var(--gold)}
-    /* Fixed positions: 2B top-centre, 3B left, 1B right */
-    .runner-diamond #r2{top:0;left:50%;margin-left:-5px}
-    .runner-diamond #r3{bottom:0;left:0}
-    .runner-diamond #r1{bottom:0;right:0}
-    .banner-score-sub{font-size:11px;color:var(--sub);margin-top:2px;min-height:14px}
-    .banner-sep{width:1px;height:34px;background:var(--border);margin:0 16px;flex-shrink:0}
-    .banner-section{display:flex;flex-direction:column;justify-content:center}
-    .banner-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-    .banner-value{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
-    .banner-count{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;color:var(--gold)}
-    .banner-state{font-size:12px;color:var(--sub)}
-    .live-dot{display:inline-block;width:7px;height:7px;background:var(--live);border-radius:50%;margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
+    .banner-half{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+    .banner-inning-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:32px;color:var(--text);line-height:1}
+    .banner-outs{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:3px;letter-spacing:.5px}
+    .banner-score-sub{font-size:13px;color:var(--sub);margin-top:4px;min-height:16px}
+    .banner-sep{width:1px;height:52px;background:var(--border);margin:0 22px;flex-shrink:0}
+    .banner-section{display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .banner-label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+    .banner-value{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;color:var(--text)}
+    .banner-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
+    .banner-count{font-family:'DM Mono',monospace;font-weight:700;font-size:32px;color:var(--gold);line-height:1}
+    .banner-state{font-size:13px;color:var(--sub)}
+    .live-dot{display:inline-block;width:8px;height:8px;background:var(--live);border-radius:50%;margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 
     /* ── CONTENT ── */
@@ -220,9 +213,9 @@
       display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
       background:rgba(255,255,255,.02);
     }
-    .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-    .panel-badge{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
-    .panel-body{padding:10px 13px;flex:1;overflow-y:auto}
+    .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub)}
+    .panel-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
+    .panel-body{padding:12px 14px;flex:1;overflow-y:auto}
     .panel-body::-webkit-scrollbar{width:3px}
     .panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
@@ -230,13 +223,17 @@
     .item{
       padding:7px 10px;background:var(--card-2);
       border:1px solid var(--border-soft);border-radius:5px;
-      margin-bottom:5px;font-size:13px;line-height:1.5;color:var(--sub);
+      margin-bottom:6px;font-size:14px;line-height:1.6;color:var(--sub);
     }
     .item:last-child{margin-bottom:0}
     .item strong{color:var(--text)}
-    .tag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-right:4px}
+    .tag{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-right:4px}
     .tag-live{background:var(--live-dim);color:var(--live)}
     .tag-info{background:var(--blue-dim);color:var(--blue)}
+    .tag-steal{background:rgba(138,43,226,0.18);color:#b06aff;font-weight:800;letter-spacing:.5px}
+    .tag-cs{background:var(--red-dim);color:var(--red);font-weight:800}
+    .item-steal{border-color:#b06aff;border-left:3px solid #b06aff;background:rgba(138,43,226,0.07)}
+    .item-cs{border-color:var(--red);border-left:3px solid var(--red);background:var(--red-dim)}
 
     /* ── PREGAME ── */
     .pregame-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -244,33 +241,33 @@
     .pregame-logo{width:48px;height:48px;border-radius:9px;overflow:hidden;background:var(--card-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .pregame-logo img{width:100%;height:100%;object-fit:contain}
     .pregame-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;color:var(--text)}
-    .pregame-record{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sub)}
+    .pregame-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
     .pregame-last5{display:flex;gap:4px;margin-top:5px;align-items:center}
-    .last5-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-right:4px}
+    .last5-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-right:4px}
     .last5-pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:3px}
     .last5-pill.W{background:var(--live-dim);color:var(--live)}
     .last5-pill.L{background:var(--red-dim);color:var(--red)}
     .last5-pill.T{background:var(--gold-dim);color:var(--gold)}
-    .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;margin-top:2px}
+    .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px;margin-top:2px}
     .spotlight-card{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:9px 11px 9px 14px;margin-bottom:6px;position:relative;overflow:hidden}
     .spotlight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
     .spotlight-card.is-starter::before{background:var(--blue)}
     .spotlight-card.is-hot::before{background:var(--live)}
     .spotlight-card.is-cold::before{background:var(--red)}
     .spotlight-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
-    .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text)}
+    .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
     .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;margin-left:6px}
     .badge-hot{background:var(--live-dim);color:var(--live)}
     .badge-cold{background:var(--red-dim);color:var(--red)}
     .badge-starter{background:var(--blue-dim);color:var(--blue)}
-    .spotlight-stat{font-size:12px;color:var(--sub);line-height:1.5}
+    .spotlight-stat{font-size:13px;color:var(--sub);line-height:1.6}
     .spotlight-stat strong{color:var(--gold)}
-    .spotlight-extra{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.45}
+    .spotlight-extra{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
 
     /* ── STAT BARS ── */
     .bar-group{margin-bottom:8px}
-    .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:12px;color:var(--sub)}
-    .bar-label span:last-child{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--text)}
+    .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:13px;color:var(--sub)}
+    .bar-label span:last-child{font-family:'DM Mono',monospace;font-weight:700;color:var(--text)}
     .bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
     .bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s ease}
     .bar-fill.green{background:var(--live)}
@@ -278,62 +275,62 @@
     .bar-fill.red{background:var(--red)}
     .stat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft)}
     .stat-row:last-child{border-bottom:none}
-    .stat-key{font-size:12px;color:var(--sub)}
-    .stat-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--text)}
+    .stat-key{font-size:13px;color:var(--sub)}
+    .stat-val{font-family:'DM Mono',monospace;font-weight:700;font-size:14px;color:var(--text)}
 
     /* ── MIX GRID ── */
     .mix-grid{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
     .mix-chip{flex:1;min-width:50px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px 7px;text-align:center}
-    .mix-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px}
-    .mix-pct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:var(--text)}
-    .mix-vel{font-size:10px;color:var(--muted)}
+    .mix-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--sub);letter-spacing:1px}
+    .mix-pct{font-family:'DM Mono',monospace;font-weight:700;font-size:15px;color:var(--text)}
+    .mix-vel{font-size:11px;color:var(--sub)}
 
     /* ── MATCHUP ── */
     .matchup-display{display:flex;align-items:center;gap:8px}
     .matchup-player{flex:1;background:var(--card-2);border:1px solid var(--border-soft);border-radius:7px;padding:9px 10px;text-align:center}
-    .matchup-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-    .matchup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text)}
+    .matchup-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .matchup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
     .matchup-vs{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:var(--muted)}
-    .matchup-hand{display:inline-block;margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-mid);padding:1px 6px;border-radius:3px}
+    .matchup-hand{display:inline-block;margin-top:4px;font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-mid);padding:1px 6px;border-radius:3px}
 
     /* ── PITCH CHIPS ── */
     .pitch-probs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
     .pitch-chip{display:flex;flex-direction:column;align-items:center;background:var(--card-2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;min-width:64px;flex:1}
     .pitch-chip.top{border-color:var(--red);background:var(--red-dim)}
-    .pitch-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--sub)}
+    .pitch-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--sub)}
     .pitch-chip.top .pitch-type{color:var(--red)}
-    .pitch-pct{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:var(--text);line-height:1.2}
+    .pitch-pct{font-family:'DM Mono',monospace;font-weight:700;font-size:20px;color:var(--text);line-height:1.2}
     .pitch-chip.top .pitch-pct{color:var(--text)}
     .pitch-unit{font-size:10px;color:var(--muted)}
 
     /* ── PITCH ROW ── */
-    .pitch-row{display:grid;grid-template-columns:22px 1fr auto auto auto;gap:6px;align-items:center;padding:5px 8px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:4px;font-size:12px}
+    .pitch-row{display:grid;grid-template-columns:22px 1fr auto auto auto;gap:6px;align-items:center;padding:7px 8px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:4px;font-size:13px}
     .pitch-row:last-child{margin-bottom:0}
-    .pitch-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:center}
+    .pitch-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);text-align:center}
     .pitch-desc{color:var(--sub)}
-    .pitch-spd{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:var(--text)}
-    .pitch-call{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:1px 5px;border-radius:3px;letter-spacing:.5px}
+    .pitch-spd{font-family:'DM Mono',monospace;font-weight:700;font-size:13px;color:var(--text)}
+    .pitch-call{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;padding:1px 5px;border-radius:3px;letter-spacing:.5px}
     .call-strike{background:var(--red-dim);color:var(--red)}
     .call-ball{background:var(--blue-dim);color:var(--blue)}
     .call-hit{background:var(--live-dim);color:var(--live)}
     .call-other{background:var(--border);color:var(--sub)}
-    .pitch-cnt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+    .pitch-cnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
 
     /* ── LINEUP TABLE ── */
-    .lineup-side{padding:10px 13px;border-right:1px solid var(--border-soft)}
+    .lineup-side{padding:12px 14px;border-right:1px solid var(--border-soft)}
     .lineup-side:last-child{border-right:none}
-    .lineup-header{display:flex;align-items:center;gap:7px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)}
-    .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text)}
-    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-left:auto;min-width:70px;text-align:right}
-    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);min-width:80px;text-align:right}
-    .lineup-row{display:grid;grid-template-columns:18px 1fr 28px auto auto;gap:5px;align-items:center;padding:4px 6px;border-radius:4px;margin-bottom:2px;transition:background .1s}
+    .lineup-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)}
+    .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
+    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-left:auto;min-width:85px;text-align:right}
+    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);min-width:95px;text-align:right}
+    .lineup-row{display:grid;grid-template-columns:22px 1fr 34px auto auto;gap:8px;align-items:center;padding:8px 8px;border-radius:5px;margin-bottom:3px;transition:background .1s}
     .lineup-row:hover{background:var(--card-2)}
     .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
-    .lineup-num{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--sub);text-align:right}
-    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--sub);text-align:center}
-    .lineup-today{font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;white-space:nowrap;min-width:70px}
-    .lineup-season{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text);text-align:right;white-space:nowrap;min-width:80px}
+    .lineup-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);text-align:right;font-weight:700}
+    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);text-align:center;background:var(--card-2);border-radius:3px;padding:1px 4px}
+    .lineup-today{font-family:'DM Mono',monospace;font-size:11px;text-align:right;white-space:nowrap;min-width:85px;font-weight:700}
+    .lineup-season{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:right;white-space:nowrap;min-width:95px;font-weight:700}
     /* ── IN-PLAY STATS ── */
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
@@ -344,7 +341,7 @@
     .pitch-meter{margin:6px 0 8px}
     .pitch-meter-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
     .pitch-meter-fill{height:100%;border-radius:3px;transition:width .4s ease}
-    .pitch-meter-label{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+    .pitch-meter-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
     .pa-log{display:flex;flex-direction:column;gap:3px;margin-top:4px}
     .pa-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);padding:3px 6px;background:var(--card-2);border-radius:3px}
     .pa-inn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);min-width:36px}
@@ -359,12 +356,12 @@
     .buzz-type.high{background:var(--gold-dim);color:var(--gold)}
     .angle-card{background:var(--card-2);border:1px solid var(--border-soft);border-left:3px solid var(--red);border-radius:0 5px 5px 0;padding:8px 10px;margin-bottom:6px}
     .angle-card:last-child{margin-bottom:0}
-    .angle-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--text);margin-bottom:2px}
-    .angle-why{font-size:12px;color:var(--sub)}
+    .angle-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text);margin-bottom:2px}
+    .angle-why{font-size:13px;color:var(--sub)}
     .buzz-item{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:5px}
     .buzz-item:last-child{margin-bottom:0}
     .buzz-dot{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0}
-    .buzz-text{font-size:13px;color:var(--sub)}
+    .buzz-text{font-size:14px;color:var(--sub)}
     .buzz-text strong{color:var(--text)}
 
     /* ── UTILS ── */
@@ -405,6 +402,49 @@
   </div>
 </div>
 
+<div class="banner" id="banner">
+  <!-- LEFT: inning — hidden until live -->
+  <div class="banner-live-state" id="bnLiveState" style="display:none">
+    <div class="banner-inning-wrap">
+      <span class="banner-half" id="bnHalf">TOP</span>
+      <span class="banner-inning-num" id="bnInning">1st</span>
+    </div>
+  </div>
+  <div class="banner-sep" id="bnLiveSep" style="display:none"></div>
+
+  <!-- AWAY TEAM -->
+  <div class="banner-team">
+    <div class="team-logo-lg" id="bnAwayLogo"></div>
+    <div class="banner-team-info">
+      <div class="banner-value" id="bnAwayName">—</div>
+      <div class="banner-record" id="bnAwayRecord"></div>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="banner-score-block" style="margin:0 20px">
+    <div class="banner-score" id="bnScore">— —</div>
+    <div class="banner-score-sub" id="bnScoreSub"></div>
+  </div>
+
+  <!-- HOME TEAM -->
+  <div class="banner-team">
+    <div class="banner-team-info" style="text-align:right">
+      <div class="banner-value" id="bnHomeName">—</div>
+      <div class="banner-record" id="bnHomeRecord"></div>
+    </div>
+    <div class="team-logo-lg" id="bnHomeLogo"></div>
+  </div>
+
+  <!-- RIGHT: count + outs (live only) -->
+  <div class="banner-sep" id="bnCountSep" style="display:none"></div>
+  <div class="banner-section" id="bnCountSection" style="display:none">
+    <div class="banner-label">Count</div>
+    <div class="banner-count" id="bnCount">—</div>
+    <div class="banner-outs" id="bnOuts"></div>
+  </div>
+</div>
+
 <div class="shell">
   <aside class="sidebar">
     <div class="sidebar-head">
@@ -415,53 +455,6 @@
   </aside>
 
   <div class="main">
-    <div class="banner" id="banner">
-      <!-- LEFT: live game state (inning + runners) — hidden until live -->
-      <div class="banner-live-state" id="bnLiveState" style="display:none">
-        <div class="banner-inning-wrap">
-          <span class="banner-half" id="bnHalf">TOP</span>
-          <span class="banner-inning-num" id="bnInning">1st</span>
-        </div>
-        <div class="runner-diamond">
-          <div class="base" id="r2"></div>
-          <div class="base" id="r3"></div>
-          <div class="base" id="r1"></div>
-        </div>
-        <div class="banner-outs" id="bnOuts">0 outs</div>
-      </div>
-      <div class="banner-sep" id="bnLiveSep" style="display:none"></div>
-
-      <!-- AWAY TEAM -->
-      <div class="banner-team">
-        <div class="team-logo-lg" id="bnAwayLogo"></div>
-        <div>
-          <div class="banner-value" id="bnAwayName">—</div>
-          <div class="banner-state" id="bnAwayRecord"></div>
-        </div>
-      </div>
-
-      <!-- SCORE -->
-      <div class="banner-score-block" style="margin:0 14px">
-        <div class="banner-score" id="bnScore">— —</div>
-        <div class="banner-score-sub" id="bnScoreSub"></div>
-      </div>
-
-      <!-- HOME TEAM -->
-      <div class="banner-team">
-        <div style="text-align:right">
-          <div class="banner-value" id="bnHomeName">—</div>
-          <div class="banner-state" id="bnHomeRecord"></div>
-        </div>
-        <div class="team-logo-lg" id="bnHomeLogo"></div>
-      </div>
-
-      <!-- RIGHT: count (live only) -->
-      <div class="banner-sep" id="bnCountSep" style="display:none"></div>
-      <div class="banner-section" id="bnCountSection" style="display:none">
-        <div class="banner-label">Count</div>
-        <div class="banner-count" id="bnCount">—</div>
-      </div>
-    </div>
 
     <div class="content">
       <div class="grid">
@@ -484,6 +477,55 @@
             <span class="panel-badge" id="tickerBadge"></span>
           </div>
           <div class="panel-body" id="liveTicker"><div class="empty">No plays yet</div></div>
+        </div>
+
+        <!-- FIELD DIAGRAM -->
+        <div class="panel" id="fieldPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">Field</span>
+            <span class="panel-badge" id="fieldBadge"></span>
+          </div>
+          <div class="panel-body" style="padding:10px;display:flex;align-items:center;justify-content:center">
+            <svg id="fieldSvg" viewBox="0 0 220 220" width="100%" style="max-width:220px;display:block">
+              <!-- Outfield arc -->
+              <path id="fieldArc" d="M 30 190 Q 110 20 190 190 Z" fill="#1a3a1a" stroke="#2a5a2a" stroke-width="1.5"/>
+              <!-- Infield dirt -->
+              <path id="fieldDirt" d="M 110 170 L 55 115 L 110 60 L 165 115 Z" fill="#5a3a1a" stroke="#7a5a2a" stroke-width="1"/>
+              <!-- Base paths -->
+              <line x1="110" y1="170" x2="55" y2="115" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="55" y1="115" x2="110" y2="60" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="110" y1="60" x2="165" y2="115" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
+              <line x1="165" y1="115" x2="110" y2="170" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
+              <!-- Pitcher's mound -->
+              <circle cx="110" cy="120" r="5" fill="#6a4a2a" stroke="#8a6a3a" stroke-width="1"/>
+              <!-- Home plate -->
+              <polygon id="homeBase" points="110,178 104,172 104,166 116,166 116,172" fill="#e8f0fa" stroke="#aaa" stroke-width="0.5"/>
+              <!-- 1B -->
+              <rect id="base1" x="157" y="107" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
+              <!-- 2B -->
+              <rect id="base2" x="102" y="52" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
+              <!-- 3B -->
+              <rect id="base3" x="47" y="107" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
+              <!-- Foul lines -->
+              <line x1="110" y1="170" x2="30" y2="30" stroke="#8a7a5a" stroke-width="1" opacity="0.6"/>
+              <line x1="110" y1="170" x2="190" y2="30" stroke="#8a7a5a" stroke-width="1" opacity="0.6"/>
+              <!-- Ball landing spot -->
+              <circle id="ballSpot" cx="-50" cy="-50" r="5" fill="var(--gold)" opacity="0.9" style="display:none"/>
+              <!-- Position labels -->
+              <text x="110" y="118" text-anchor="middle" dominant-baseline="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.5">P</text>
+              <text x="110" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">CF</text>
+              <text x="55" y="55" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">LF</text>
+              <text x="165" y="55" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">RF</text>
+              <!-- Runner labels -->
+              <text id="label1" x="181" y="118" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
+              <text id="label2" x="110" y="48" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
+              <text id="label3" x="38" y="118" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
+              <!-- Outs display -->
+              <text id="fieldOuts" x="110" y="205" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="10" fill="var(--sub)"></text>
+              <!-- Last hit info -->
+              <text id="fieldHitInfo" x="110" y="215" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="var(--gold)"></text>
+            </svg>
+          </div>
         </div>
 
         <!-- GAME BUZZ -->
@@ -689,21 +731,18 @@ function updateBanner(g,summary){
     }
 
     if(isLive){
-      // Format inning half and number separately
       const half=(summary.half||'').toLowerCase().includes('bot')?'BOT':'TOP';
       const inn=Number(summary.inning)||1;
       const suffix=inn===1?'st':inn===2?'nd':inn===3?'rd':'th';
       $('bnHalf').textContent=half;
       $('bnInning').textContent=`${inn}${suffix}`;
-      $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
       $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
-      // Always explicitly set all three bases — never leave stale state
+      $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
       const r=summary.runners||{};
       $('r1').className='base'+(r.first?' on':'');
       $('r2').className='base'+(r.second?' on':'');
       $('r3').className='base'+(r.third?' on':'');
     } else {
-      // Clear runners when not live so stale state never shows
       ['r1','r2','r3'].forEach(id=>{ if($(id)) $(id).className='base'; });
     }
   } else {
@@ -1020,12 +1059,12 @@ function renderBatterCard(b){
   return`<div style="display:flex;gap:6px;margin-bottom:8px">
     <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">FORM</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px;color:${h?'var(--live)':'var(--red)'}">${h?'🔥 HOT':'❄ COLD'}</div>
+      <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px;color:${h?'var(--live)':'var(--red)'}">${h?'🔥 HOT':'❄ COLD'}</div>
       <div style="font-size:10px;color:var(--muted)">trend ${tr>0?'+':''}${tr}</div>
     </div>
     <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
       <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">BARREL</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>
+      <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>
       <div style="font-size:10px;color:var(--muted)">hard hit ${b.hardHitRate}%</div>
     </div>
   </div>
@@ -1252,7 +1291,62 @@ async function fetchAndRenderInplay(gamePk, matchup){
   }
 }
 
-async function loadSlate(renderOnly=false){
+/* ── FIELD DIAGRAM ── */
+function renderFieldDiagram(summary, feed){
+  if(!summary){ $('fieldPanel').style.display='none'; return; }
+  $('fieldPanel').style.display='';
+
+  const r=summary.runners||{};
+  const outs=summary.outs??0;
+  const BASE_ON='var(--gold)';
+  const BASE_OFF='var(--border)';
+  const STROKE_ON='#c8890a';
+  const STROKE_OFF='#444';
+
+  // Update bases
+  function setBase(id,on,labelId,name){
+    const el=document.getElementById(id);
+    if(el){ el.setAttribute('fill',on?BASE_ON:BASE_OFF); el.setAttribute('stroke',on?STROKE_ON:STROKE_OFF); }
+    const lbl=document.getElementById(labelId);
+    if(lbl){ lbl.style.display=on?'':'none'; if(on&&name) lbl.textContent=name.split(' ').pop(); }
+  }
+  setBase('base1',r.first,'label1',r.firstName||'');
+  setBase('base2',r.second,'label2',r.secondName||'');
+  setBase('base3',r.third,'label3',r.thirdName||'');
+
+  // Outs dots
+  const outsDots=['●','●','●'].map((d,i)=>`<tspan fill="${i<outs?'var(--red)':'var(--border)'}">${d}</tspan>`).join(' ');
+  const outsEl=document.getElementById('fieldOuts');
+  if(outsEl) outsEl.innerHTML=outsDots;
+
+  // Ball in play — last play with hit coordinates
+  const lastHit=feed?.recentPlays?.slice().reverse().find(p=>p.exitVelocity);
+  const ballSpot=document.getElementById('ballSpot');
+  const hitInfo=document.getElementById('fieldHitInfo');
+  if(lastHit&&ballSpot){
+    // MLB hit coords are roughly 0-250 x and 0-250 y with home plate at ~125,205
+    // Scale to our SVG: field centre is 110,120, scale factor ~0.75
+    // Without real coords we show a generic position based on distance
+    const dist=lastHit.totalDistance||300;
+    const angle=lastHit.launchAngle||20;
+    // Simple projection: further = closer to outfield arc
+    const pct=Math.min(dist/420,1);
+    const cx=110;
+    const cy=170-(pct*145);
+    ballSpot.setAttribute('cx',cx);
+    ballSpot.setAttribute('cy',cy);
+    ballSpot.style.display='';
+    if(hitInfo) hitInfo.textContent=lastHit.exitVelocity?`EV ${lastHit.exitVelocity}mph · ${dist}ft`:'';
+  } else {
+    if(ballSpot) ballSpot.style.display='none';
+    if(hitInfo) hitInfo.textContent='';
+  }
+
+  // Badge
+  const runnerCount=[r.first,r.second,r.third].filter(Boolean).length;
+  $('fieldBadge').textContent=runnerCount?`${runnerCount} on · ${outs} out${outs!==1?'s':''}`:
+    `${outs} out${outs!==1?'s':''}`;
+}
   try{
     const data=await api('/api/schedule');
     state.games=sortGames(data.games);
@@ -1311,6 +1405,7 @@ async function refreshGame(){
     $('gameBuzzPanel').style.display='none';
     $('lineupsPanel').style.display='none';
     $('inplayPanel').style.display='none';
+    $('fieldPanel').style.display='none';
     // Clear dual pitcher panel
     $('awayPitcherCard').innerHTML='<div class="empty">Game not started</div>';
     $('homePitcherCard').innerHTML='<div class="empty">Game not started</div>';
@@ -1335,22 +1430,56 @@ async function refreshGame(){
       api(`/api/game-buzz?gamePk=${gamePk}`)
     ]);
     updateBanner(g,summary);
+    renderFieldDiagram(summary, feed);
 
     // Fetch lineups and in-play stats directly from MLB API
     fetchAndRenderLineups(gamePk, matchup);
     fetchAndRenderInplay(gamePk, matchup);
 
+    function fmtPlayTime(iso){
+      if(!iso) return '';
+      try{ return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
+      catch{ return ''; }
+    }
     $('liveTicker').innerHTML=feed.recentPlays.length
       ?feed.recentPlays.slice().reverse().map(p=>{
-        const evLine=p.exitVelocity?`<div style="margin-top:3px;display:flex;gap:8px;flex-wrap:wrap">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
-          ${p.launchAngle!=null?`<span style="font-size:11px;color:var(--muted)">LA ${p.launchAngle}°</span>`:''}
+        const time=fmtPlayTime(p.endTime||p.startTime);
+        const timeHtml=time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0">${time}</span>`:'';
+        const evLine=p.exitVelocity?`<div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
+          ${p.launchAngle!=null?`<span style="font-size:11px;color:var(--muted)">LA ${p.launchAngle}deg</span>`:''}
           ${p.totalDistance?`<span style="font-size:11px;color:var(--muted)">${p.totalDistance} ft</span>`:''}
-          ${p.hardHit?`<span style="font-size:10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:1px;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
+          ${p.hardHit?`<span style="font-size:10px;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:1px;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
         </div>`:'';
+        if(p.isSteal){
+          return `<div class="item item-steal">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span class="tag tag-steal">STEAL</span>
+              <span class="tag tag-info">${p.half||''} ${p.inning||''}</span>
+              ${timeHtml}
+            </div>
+            <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>
+            ${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Speed play - advances runner without a hit, shifts run expectancy.</div>`:''}
+          </div>`;
+        }
+        if(p.isCaughtStealing){
+          return `<div class="item item-cs">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              <span class="tag tag-cs">OUT - CS</span>
+              <span class="tag tag-info">${p.half||''} ${p.inning||''}</span>
+              ${timeHtml}
+            </div>
+            <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>
+            ${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Runner thrown out - baserunner erased, momentum shifts to defence.</div>`:''}
+          </div>`;
+        }
         return `<div class="item">
-          <span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'🔥 ':''}
-          <span>${explain(p.description||'—')}</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>
+            ${p.scoringPlay?'<span style="color:var(--live)">&#x1F525;</span>':''}
+            ${timeHtml}
+          </div>
+          <div>${explain(p.description||'---')}</div>
           ${evLine}
         </div>`;
       }).join('')
@@ -1390,7 +1519,7 @@ async function refreshGame(){
     $('pitchBadge').textContent=feed.pitchEvents.length?`${feed.pitchEvents.length} pitches`:'';
     $('pitchByPitch').innerHTML=feed.pitchEvents.length
       ?feed.pitchEvents.slice().reverse().map(p=>{
-        const evBadge=p.exitVelocity?`<span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity}mph${p.launchAngle!=null?' · '+p.launchAngle+'°':''}</span>`:'';
+        const evBadge=p.exitVelocity?`<span style="font-family:'DM Mono',monospace;font-weight:700;font-size:11px;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity}mph${p.launchAngle!=null?' · '+p.launchAngle+'°':''}</span>`:'';
         return `<div class="pitch-row" style="grid-template-columns:22px 1fr auto auto auto ${p.exitVelocity?'auto':''}">
           <div class="pitch-num">#${p.pitchNumber}</div>
           <div class="pitch-desc">${p.type||p.details||'—'}</div>
@@ -1447,6 +1576,13 @@ async function refreshGame(){
     const lastPlay=feed.recentPlays?.[feed.recentPlays.length-1];
     if(lastPlay?.hardHit) buzzItems.push({type:'contact',dot:'red',text:`Hard hit ball — exit velocity ${lastPlay.exitVelocity} mph${lastPlay.totalDistance?` · ${lastPlay.totalDistance} ft`:''} on the last play. High-damage contact.`});
 
+    // Stolen base alert — recent steals/CS in last 3 plays
+    const recentSteals=feed.recentPlays?.slice(-3)||[];
+    const steal=recentSteals.find(p=>p.isSteal);
+    const cs=recentSteals.find(p=>p.isCaughtStealing);
+    if(steal) buzzItems.push({type:'steal',dot:'purple',text:`Stolen base just recorded — ${steal.description}. Runner advanced without a hit, run expectancy shifts.`});
+    if(cs) buzzItems.push({type:'caught',dot:'red',text:`Caught stealing — ${cs.description}. Defence eliminates the baserunner, big momentum play.`});
+
     // Runner situations
     if(r.second&&r.third) buzzItems.push({type:'threat',dot:'red',text:'Runners on 2nd and 3rd — scoring position with multiple threats. Any contact could score runs.'});
     else if(r.first&&r.second) buzzItems.push({type:'threat',dot:'red',text:'Runners on 1st and 2nd — double play in order but also a gap hit scores two.'});
@@ -1486,7 +1622,7 @@ async function refreshGame(){
     // Fallback
     if(!buzzItems.length) buzzItems.push({type:'steady',dot:'muted',text:'Game state is stable — no immediate high-leverage situation flagged.'});
 
-    const dotColor={red:'var(--red)',amber:'var(--gold)',blue:'var(--blue)',live:'var(--live)',muted:'var(--muted)'};
+    const dotColor={red:'var(--red)',amber:'var(--gold)',blue:'var(--blue)',live:'var(--live)',muted:'var(--muted)',purple:'#b06aff'};
     $('gameBuzz').innerHTML=buzzItems.slice(0,5).map(b=>`
       <div class="buzz-item">
         <div class="buzz-dot" style="background:${dotColor[b.dot]||'var(--blue)'}"></div>
@@ -1509,5 +1645,3 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </script>
 </body>
 </html>
-
-
