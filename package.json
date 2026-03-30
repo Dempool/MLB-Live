@@ -1,0 +1,15 @@
+{
+  "name": "mlb-live-tracker",
+  "version": "1.0.0",
+  "description": "MLB live tracker with server-side intelligence and ticker",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "generate:intel": "node scripts/generate-player-intel.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
