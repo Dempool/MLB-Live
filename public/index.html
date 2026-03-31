@@ -232,8 +232,25 @@
     .tag-info{background:var(--blue-dim);color:var(--blue)}
     .tag-steal{background:rgba(138,43,226,0.18);color:#b06aff;font-weight:800;letter-spacing:.5px}
     .tag-cs{background:var(--red-dim);color:var(--red);font-weight:800}
+    .tag-dp{background:rgba(255,140,0,0.18);color:#ff8c00;font-weight:800}
+    .tag-special{background:rgba(255,215,0,0.15);color:#ffd700;font-weight:800}
     .item-steal{border-color:#b06aff;border-left:3px solid #b06aff;background:rgba(138,43,226,0.07)}
     .item-cs{border-color:var(--red);border-left:3px solid var(--red);background:var(--red-dim)}
+    .item-dp{border-color:#ff8c00;border-left:3px solid #ff8c00;background:rgba(255,140,0,0.07)}
+    .item-special{border-color:#ffd700;border-left:3px solid #ffd700;background:rgba(255,215,0,0.06)}
+    .ticker-nav{background:var(--card-2);border:1px solid var(--border);color:var(--sub);border-radius:4px;padding:2px 8px;cursor:pointer;font-size:12px;line-height:1.4}
+    .ticker-nav:hover{background:var(--border);color:var(--text)}
+    .ticker-nav:disabled{opacity:.3;cursor:default}
+    .scoring-play-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-left:3px solid var(--live);border-radius:0 5px 5px 0;margin-bottom:5px}
+    .scoring-inn{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;min-width:32px}
+    .scoring-score{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
+    .scoring-desc{font-size:13px;color:var(--sub);flex:1}
+    .ondeck-card{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:10px 12px}
+    .ondeck-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;color:var(--text);margin-bottom:6px}
+    .ondeck-stats{display:flex;gap:12px;flex-wrap:wrap}
+    .ondeck-stat{text-align:center}
+    .ondeck-stat-val{font-family:'DM Mono',monospace;font-weight:700;font-size:18px;color:var(--text)}
+    .ondeck-stat-lbl{font-family:'DM Sans',sans-serif;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 
     /* ── PREGAME ── */
     .pregame-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -470,11 +487,41 @@
           </div>
         </div>
 
+        <!-- SCORING PLAYS -->
+        <div class="panel" id="scoringPlaysPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">🔥 Scoring Plays</span>
+            <span class="panel-badge" id="scoringPlaysBadge"></span>
+          </div>
+          <div class="panel-body" id="scoringPlays"><div class="empty">No scoring plays yet</div></div>
+        </div>
+
+        <!-- SPECIAL PLAYS -->
+        <div class="panel" id="specialPlaysPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">⚑ Notable Plays</span>
+          </div>
+          <div class="panel-body" id="specialPlays"><div class="empty">—</div></div>
+        </div>
+
+        <!-- NEXT BATTER -->
+        <div class="panel" id="nextBatterPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">On Deck</span>
+            <span class="panel-badge" id="nextBatterBadge"></span>
+          </div>
+          <div class="panel-body" id="nextBatterCard"><div class="empty">—</div></div>
+        </div>
+
         <!-- LIVE TICKER -->
         <div class="panel grid-wide" id="liveTickerPanel">
           <div class="panel-head">
             <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:2px"></span>Live Ticker</span>
-            <span class="panel-badge" id="tickerBadge"></span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <button class="ticker-nav" id="tickerPrev" onclick="tickerPage(-1)">&#8592;</button>
+              <span class="panel-badge" id="tickerBadge"></span>
+              <button class="ticker-nav" id="tickerNext" onclick="tickerPage(1)">&#8594;</button>
+            </div>
           </div>
           <div class="panel-body" id="liveTicker"><div class="empty">No plays yet</div></div>
         </div>
@@ -485,46 +532,53 @@
             <span class="panel-title">Field</span>
             <span class="panel-badge" id="fieldBadge"></span>
           </div>
-          <div class="panel-body" style="padding:10px;display:flex;align-items:center;justify-content:center">
-            <svg id="fieldSvg" viewBox="0 0 220 220" width="100%" style="max-width:220px;display:block">
-              <!-- Outfield arc -->
-              <path id="fieldArc" d="M 30 190 Q 110 20 190 190 Z" fill="#1a3a1a" stroke="#2a5a2a" stroke-width="1.5"/>
+          <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px">
+            <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:200px;display:block">
+              <!-- Outfield -->
+              <path d="M 25 155 Q 90 15 155 155 Z" fill="#1a3a1a" stroke="#2d5a2d" stroke-width="1.5"/>
               <!-- Infield dirt -->
-              <path id="fieldDirt" d="M 110 170 L 55 115 L 110 60 L 165 115 Z" fill="#5a3a1a" stroke="#7a5a2a" stroke-width="1"/>
-              <!-- Base paths -->
-              <line x1="110" y1="170" x2="55" y2="115" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
-              <line x1="55" y1="115" x2="110" y2="60" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
-              <line x1="110" y1="60" x2="165" y2="115" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
-              <line x1="165" y1="115" x2="110" y2="170" stroke="#8a7a5a" stroke-width="1" stroke-dasharray="4,3"/>
-              <!-- Pitcher's mound -->
-              <circle cx="110" cy="120" r="5" fill="#6a4a2a" stroke="#8a6a3a" stroke-width="1"/>
-              <!-- Home plate -->
-              <polygon id="homeBase" points="110,178 104,172 104,166 116,166 116,172" fill="#e8f0fa" stroke="#aaa" stroke-width="0.5"/>
-              <!-- 1B -->
-              <rect id="base1" x="157" y="107" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
-              <!-- 2B -->
-              <rect id="base2" x="102" y="52" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
-              <!-- 3B -->
-              <rect id="base3" x="47" y="107" width="16" height="16" rx="2" fill="var(--border)" stroke="#555" stroke-width="1.5"/>
+              <polygon points="90,138 45,93 90,48 135,93" fill="#6b4423" stroke="#8a5a30" stroke-width="1"/>
               <!-- Foul lines -->
-              <line x1="110" y1="170" x2="30" y2="30" stroke="#8a7a5a" stroke-width="1" opacity="0.6"/>
-              <line x1="110" y1="170" x2="190" y2="30" stroke="#8a7a5a" stroke-width="1" opacity="0.6"/>
-              <!-- Ball landing spot -->
-              <circle id="ballSpot" cx="-50" cy="-50" r="5" fill="var(--gold)" opacity="0.9" style="display:none"/>
+              <line x1="90" y1="138" x2="25" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
+              <line x1="90" y1="138" x2="155" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
+              <!-- Base paths -->
+              <line x1="90" y1="138" x2="45" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+              <line x1="45" y1="93" x2="90" y2="48" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+              <line x1="90" y1="48" x2="135" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+              <line x1="135" y1="93" x2="90" y2="138" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+              <!-- Pitcher mound -->
+              <circle cx="90" cy="97" r="4" fill="#7a5030" stroke="#9a6a40" stroke-width="0.8"/>
+              <!-- Home plate -->
+              <polygon points="90,145 85,140 85,135 95,135 95,140" fill="#dde8f8" stroke="#8a9ab0" stroke-width="0.5"/>
+              <!-- BASES — rotated squares, stroke-only when empty, filled when on -->
+              <!-- 1B (right) -->
+              <rect id="base1" x="128" y="86" width="14" height="14" rx="2"
+                    fill="var(--border)" stroke="#666" stroke-width="2"
+                    transform="rotate(45 135 93)"/>
+              <!-- 2B (top) -->
+              <rect id="base2" x="83" y="41" width="14" height="14" rx="2"
+                    fill="var(--border)" stroke="#666" stroke-width="2"
+                    transform="rotate(45 90 48)"/>
+              <!-- 3B (left) -->
+              <rect id="base3" x="38" y="86" width="14" height="14" rx="2"
+                    fill="var(--border)" stroke="#666" stroke-width="2"
+                    transform="rotate(45 45 93)"/>
               <!-- Position labels -->
-              <text x="110" y="118" text-anchor="middle" dominant-baseline="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.5">P</text>
-              <text x="110" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">CF</text>
-              <text x="55" y="55" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">LF</text>
-              <text x="165" y="55" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="7" fill="#ffffff" opacity="0.4">RF</text>
-              <!-- Runner labels -->
-              <text id="label1" x="181" y="118" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
-              <text id="label2" x="110" y="48" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
-              <text id="label3" x="38" y="118" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="9" font-weight="600" fill="var(--gold)" style="display:none"></text>
-              <!-- Outs display -->
-              <text id="fieldOuts" x="110" y="205" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="10" fill="var(--sub)"></text>
-              <!-- Last hit info -->
-              <text id="fieldHitInfo" x="110" y="215" text-anchor="middle" font-family="'DM Mono',monospace" font-size="8" fill="var(--gold)"></text>
+              <text x="90" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">CF</text>
+              <text x="40" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">LF</text>
+              <text x="140" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">RF</text>
+              <!-- Ball landing -->
+              <circle id="ballSpot" cx="-50" cy="-50" r="4" fill="var(--gold)" opacity="0.85" style="display:none"/>
+              <!-- Runner name labels -->
+              <text id="label1" x="153" y="96" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
+              <text id="label2" x="90" y="37" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
+              <text id="label3" x="27" y="96" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
             </svg>
+            <!-- Outs and hit info below SVG, outside it for clarity -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:100%">
+              <div id="fieldOutsDots" style="display:flex;gap:6px;justify-content:center"></div>
+              <div id="fieldHitInfo" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);text-align:center"></div>
+            </div>
           </div>
         </div>
 
@@ -613,7 +667,41 @@
 </div>
 
 <script>
-const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null};
+const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null,allPlays:[],tickerPage:0};
+window.tickerPage=function(dir){
+  const maxPage=Math.max(0,Math.ceil(state.allPlays.length/8)-1);
+  state.tickerPage=Math.max(0,Math.min(maxPage,state.tickerPage+dir));
+  renderTickerPage();
+};
+function renderTickerPage(){
+  const plays=state.allPlays;
+  if(!plays.length){$('liveTicker').innerHTML='<div class="empty">No plays yet</div>';return;}
+  const pageSize=8;
+  const maxPage=Math.max(0,Math.ceil(plays.length/pageSize)-1);
+  // Page 0 = most recent, higher = older
+  const start=Math.max(0,plays.length-(state.tickerPage+1)*pageSize);
+  const end=plays.length-state.tickerPage*pageSize;
+  const pagePlays=plays.slice(start,end).reverse();
+  $('tickerBadge').textContent=`Inning ${state.tickerPage===0?'current':'older'} · ${plays.length} plays`;
+  $('tickerPrev').disabled=state.tickerPage>=maxPage;
+  $('tickerNext').disabled=state.tickerPage<=0;
+  $('liveTicker').innerHTML=pagePlays.map(p=>{
+    const time=fmtPlayTime(p.endTime||p.startTime);
+    const timeHtml=time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0">${time}</span>`:'';
+    const evLine=p.exitVelocity?`<div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
+      <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
+      ${p.totalDistance?`<span style="font-size:11px;color:var(--muted)">${p.totalDistance} ft</span>`:''}
+      ${p.hardHit?`<span style="font-size:10px;font-family:'DM Sans',sans-serif;font-weight:700;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
+    </div>`:'';
+    const isDP=p.isDoublePlay;
+    const isSpecial=p.isSpecial;
+    if(p.isSteal) return `<div class="item item-steal"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-steal">STEAL</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Speed play — advances runner without a hit.</div>`:''}</div>`;
+    if(p.isCaughtStealing) return `<div class="item item-cs"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-cs">OUT — CS</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div></div>`;
+    if(isDP) return `<div class="item item-dp"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-dp">DOUBLE PLAY</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div></div>`;
+    if(isSpecial) return `<div class="item item-special"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-special">${p.specialTag||'NOTABLE'}</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:13px;color:var(--text)">${p.description}</div></div>`;
+    return `<div class="item"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px"><span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>${p.scoringPlay?'<span style="color:var(--live)">&#x1F525;</span>':''}${timeHtml}</div><div>${explain(p.description||'---')}</div>${evLine}</div>`;
+  }).join('')||'<div class="empty">No plays on this page</div>';
+}
 const levelCopy={
   new:{
     buzzPrefix:'What\'s happening',
@@ -1300,51 +1388,47 @@ function renderFieldDiagram(summary, feed){
 
   const r=summary.runners||{};
   const outs=summary.outs??0;
-  const BASE_ON='var(--gold)';
-  const BASE_OFF='var(--border)';
-  const STROKE_ON='#c8890a';
-  const STROKE_OFF='#444';
 
-  // Update bases
-  function setBase(id,on,labelId,name){
-    const el=document.getElementById(id);
-    if(el){ el.setAttribute('fill',on?BASE_ON:BASE_OFF); el.setAttribute('stroke',on?STROKE_ON:STROKE_OFF); }
+  // Update bases - fill gold when occupied
+  function setBase(svgId,on,labelId,name){
+    const el=document.getElementById(svgId);
+    if(el){
+      el.setAttribute('fill',on?'var(--gold)':'var(--border)');
+      el.setAttribute('stroke',on?'#c8890a':'#555');
+      el.setAttribute('stroke-width',on?'2.5':'2');
+    }
     const lbl=document.getElementById(labelId);
-    if(lbl){ lbl.style.display=on?'':'none'; if(on&&name) lbl.textContent=name.split(' ').pop(); }
+    if(lbl){
+      lbl.style.display=on?'':'none';
+      if(on&&name) lbl.textContent=name.split(' ').pop().substring(0,8);
+    }
   }
   setBase('base1',r.first,'label1',r.firstName||'');
   setBase('base2',r.second,'label2',r.secondName||'');
   setBase('base3',r.third,'label3',r.thirdName||'');
 
-  // Outs dots
-  const outsDots=['●','●','●'].map((d,i)=>`<tspan fill="${i<outs?'var(--red)':'var(--border)'}">${d}</tspan>`).join(' ');
-  const outsEl=document.getElementById('fieldOuts');
-  if(outsEl) outsEl.innerHTML=outsDots;
+  // Outs as coloured dots outside the SVG
+  const outsEl=document.getElementById('fieldOutsDots');
+  if(outsEl){
+    outsEl.innerHTML=[0,1,2].map(i=>`<div style="width:10px;height:10px;border-radius:50%;background:${i<outs?'var(--red)':'var(--border)'}"></div>`).join('');
+  }
 
-  // Ball in play — last play with hit coordinates
+  // Ball in play
   const lastHit=feed?.recentPlays?.slice().reverse().find(p=>p.exitVelocity);
   const ballSpot=document.getElementById('ballSpot');
   const hitInfo=document.getElementById('fieldHitInfo');
   if(lastHit&&ballSpot){
-    // MLB hit coords are roughly 0-250 x and 0-250 y with home plate at ~125,205
-    // Scale to our SVG: field centre is 110,120, scale factor ~0.75
-    // Without real coords we show a generic position based on distance
     const dist=lastHit.totalDistance||300;
-    const angle=lastHit.launchAngle||20;
-    // Simple projection: further = closer to outfield arc
     const pct=Math.min(dist/420,1);
-    const cx=110;
-    const cy=170-(pct*145);
-    ballSpot.setAttribute('cx',cx);
-    ballSpot.setAttribute('cy',cy);
+    ballSpot.setAttribute('cx',90);
+    ballSpot.setAttribute('cy',138-(pct*120));
     ballSpot.style.display='';
-    if(hitInfo) hitInfo.textContent=lastHit.exitVelocity?`EV ${lastHit.exitVelocity}mph · ${dist}ft`:'';
+    if(hitInfo) hitInfo.textContent=`EV ${lastHit.exitVelocity} mph${lastHit.totalDistance?' · '+lastHit.totalDistance+'ft':''}`;
   } else {
     if(ballSpot) ballSpot.style.display='none';
     if(hitInfo) hitInfo.textContent='';
   }
 
-  // Badge
   const runnerCount=[r.first,r.second,r.third].filter(Boolean).length;
   $('fieldBadge').textContent=runnerCount?`${runnerCount} on · ${outs} out${outs!==1?'s':''}`:
     `${outs} out${outs!==1?'s':''}`;
@@ -1414,6 +1498,9 @@ async function refreshGame(){
     $('lineupsPanel').style.display='none';
     $('inplayPanel').style.display='none';
     $('fieldPanel').style.display='none';
+    $('scoringPlaysPanel').style.display='none';
+    $('specialPlaysPanel').style.display='none';
+    $('nextBatterPanel').style.display='none';
     // Clear dual pitcher panel
     $('awayPitcherCard').innerHTML='<div class="empty">Game not started</div>';
     $('homePitcherCard').innerHTML='<div class="empty">Game not started</div>';
@@ -1429,6 +1516,8 @@ async function refreshGame(){
   $('gameBuzzPanel').style.display='';
   $('lineupsPanel').style.display='';
   $('inplayPanel').style.display='';
+  $('scoringPlaysPanel').style.display='';
+  $('specialPlaysPanel').style.display='none'; // shown only if data
 
   try{
     const [summary,feed,matchup,buzz]=await Promise.all([
@@ -1444,51 +1533,98 @@ async function refreshGame(){
     fetchAndRenderLineups(gamePk, matchup);
     fetchAndRenderInplay(gamePk, matchup);
 
-    $('liveTicker').innerHTML=feed.recentPlays.length
-      ?feed.recentPlays.slice().reverse().map(p=>{
-        const time=fmtPlayTime(p.endTime||p.startTime);
-        const timeHtml=time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0">${time}</span>`:'';
-        const evLine=p.exitVelocity?`<div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
-          <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
-          ${p.launchAngle!=null?`<span style="font-size:11px;color:var(--muted)">LA ${p.launchAngle}deg</span>`:''}
-          ${p.totalDistance?`<span style="font-size:11px;color:var(--muted)">${p.totalDistance} ft</span>`:''}
-          ${p.hardHit?`<span style="font-size:10px;font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:1px;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
-        </div>`:'';
-        if(p.isSteal){
-          return `<div class="item item-steal">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <span class="tag tag-steal">STEAL</span>
-              <span class="tag tag-info">${p.half||''} ${p.inning||''}</span>
-              ${timeHtml}
-            </div>
-            <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>
-            ${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Speed play - advances runner without a hit, shifts run expectancy.</div>`:''}
-          </div>`;
-        }
-        if(p.isCaughtStealing){
-          return `<div class="item item-cs">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              <span class="tag tag-cs">OUT - CS</span>
-              <span class="tag tag-info">${p.half||''} ${p.inning||''}</span>
-              ${timeHtml}
-            </div>
-            <div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>
-            ${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Runner thrown out - baserunner erased, momentum shifts to defence.</div>`:''}
-          </div>`;
-        }
-        return `<div class="item">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-            <span class="tag ${p.scoringPlay?'tag-live':'tag-info'}">${p.half||''} ${p.inning||''}</span>
-            ${p.scoringPlay?'<span style="color:var(--live)">&#x1F525;</span>':''}
-            ${timeHtml}
-          </div>
-          <div>${explain(p.description||'---')}</div>
-          ${evLine}
-        </div>`;
-      }).join('')
-      :'<div class="empty">No recent plays</div>';
-    $('tickerBadge').textContent=feed.recentPlays.length?`${feed.recentPlays.length} plays`:'';
+    // ── TICKER: enrich plays with special flags then hand to paginator ──
+    const enriched=(feed.recentPlays||[]).map(p=>{
+      const desc=(p.description||'').toLowerCase();
+      const evt=(p.eventType||'').toLowerCase();
+      const isDP=desc.includes('double play')||evt.includes('double_play');
+      const isChal=desc.includes('challenge')||desc.includes('overturned')||desc.includes('confirmed');
+      const isBalk=desc.includes('balk');
+      const isHBP=desc.includes('hit by pitch')||evt.includes('hit_by_pitch');
+      const isWP=desc.includes('wild pitch')||desc.includes('passed ball');
+      const isEject=desc.includes('ejection')||desc.includes('ejected');
+      const isTriple=desc.includes('triple play');
+      let specialTag='';
+      if(isTriple) specialTag='TRIPLE PLAY';
+      else if(isDP) specialTag='';
+      else if(isChal) specialTag=desc.includes('overturned')?'OVERTURNED':'CHALLENGE';
+      else if(isEject) specialTag='EJECTION';
+      else if(isBalk) specialTag='BALK';
+      else if(isHBP) specialTag='HIT BY PITCH';
+      else if(isWP) specialTag='WILD PITCH';
+      return {...p,isDoublePlay:isDP,isSpecial:!!(isChal||isBalk||isHBP||isWP||isEject||isTriple),specialTag};
+    });
+    state.allPlays=enriched;
+    state.tickerPage=0;
+    renderTickerPage();
 
+    // ── SCORING PLAYS ──
+    const scoringPlays=matchup.scoringPlays||[];
+    if(scoringPlays.length){
+      $('scoringPlaysPanel').style.display='';
+      $('scoringPlaysBadge').textContent=`${scoringPlays.length} run${scoringPlays.length!==1?'s':''}`;
+      $('scoringPlays').innerHTML=scoringPlays.map(sp=>`
+        <div class="scoring-play-item">
+          <div class="scoring-inn">${(sp.half||'').toLowerCase().startsWith('bot')?'B':'T'}${sp.inning||'?'}</div>
+          <div style="flex:1">
+            <div class="scoring-desc">${sp.description}</div>
+          </div>
+          <div class="scoring-score">${sp.awayScore??''}–${sp.homeScore??''}</div>
+        </div>`).join('');
+    } else {
+      $('scoringPlaysPanel').style.display='';
+      $('scoringPlays').innerHTML='<div class="empty">No scoring plays yet</div>';
+    }
+
+    // ── SPECIAL PLAYS ──
+    const specialPlays=matchup.specialPlays||[];
+    if(specialPlays.length){
+      $('specialPlaysPanel').style.display='';
+      $('specialPlays').innerHTML=specialPlays.map(sp=>{
+        const tag=sp.eventType.includes('double_play')?'DOUBLE PLAY':
+                  sp.description.toLowerCase().includes('challenge')?'CHALLENGE':
+                  sp.description.toLowerCase().includes('balk')?'BALK':
+                  sp.description.toLowerCase().includes('hit by pitch')?'HIT BY PITCH':
+                  sp.description.toLowerCase().includes('wild pitch')?'WILD PITCH':'NOTABLE';
+        return `<div class="item item-special">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="tag tag-special">${tag}</span>
+            <span class="tag tag-info">${sp.half||''} ${sp.inning||''}</span>
+            ${sp.time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto">${fmtPlayTime(sp.time)}</span>`:''}
+          </div>
+          <div style="font-size:13px;color:var(--text)">${sp.description}</div>
+        </div>`;
+      }).join('');
+    } else {
+      $('specialPlaysPanel').style.display='none';
+    }
+
+    // ── NEXT BATTER (ON DECK) ──
+    const onDeck=matchup.onDeck;
+    if(onDeck?.id){
+      $('nextBatterPanel').style.display='';
+      $('nextBatterBadge').textContent='On Deck';
+      try{
+        const b=await api(`/api/savant/batter/${onDeck.id}`);
+        const intel=b.data;
+        $('nextBatterCard').innerHTML=`<div class="ondeck-card">
+          <div class="ondeck-name">${onDeck.fullName||'On Deck Batter'}</div>
+          <div class="ondeck-stats">
+            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.hardHitRate||'—'}%</div><div class="ondeck-stat-lbl">Hard Hit</div></div>
+            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.barrelRate||'—'}%</div><div class="ondeck-stat-lbl">Barrel</div></div>
+            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.chaseTendency||'—'}%</div><div class="ondeck-stat-lbl">Chase</div></div>
+            <div class="ondeck-stat"><div class="ondeck-stat-val" style="color:${intel?.hotCold?.recentHot?'var(--live)':'var(--red)'}">${intel?.hotCold?.recentHot?'HOT':'COLD'}</div><div class="ondeck-stat-lbl">Form</div></div>
+          </div>
+          ${intel?.summary?`<div style="margin-top:8px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-soft);padding-top:6px">${intel.summary.handlesFastballs||''} ${intel.summary.chaseNote||''}</div>`:''}
+        </div>`;
+      }catch{
+        $('nextBatterCard').innerHTML=`<div class="ondeck-card"><div class="ondeck-name">${onDeck.fullName||'On Deck Batter'}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">Intel loading…</div></div>`;
+      }
+    } else {
+      $('nextBatterPanel').style.display='none';
+    }
+
+    // Determine which team is pitching vs batting from the inning half
     // Determine which team is pitching vs batting from the inning half
     // Top = away bats, home pitches | Bottom = home bats, away pitches
     const isBottom=(summary.half||'').toLowerCase().includes('bot');
