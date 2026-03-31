@@ -1573,32 +1573,9 @@ async function refreshGame(){
       $('specialPlaysPanel').style.display='none';
     }
 
-    // ── NEXT BATTER (ON DECK) ──
-    const onDeck=matchup.onDeck;
-    if(onDeck?.id){
-      $('nextBatterPanel').style.display='';
-      $('nextBatterBadge').textContent='On Deck';
-      try{
-        const b=await api(`/api/savant/batter/${onDeck.id}`);
-        const intel=b.data;
-        $('nextBatterCard').innerHTML=`<div class="ondeck-card">
-          <div class="ondeck-name">${onDeck.fullName||'On Deck Batter'}</div>
-          <div class="ondeck-stats">
-            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.hardHitRate||'—'}%</div><div class="ondeck-stat-lbl">Hard Hit</div></div>
-            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.barrelRate||'—'}%</div><div class="ondeck-stat-lbl">Barrel</div></div>
-            <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.chaseTendency||'—'}%</div><div class="ondeck-stat-lbl">Chase</div></div>
-            <div class="ondeck-stat"><div class="ondeck-stat-val" style="color:${intel?.hotCold?.recentHot?'var(--live)':'var(--red)'}">${intel?.hotCold?.recentHot?'HOT':'COLD'}</div><div class="ondeck-stat-lbl">Form</div></div>
-          </div>
-          ${intel?.summary?`<div style="margin-top:8px;font-size:12px;color:var(--muted);border-top:1px solid var(--border-soft);padding-top:6px">${intel.summary.handlesFastballs||''} ${intel.summary.chaseNote||''}</div>`:''}
-        </div>`;
-      }catch{
-        $('nextBatterCard').innerHTML=`<div class="ondeck-card"><div class="ondeck-name">${onDeck.fullName||'On Deck Batter'}</div><div style="font-size:12px;color:var(--muted);margin-top:4px">Intel loading…</div></div>`;
-      }
-    } else {
-      $('nextBatterPanel').style.display='none';
-    }
+    // ── NEXT BATTER (ON DECK) — rendered inside getLiveStats below ──
+    if(!matchup.onDeck?.id) $('nextBatterPanel').style.display='none';
 
-    // Determine which team is pitching vs batting from the inning half
     // Determine which team is pitching vs batting from the inning half
     // Top = away bats, home pitches | Bottom = home bats, away pitches
     const isBottom=(summary.half||'').toLowerCase().includes('bot');
@@ -1607,27 +1584,115 @@ async function refreshGame(){
     const pitcherHand=matchup.pitcherVsBatter?.handedness?.split(' vs ')?.[0]||'R';
     const batterSide=matchup.pitcherVsBatter?.handedness?.split(' vs ')?.[1]||'R';
 
-    $('currentMatchup').innerHTML=`<div class="matchup-display">
-      <div class="matchup-player">
-        <div class="matchup-role">Pitcher</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(pitcherTeamId,18)}</div>
-          <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
+    // Fetch live boxscore stats for current batter, pitcher and on-deck batter
+    async function getLiveStats(gamePk){
+      try{
+        const r=await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
+        if(!r.ok) return null;
+        const d=await r.json();
+        return d.liveData?.boxscore?.teams||null;
+      }catch{ return null; }
+    }
+    function playerBoxStats(teams, playerId){
+      if(!playerId||!teams) return null;
+      for(const side of ['away','home']){
+        const p=teams[side]?.players?.[`ID${playerId}`];
+        if(p) return p;
+      }
+      return null;
+    }
+    function batterStatLine(p){
+      if(!p) return '';
+      const b=p.stats?.batting||{};
+      const s=p.seasonStats?.batting||{};
+      const ab=b.atBats??0, h=b.hits??0, hr=b.homeRuns??0, rbi=b.rbi??0, k=b.strikeOuts??0, bb=b.baseOnBalls??0;
+      const todayLine=ab>0?`${h}/${ab}${hr>0?` · ${hr}HR`:''}${rbi>0?` · ${rbi}RBI`:''}${k>0?` · ${k}K`:''}${bb>0?` · ${bb}BB`:''}`:'No AB yet';
+      const avg=s.avg||'—', obp=s.obp||'—', slg=s.slg||'—';
+      return `<div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
+        <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Today</div>
+        <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:${hr>0?'var(--gold)':h>0?'var(--live)':ab>0?'var(--sub)':'var(--muted)'}">${todayLine}</div>
+        <div style="display:flex;gap:12px;margin-top:6px">
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${avg}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">AVG</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${obp}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">OBP</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${slg}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">SLG</div></div>
         </div>
-        <div class="matchup-hand">${pitcherHand}HP</div>
-      </div>
-      <div class="matchup-vs">VS</div>
-      <div class="matchup-player">
-        <div class="matchup-role">Batter</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-          <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,18)}</div>
-          <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
+      </div>`;
+    }
+    function pitcherStatLine(p){
+      if(!p) return '';
+      const s=p.stats?.pitching||{};
+      const ss=p.seasonStats?.pitching||{};
+      const ip=s.inningsPitched||'0.0', k=s.strikeOuts??0, bb=s.baseOnBalls??0, h=s.hits??0, er=s.earnedRuns??0, pc=s.numberOfPitches??0;
+      const era=ss.era||'—', whip=ss.whip||'—';
+      const todayLine=pc>0?`${ip} IP · ${k}K · ${bb}BB · ${h}H · ${er}ER · ${pc}p`:'Not yet pitched';
+      return `<div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
+        <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Today</div>
+        <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--sub)">${todayLine}</div>
+        <div style="display:flex;gap:12px;margin-top:6px">
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${era}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">ERA</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${whip}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">WHIP</div></div>
         </div>
-        <div class="matchup-hand">Bats ${batterSide}</div>
+      </div>`;
+    }
+
+    // Fetch boxscore for live stats then render matchup
+    getLiveStats(gamePk).then(teams=>{
+      const pitcherBox=playerBoxStats(teams, matchup.currentPitcher?.id);
+      const batterBox=playerBoxStats(teams, matchup.currentBatter?.id);
+      $('currentMatchup').innerHTML=`<div class="matchup-display">
+        <div class="matchup-player" style="flex:1">
+          <div class="matchup-role">Pitcher</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
+            <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(pitcherTeamId,18)}</div>
+            <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
+          </div>
+          <div class="matchup-hand">${pitcherHand}HP</div>
+          ${pitcherStatLine(pitcherBox)}
+        </div>
+        <div class="matchup-vs">VS</div>
+        <div class="matchup-player" style="flex:1">
+          <div class="matchup-role">Batter</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
+            <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,18)}</div>
+            <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
+          </div>
+          <div class="matchup-hand">Bats ${batterSide}</div>
+          ${batterStatLine(batterBox)}
+        </div>
       </div>
-    </div>
-    ${matchup.pitcherVsBatter?.handedness?`<div style="margin-top:8px;font-size:12px;color:var(--sub);text-align:center">Handedness: <strong style="color:var(--text)">${matchup.pitcherVsBatter.handedness}</strong></div>`:''}`;
-    $('matchupHand').textContent=matchup.pitcherVsBatter?.handedness||'';
+      ${matchup.pitcherVsBatter?.handedness?`<div style="margin-top:8px;font-size:12px;color:var(--sub);text-align:center">Handedness: <strong style="color:var(--text)">${matchup.pitcherVsBatter.handedness}</strong></div>`:''}`;
+      $('matchupHand').textContent=matchup.pitcherVsBatter?.handedness||'';
+
+      // On deck batter stats
+      if(matchup.onDeck?.id){
+        $('nextBatterPanel').style.display='';
+        const onDeckBox=playerBoxStats(teams, matchup.onDeck.id);
+        api(`/api/savant/batter/${matchup.onDeck.id}`).then(b=>{
+          const intel=b.data;
+          $('nextBatterCard').innerHTML=`<div class="ondeck-card">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <div style="width:24px;height:24px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,22)}</div>
+              <div class="ondeck-name" style="margin:0">${matchup.onDeck.fullName||'On Deck'}</div>
+            </div>
+            ${batterStatLine(onDeckBox)}
+            <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
+              <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Tendencies</div>
+              <div class="ondeck-stats">
+                <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.hardHitRate||'—'}%</div><div class="ondeck-stat-lbl">Hard Hit</div></div>
+                <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.barrelRate||'—'}%</div><div class="ondeck-stat-lbl">Barrel</div></div>
+                <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.chaseTendency||'—'}%</div><div class="ondeck-stat-lbl">Chase</div></div>
+                <div class="ondeck-stat"><div class="ondeck-stat-val" style="color:${intel?.hotCold?.recentHot?'var(--live)':'var(--red)'}">${intel?.hotCold?.recentHot?'HOT':'COLD'}</div><div class="ondeck-stat-lbl">Form</div></div>
+              </div>
+            </div>
+          </div>`;
+        }).catch(()=>{
+          $('nextBatterCard').innerHTML=`<div class="ondeck-card">
+            <div class="ondeck-name">${matchup.onDeck.fullName||'On Deck'}</div>
+            ${batterStatLine(onDeckBox)}
+          </div>`;
+        });
+      }
+    });
 
     $('pitchBadge').textContent=feed.pitchEvents.length?`${feed.pitchEvents.length} pitches`:'';
     $('pitchByPitch').innerHTML=feed.pitchEvents.length
@@ -1759,3 +1824,5 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </body>
 </html>
 
+
+  
