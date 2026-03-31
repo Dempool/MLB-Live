@@ -264,28 +264,13 @@ async function handleApi(reqUrl, res) {
       const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
       const live = gameData.liveData || {};
       const { currentPlay, events, allPlays } = getCurrentPitchEvents(live);
-      const recentPlays = allPlays.slice(-8).map((play) => {
-        const desc = play.result?.description || '';
-        const eventType = play.result?.eventType || play.result?.event || '';
-        const isSteal = /stolen base|steals|steal of/i.test(desc) || /stolen_base/i.test(eventType);
-        const isCaughtStealing = /caught stealing/i.test(desc) || /caught_stealing/i.test(eventType);
-        const bipEvent = (play.playEvents || []).find(e => e.hitData?.launchSpeed);
-        return {
-          atBatIndex: play.atBatIndex,
-          inning: play.about?.inning,
-          half: play.about?.halfInning,
-          description: desc,
-          scoringPlay: Boolean(play.about?.isScoringPlay),
-          startTime: play.about?.startTime || null,
-          endTime: play.about?.endTime || null,
-          isSteal,
-          isCaughtStealing,
-          exitVelocity: bipEvent?.hitData?.launchSpeed || null,
-          launchAngle: bipEvent?.hitData?.launchAngle || null,
-          totalDistance: bipEvent?.hitData?.totalDistance || null,
-          hardHit: bipEvent?.hitData?.launchSpeed >= 95 || false
-        };
-      });
+      const recentPlays = allPlays.slice(-8).map((play) => ({
+        atBatIndex: play.atBatIndex,
+        inning: play.about?.inning,
+        half: play.about?.halfInning,
+        description: play.result?.description,
+        scoringPlay: Boolean(play.about?.isScoringPlay)
+      }));
       return sendJson(res, 200, {
         gamePk: Number(gamePk),
         pitchEvents: events,
@@ -311,11 +296,64 @@ async function handleApi(reqUrl, res) {
       const batterIntel = batter ? ensurePlayerIntel(intel, batter.id).batter : null;
       const prevPitch = current?.playEvents?.filter((e) => e.isPitch).at(-1)?.details?.type?.description;
       const nextPitchExpectation = buildNextPitchExpectation({ pitcherIntel, batterIntel, count: current?.count || { balls: 0, strikes: 0 }, previousPitchType: prevPitch, batterSide });
+
+      // Get current pitcher for each team from boxscore
+      const boxTeams = live?.boxscore?.teams || {};
+      const getActivePitcher = (teamSide) => {
+        const pitcherIds = boxTeams[teamSide]?.pitchers || [];
+        const players = boxTeams[teamSide]?.players || {};
+        const lastId = pitcherIds[pitcherIds.length - 1];
+        if (!lastId) return null;
+        const p = players[`ID${lastId}`];
+        return p ? { id: lastId, fullName: p.person?.fullName || null } : null;
+      };
+      const awayCurrentPitcher = getActivePitcher('away');
+      const homeCurrentPitcher = getActivePitcher('home');
+
+      // Next batter up (on-deck)
+      const onDeck = live?.linescore?.offense?.onDeck || null;
+
+      // Special plays from recent history
+      const allPlays = live?.plays?.allPlays || [];
+      const recentSpecial = allPlays.slice(-20).filter(p => {
+        const desc = (p.result?.description || '').toLowerCase();
+        const evt = (p.result?.eventType || p.result?.event || '').toLowerCase();
+        return desc.includes('double play') || evt.includes('double_play') ||
+               desc.includes('triple play') ||
+               desc.includes('challenge') || desc.includes('overturned') || desc.includes('confirmed') ||
+               desc.includes('balk') || desc.includes('interference') || desc.includes('obstruction') ||
+               desc.includes('hit by pitch') || evt.includes('hit_by_pitch') ||
+               desc.includes('ejection') || desc.includes('ejected') ||
+               desc.includes('wild pitch') || desc.includes('passed ball');
+      }).slice(-5).map(p => ({
+        description: p.result?.description || '',
+        eventType: p.result?.eventType || p.result?.event || '',
+        inning: p.about?.inning,
+        half: p.about?.halfInning,
+        time: p.about?.endTime || p.about?.startTime || null
+      }));
+
+      // Scoring plays from full game
+      const scoringPlays = allPlays.filter(p => p.about?.isScoringPlay).map(p => ({
+        description: p.result?.description || '',
+        inning: p.about?.inning,
+        half: p.about?.halfInning,
+        time: p.about?.endTime || null,
+        awayScore: p.result?.awayScore,
+        homeScore: p.result?.homeScore
+      }));
+
       return sendJson(res, 200, {
         gamePk: Number(gamePk),
         currentBatter: batter,
         currentPitcher: pitcher,
+        onDeck,
+        awayPitcher: awayCurrentPitcher || gameData.gameData?.probablePitchers?.away || null,
+        homePitcher: homeCurrentPitcher || gameData.gameData?.probablePitchers?.home || null,
+        activePitcherId: pitcher?.id || null,
         starterInfo: gameData.gameData?.probablePitchers || {},
+        specialPlays: recentSpecial,
+        scoringPlays,
         pitcherVsBatter: {
           handedness: `${current?.matchup?.pitchHand?.code || '?'} vs ${current?.matchup?.batSide?.code || '?'}`,
           notes: [
