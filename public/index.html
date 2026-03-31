@@ -223,7 +223,7 @@
     .item{
       padding:7px 10px;background:var(--card-2);
       border:1px solid var(--border-soft);border-radius:5px;
-      margin-bottom:6px;font-size:14px;line-height:1.6;color:var(--sub);
+      margin-bottom:5px;font-size:13px;line-height:1.5;color:var(--sub);
     }
     .item:last-child{margin-bottom:0}
     .item strong{color:var(--text)}
@@ -282,7 +282,7 @@
     .spotlight-extra{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
 
     /* ── STAT BARS ── */
-    .bar-group{margin-bottom:8px}
+    .bar-group{margin-bottom:6px}
     .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:13px;color:var(--sub)}
     .bar-label span:last-child{font-family:'DM Mono',monospace;font-weight:700;color:var(--text)}
     .bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
@@ -290,7 +290,7 @@
     .bar-fill.green{background:var(--live)}
     .bar-fill.amber{background:var(--gold)}
     .bar-fill.red{background:var(--red)}
-    .stat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border-soft)}
+    .stat-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-soft)}
     .stat-row:last-child{border-bottom:none}
     .stat-key{font-size:13px;color:var(--sub)}
     .stat-val{font-family:'DM Mono',monospace;font-weight:700;font-size:14px;color:var(--text)}
@@ -487,33 +487,7 @@
           </div>
         </div>
 
-        <!-- SCORING PLAYS -->
-        <div class="panel" id="scoringPlaysPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">🔥 Scoring Plays</span>
-            <span class="panel-badge" id="scoringPlaysBadge"></span>
-          </div>
-          <div class="panel-body" id="scoringPlays"><div class="empty">No scoring plays yet</div></div>
-        </div>
-
-        <!-- SPECIAL PLAYS -->
-        <div class="panel" id="specialPlaysPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">⚑ Notable Plays</span>
-          </div>
-          <div class="panel-body" id="specialPlays"><div class="empty">—</div></div>
-        </div>
-
-        <!-- NEXT BATTER -->
-        <div class="panel" id="nextBatterPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">On Deck</span>
-            <span class="panel-badge" id="nextBatterBadge"></span>
-          </div>
-          <div class="panel-body" id="nextBatterCard"><div class="empty">—</div></div>
-        </div>
-
-        <!-- LIVE TICKER -->
+        <!-- ROW 1: LIVE TICKER (wide) | FIELD + BUZZ (stacked) -->
         <div class="panel grid-wide" id="liveTickerPanel">
           <div class="panel-head">
             <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:2px"></span>Live Ticker</span>
@@ -533,48 +507,28 @@
             <span class="panel-badge" id="fieldBadge"></span>
           </div>
           <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px">
-            <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:200px;display:block">
-              <!-- Outfield -->
+            <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:180px;display:block">
               <path d="M 25 155 Q 90 15 155 155 Z" fill="#1a3a1a" stroke="#2d5a2d" stroke-width="1.5"/>
-              <!-- Infield dirt -->
               <polygon points="90,138 45,93 90,48 135,93" fill="#6b4423" stroke="#8a5a30" stroke-width="1"/>
-              <!-- Foul lines -->
               <line x1="90" y1="138" x2="25" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
               <line x1="90" y1="138" x2="155" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
-              <!-- Base paths -->
               <line x1="90" y1="138" x2="45" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
               <line x1="45" y1="93" x2="90" y2="48" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
               <line x1="90" y1="48" x2="135" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
               <line x1="135" y1="93" x2="90" y2="138" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
-              <!-- Pitcher mound -->
               <circle cx="90" cy="97" r="4" fill="#7a5030" stroke="#9a6a40" stroke-width="0.8"/>
-              <!-- Home plate -->
               <polygon points="90,145 85,140 85,135 95,135 95,140" fill="#dde8f8" stroke="#8a9ab0" stroke-width="0.5"/>
-              <!-- BASES — rotated squares, stroke-only when empty, filled when on -->
-              <!-- 1B (right) -->
-              <rect id="base1" x="128" y="86" width="14" height="14" rx="2"
-                    fill="var(--border)" stroke="#666" stroke-width="2"
-                    transform="rotate(45 135 93)"/>
-              <!-- 2B (top) -->
-              <rect id="base2" x="83" y="41" width="14" height="14" rx="2"
-                    fill="var(--border)" stroke="#666" stroke-width="2"
-                    transform="rotate(45 90 48)"/>
-              <!-- 3B (left) -->
-              <rect id="base3" x="38" y="86" width="14" height="14" rx="2"
-                    fill="var(--border)" stroke="#666" stroke-width="2"
-                    transform="rotate(45 45 93)"/>
-              <!-- Position labels -->
+              <rect id="base1" x="128" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 135 93)"/>
+              <rect id="base2" x="83" y="41" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 90 48)"/>
+              <rect id="base3" x="38" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 45 93)"/>
               <text x="90" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">CF</text>
               <text x="40" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">LF</text>
               <text x="140" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">RF</text>
-              <!-- Ball landing -->
               <circle id="ballSpot" cx="-50" cy="-50" r="4" fill="var(--gold)" opacity="0.85" style="display:none"/>
-              <!-- Runner name labels -->
               <text id="label1" x="153" y="96" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
               <text id="label2" x="90" y="37" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
               <text id="label3" x="27" y="96" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
             </svg>
-            <!-- Outs and hit info below SVG, outside it for clarity -->
             <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:100%">
               <div id="fieldOutsDots" style="display:flex;gap:6px;justify-content:center"></div>
               <div id="fieldHitInfo" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);text-align:center"></div>
@@ -582,13 +536,13 @@
           </div>
         </div>
 
-        <!-- GAME BUZZ -->
+        <!-- GAME BUZZ — sits below field -->
         <div class="panel" id="gameBuzzPanel">
           <div class="panel-head"><span class="panel-title">Game Buzz</span></div>
           <div class="panel-body" id="gameBuzz"><div class="empty">—</div></div>
         </div>
 
-        <!-- LINEUPS -->
+        <!-- ROW 2: LINEUPS (full width) -->
         <div class="panel grid-full" id="lineupsPanel" style="display:none">
           <div class="panel-head">
             <span class="panel-title">Line-ups</span>
@@ -599,7 +553,7 @@
           </div>
         </div>
 
-        <!-- CURRENT MATCHUP + IN-PLAY STATS -->
+        <!-- ROW 3: MATCHUP + ON DECK | TODAY'S STATS -->
         <div class="panel grid-wide">
           <div class="panel-head">
             <span class="panel-title">Current Matchup</span>
@@ -608,13 +562,15 @@
           <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
         </div>
 
-        <!-- IN-PLAY STATS -->
-        <div class="panel" id="inplayPanel" style="display:none">
-          <div class="panel-head"><span class="panel-title">Today's Stats</span></div>
-          <div class="panel-body" id="inplayStats"><div class="empty">—</div></div>
+        <div class="panel" id="nextBatterPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">On Deck</span>
+            <span class="panel-badge" id="nextBatterBadge"></span>
+          </div>
+          <div class="panel-body" id="nextBatterCard"><div class="empty">—</div></div>
         </div>
 
-        <!-- DUAL PITCHER CARDS -->
+        <!-- ROW 4: PITCHERS (wide) | BATTER INTEL -->
         <div class="panel grid-wide">
           <div class="panel-head">
             <span class="panel-title">Pitchers</span>
@@ -628,13 +584,18 @@
           </div>
         </div>
 
-        <!-- BATTER CARD -->
         <div class="panel">
           <div class="panel-head"><span class="panel-title">Batter Intel</span></div>
           <div class="panel-body" id="batterCard"><div class="empty">—</div></div>
         </div>
 
-        <!-- PITCH BY PITCH -->
+        <!-- TODAY'S STATS — below batter intel -->
+        <div class="panel" id="inplayPanel" style="display:none">
+          <div class="panel-head"><span class="panel-title">Today's Stats</span></div>
+          <div class="panel-body" id="inplayStats"><div class="empty">—</div></div>
+        </div>
+
+        <!-- ROW 5: PITCH BY PITCH | NEXT PITCH | KEY ANGLES -->
         <div class="panel">
           <div class="panel-head">
             <span class="panel-title">Pitch By Pitch</span>
@@ -643,19 +604,32 @@
           <div class="panel-body" id="pitchByPitch"><div class="empty">No pitches yet</div></div>
         </div>
 
-        <!-- NEXT PITCH MODEL -->
         <div class="panel">
           <div class="panel-head"><span class="panel-title">Next Pitch Model</span></div>
           <div class="panel-body" id="nextPitch"><div class="empty">—</div></div>
         </div>
 
-        <!-- KEY ANGLES -->
         <div class="panel">
           <div class="panel-head"><span class="panel-title">Key Angles</span></div>
           <div class="panel-body" id="simpleAngles"><div class="empty">—</div></div>
         </div>
 
-        <!-- PITCHER VS BATTER -->
+        <!-- ROW 6: SCORING PLAYS | NOTABLE PLAYS | PITCHER VS BATTER -->
+        <div class="panel" id="scoringPlaysPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">Scoring Plays</span>
+            <span class="panel-badge" id="scoringPlaysBadge"></span>
+          </div>
+          <div class="panel-body" id="scoringPlays"><div class="empty">No scoring plays yet</div></div>
+        </div>
+
+        <div class="panel" id="specialPlaysPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">Notable Plays</span>
+          </div>
+          <div class="panel-body" id="specialPlays"><div class="empty">—</div></div>
+        </div>
+
         <div class="panel">
           <div class="panel-head"><span class="panel-title">Pitcher vs Batter</span></div>
           <div class="panel-body" id="pitcherVsBatter"><div class="empty">—</div></div>
