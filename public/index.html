@@ -258,6 +258,22 @@
 
     /* ── PREGAME ── */
     .pregame-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    /* ── RISK PANEL ── */
+    .risk-panel{grid-column:span 2;border-top:1px solid var(--border-soft);padding-top:14px;margin-top:4px}
+    .risk-panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:2px;text-transform:uppercase;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .risk-signal{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:10px 13px;margin-bottom:8px;border-left:3px solid var(--border)}
+    .risk-signal.HIGH{border-left-color:var(--red)}
+    .risk-signal.MEDIUM{border-left-color:var(--gold)}
+    .risk-signal-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
+    .risk-level{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:1.5px;padding:2px 7px;border-radius:3px;flex-shrink:0}
+    .risk-level.HIGH{background:var(--red-dim);color:var(--red)}
+    .risk-level.MEDIUM{background:var(--gold-dim);color:var(--gold)}
+    .risk-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--sub)}
+    .risk-player{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--text)}
+    .risk-team{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
+    .risk-stat{font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);margin-bottom:4px}
+    .risk-detail{font-size:13px;color:var(--sub);line-height:1.5;margin-bottom:4px}
+    .risk-note{font-size:12px;color:var(--text);background:rgba(232,24,44,0.07);border-radius:4px;padding:5px 8px;border-left:2px solid var(--red-dim)}
     .pregame-team-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border-soft);margin-bottom:10px}
     .pregame-logo{width:48px;height:48px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,0.92);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px}
     .pregame-logo img{width:100%;height:100%;object-fit:contain}
@@ -1489,35 +1505,33 @@ async function renderPregame(g){
     const season=new Date().getFullYear();
     const venueId=g.venueId||null;
 
-    // Fetch pitcher last game log + venue/h2h splits
+    // Fetch pitcher last game log via server proxy (avoids CORS)
     async function fetchPitcherContext(pitcher){
       if(!pitcher?.id) return null;
       try{
         const [log,splits]=await Promise.all([
-          // Last 5 game log
-          fetch(`https://statsapi.mlb.com/api/v1/people/${pitcher.id}/stats?stats=gameLog&group=pitching&season=${season}&limit=5`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}}).then(r=>r.json()),
-          // vs opponent splits
-          fetch(`https://statsapi.mlb.com/api/v1/people/${pitcher.id}/stats?stats=vsTeam&group=pitching&season=${season}&opposingTeamId=${pitcher._oppTeamId||''}`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}}).then(r=>r.json()).catch(()=>null)
+          api(`/api/player-log/${pitcher.id}/pitching`),
+          api(`/api/player-splits/${pitcher.id}/pitching/${pitcher._oppTeamId||''}`).catch(()=>null)
         ]);
         const games=(log.stats?.[0]?.splits||[]);
         const lastGame=games[0]||null;
         const vsOpp=(splits?.stats?.[0]?.splits||[])[0]||null;
-        return {lastGame,recentGames:games.slice(0,3)};
-      }catch{ return null; }
+        return {lastGame,recentGames:games.slice(0,3),vsOpp};
+      }catch(e){ return null; }
     }
 
-    // Fetch batter last game + venue splits
+    // Fetch batter last game + vs opponent via server proxy
     async function fetchBatterContext(batterId, oppTeamId){
       if(!batterId) return null;
       try{
         const [log,vsTeam]=await Promise.all([
-          fetch(`https://statsapi.mlb.com/api/v1/people/${batterId}/stats?stats=gameLog&group=hitting&season=${season}&limit=1`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}}).then(r=>r.json()),
-          fetch(`https://statsapi.mlb.com/api/v1/people/${batterId}/stats?stats=vsTeam&group=hitting&season=${season}&opposingTeamId=${oppTeamId}`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}}).then(r=>r.json()).catch(()=>null)
+          api(`/api/player-log/${batterId}/hitting`),
+          api(`/api/player-splits/${batterId}/hitting/${oppTeamId||''}`).catch(()=>null)
         ]);
         const lastGame=(log.stats?.[0]?.splits||[])[0]||null;
         const vsOpp=(vsTeam?.stats?.[0]?.splits||[])[0]||null;
         return {lastGame,vsOpp};
-      }catch{ return null; }
+      }catch(e){ return null; }
     }
 
     // Add opp team id to starters for splits
@@ -1540,12 +1554,19 @@ async function renderPregame(g){
     cached={awayStarter,homeStarter,awayIntel,homeIntel,
             awayBatters,homeBatters,awayStarterCtx,homeStarterCtx,
             awayBatterCtx,homeBatterCtx};
+
+    // Fetch risk signals (non-blocking — appended after main render)
+    api(`/api/pregame-risk?gamePk=${g.gamePk}`).then(risk=>{
+      cached.riskSignals=risk;
+      renderRiskPanel(risk);
+    }).catch(()=>{});
+
     _pregameCache[cacheKey]=cached;
   }
 
   const {awayStarter,homeStarter,awayIntel,homeIntel,
          awayBatters,homeBatters,awayStarterCtx,homeStarterCtx,
-         awayBatterCtx,homeBatterCtx}=cached;
+         awayBatterCtx,homeBatterCtx,riskSignals}=cached;
 
   function teamSide(team,starter,starterIntel,starterCtx,batters,batterCtxArr,oppTeamAbbr){
     const starterLabel=state.level==='new'?'Starting Pitcher':'Probable Starter';
@@ -1561,7 +1582,8 @@ async function renderPregame(g){
         <div class="pregame-logo">${logoImg(team.id,40)}</div>
         <div>
           <div class="pregame-team-name">${team.name||team.abbr}</div>
-          <div class="pregame-record">${team.record}</div>        </div>
+          <div class="pregame-record">${team.record||''}</div>
+        </div>
       </div>
       <div class="section-label">${starterLabel}</div>
       ${starterHtml}
@@ -1572,6 +1594,40 @@ async function renderPregame(g){
   $('pregameContent').innerHTML=
     teamSide(g.teams.away,awayStarter,awayIntel,awayStarterCtx,awayBatters,awayBatterCtx,g.teams.home.abbr)+
     teamSide(g.teams.home,homeStarter,homeIntel,homeStarterCtx,homeBatters,homeBatterCtx,g.teams.away.abbr);
+
+  // Render risk panel if already cached, otherwise it renders when fetch completes
+  if(riskSignals) renderRiskPanel(riskSignals);
+
+  function renderRiskPanel(risk){
+    if(!risk?.signals?.length) return;
+    const typeLabel={PITCHER_K:'⚡ Pitcher Strikeouts',BATTER_HR:'💣 Home Run Prop'};
+    const html=`<div class="risk-panel">
+      <div class="risk-panel-title">
+        <span style="background:var(--red-dim);color:var(--red);padding:2px 8px;border-radius:3px;font-size:11px">RISK</span>
+        Prop Risk Signals
+        ${risk.parkNote?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);font-weight:400;margin-left:4px">${risk.parkNote}</span>`:''}
+      </div>
+      ${risk.signals.map(s=>`
+        <div class="risk-signal ${s.level}">
+          <div class="risk-signal-top">
+            <span class="risk-level ${s.level}">${s.level}</span>
+            <span class="risk-type">${typeLabel[s.type]||s.type}</span>
+            <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+              <span class="risk-player">${s.player}</span>
+              <span class="risk-team">${s.team}</span>
+            </span>
+          </div>
+          <div class="risk-stat">${s.stat}${s.recentGames?.length?` · Last ${s.recentGames.length} starts: ${s.recentGames.join(', ')} Ks`:''}</div>
+          <div class="risk-detail">${s.detail}</div>
+          <div class="risk-note">⚠ ${s.riskNote}</div>
+        </div>`).join('')}
+    </div>`;
+    // Append to pregameContent
+    const el=$('pregameContent');
+    const existing=el.querySelector('.risk-panel');
+    if(existing) existing.outerHTML=html;
+    else el.insertAdjacentHTML('beforeend',html);
+  }
 }
 
 /* ── LIVE HELPERS ── */
