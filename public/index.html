@@ -337,10 +337,10 @@
     .pitch-cnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
 
     /* ── ALL GAMES WAR ROOM ── */
-    .ag-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+    .ag-card{background:var(--card);border:1px solid var(--border);border-radius:10px;transition:border-color .15s;cursor:pointer}
     .ag-card:hover{border-color:var(--blue)}
     .ag-card.is-live{border-color:var(--live);box-shadow:0 0 0 1px rgba(0,210,106,.12)}
-    .ag-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 16px 14px;border-top:1px solid var(--border-soft)}
+    .ag-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 16px 16px;border-top:1px solid var(--border-soft);align-items:start}
     @media(max-width:900px){.ag-body{grid-template-columns:1fr 1fr}}
     @media(max-width:600px){.ag-body{grid-template-columns:1fr}}
     .ag-section-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
@@ -942,7 +942,7 @@ function renderAgCard(g,snap){
   const batter=sum?.currentBatter?.fullName||sum?.currentBatter||'—';
 
   return head+`<div class="ag-body">
-    <div class="ag-section-box">
+    <div class="ag-section-box" style="align-self:start">
       <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Situation</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         ${agDiamond(runners)}
@@ -956,12 +956,12 @@ function renderAgCard(g,snap){
         <div style="font-size:11px;color:var(--muted);margin-top:2px">AB: <span style="color:var(--text);font-weight:600">${batter}</span></div>
       </div>
     </div>
-    <div class="ag-section-box">
+    <div class="ag-section-box" style="align-self:start">
       <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Latest Play</div>
       <div style="font-size:12px;color:var(--sub);line-height:1.5">${feed?.recentPlays?.at(-1)?.description||'Awaiting play...'}</div>
       ${feed?.recentPlays?.at(-1)?.exitVelocity?`<div style="margin-top:5px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${feed.recentPlays.at(-1).hardHit?'var(--red)':'var(--gold)'}">EV ${feed.recentPlays.at(-1).exitVelocity} mph</div>`:''}
     </div>
-    <div class="ag-section-box">
+    <div class="ag-section-box" style="align-self:start">
       <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Buzz</div>
       ${agBuzzLines(feed,sum)}
     </div>
@@ -2096,4 +2096,3 @@ setInterval(()=>{ if(currentTab==='all') renderAllGamesView(); }, 25000); // ref
 </body>
 </html>
 
- 
