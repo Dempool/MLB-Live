@@ -1268,7 +1268,8 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
     else if(isDisciplined) lines.push(`Very disciplined eye — only chases <strong>${chase}%</strong> of pitches outside the zone. Pitchers have to throw strikes.`);
     if(fps!=null&&fps>=32) lines.push(`Aggressive on first pitches (<strong>${fps}%</strong> swing rate) — can't give him an easy one to start.`);
     if(isFast===true) lines.push(`Quick on the bases — stolen base threat whenever he gets on.`);
-    // If no real Savant data at all
+    // If nothing at all to show
+    if(!lines.length) lines.push(`${name} — last game and Statcast data loading.`);
 
   } else if(state.level==='intermediate'){
     const formStr=isHot===true?`🔥 Hot`:isHot===false?`❄ Cold`:`—`;
@@ -1371,15 +1372,15 @@ async function fetchBatterIntelForTeam(teamId){
   }
 
   const results=[];
-  // Fetch sequentially in small batches to avoid hammering the server
   for(const pid of pids){
     try{
       const [intelRes,name]=await Promise.all([
         api(`/api/savant/batter/${pid}`),
         fetchPlayerName(pid)
       ]);
-      if(intelRes.data&&name){
-        results.push({player:{fullName:name,id:pid},intel:intelRes.data});
+      // Only include if we have real Savant data OR real last-game context
+      if(name){
+        results.push({player:{fullName:name,id:pid},intel:intelRes.data||{}});
       }
     }catch(e){console.warn("fetch failed:",e?.message||e);}
   }
@@ -1488,17 +1489,29 @@ async function renderPregame(g){
     // Final re-render with all data
     _renderPregameHTML(g,cached);
 
-    // Risk signals: non-blocking, appended after render
-    api(`/api/pregame-risk?gamePk=${g.gamePk}`).then(risk=>{
-      cached.riskSignals=risk;
-      renderRiskPanel(risk);
+    // Risk signals + odds: both non-blocking
+    Promise.all([
+      api(`/api/pregame-risk?gamePk=${g.gamePk}`).catch(()=>null),
+      // Match game to odds API then fetch props
+      api(`/api/odds/match?away=${encodeURIComponent(g.teams.away.name||g.teams.away.abbr)}&home=${encodeURIComponent(g.teams.home.name||g.teams.home.abbr)}`).catch(()=>null)
+    ]).then(async ([risk, matchRes])=>{
+      let props = [];
+      if (matchRes?.eventId) {
+        try {
+          const pd = await api(`/api/odds/props?eventId=${matchRes.eventId}`);
+          props = pd.props || [];
+        } catch(e) {}
+      }
+      if (risk) cached.riskSignals = risk;
+      cached.oddsProps = props;
+      renderRiskPanel(risk, props);
     }).catch(()=>{});
 
     return;
   }
 
   _renderPregameHTML(g,cached);
-  if(cached.riskSignals) renderRiskPanel(cached.riskSignals);
+  if(cached.riskSignals) renderRiskPanel(cached.riskSignals, cached.oddsProps||[]);
 }
 
 function _renderPregameHTML(g,cached){
@@ -1533,33 +1546,88 @@ function _renderPregameHTML(g,cached){
     teamSide(g.teams.away,awayStarter,awayIntel,awayStarterCtx,awayBatters,awayBatterCtx,g.teams.home.abbr)+
     teamSide(g.teams.home,homeStarter,homeIntel,homeStarterCtx,homeBatters,homeBatterCtx,g.teams.away.abbr);
 
-  if(riskSignals) renderRiskPanel(riskSignals);
+  if(riskSignals) renderRiskPanel(riskSignals, cached?.oddsProps||[]);
 
-  function renderRiskPanel(risk){
-    if(!risk?.signals?.length) return;
+  function renderRiskPanel(risk, props){
     const typeLabel={PITCHER_K:'⚡ Pitcher Strikeouts',BATTER_HR:'💣 Home Run Prop'};
+
+    // Build props lookup by player last name + market
+    const propsMap={};
+    for(const p of (props||[])){
+      if(p.name==='Over'){
+        const lastName=(p.player||'').split(' ').pop().toLowerCase();
+        const key=`${lastName}|${p.market}`;
+        propsMap[key]=p;
+      }
+    }
+    function getPropLine(playerName,market){
+      const lastName=(playerName||'').split(' ').pop().toLowerCase();
+      return propsMap[`${lastName}|${market}`]||null;
+    }
+
+    // FanDuel live lines block
+    let oddsHtml='';
+    const allPlayers=[...new Set((props||[]).map(p=>p.player))].slice(0,10);
+    if(allPlayers.length){
+      const rows=allPlayers.map(player=>{
+        const k=getPropLine(player,'pitcher_strikeouts');
+        const hr=getPropLine(player,'batter_home_runs');
+        const h=getPropLine(player,'batter_hits');
+        const tb=getPropLine(player,'batter_total_bases');
+        const bits=[];
+        if(k) bits.push(`K O/U <strong>${k.point}</strong> <span style="color:var(--muted)">${k.price>0?'+':''}${k.price}</span>`);
+        if(hr) bits.push(`HR O/U <strong>${hr.point}</strong> <span style="color:var(--muted)">${hr.price>0?'+':''}${hr.price}</span>`);
+        if(h) bits.push(`Hits <strong>${h.point}</strong>`);
+        if(tb) bits.push(`TB <strong>${tb.point}</strong>`);
+        if(!bits.length) return '';
+        const name=player.split(' ').slice(-1)[0];
+        return `<div style="font-size:12px;color:var(--text);padding:3px 0;border-bottom:1px solid var(--border-soft)">${name}: ${bits.join(' · ')}</div>`;
+      }).filter(Boolean).join('');
+      if(rows){
+        oddsHtml=`<div style="margin-bottom:10px;padding:8px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">📊 FanDuel Prop Lines</div>
+          ${rows}
+        </div>`;
+      }
+    } else if((props||[]).length===0 && !risk?.signals?.length){
+      return; // nothing to show at all
+    }
+
+    const signalsHtml=(risk?.signals||[]).map(s=>{
+      const mkt=s.type==='PITCHER_K'?'pitcher_strikeouts':'batter_home_runs';
+      const propLine=getPropLine(s.player,mkt);
+      const propTag=propLine
+        ?`<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);margin-left:8px">FD: O${propLine.point} (${propLine.price>0?'+':''}${propLine.price})</span>`
+        :'';
+      return `<div class="risk-signal ${s.level}">
+        <div class="risk-signal-top">
+          <span class="risk-level ${s.level}">${s.level}</span>
+          <span class="risk-type">${typeLabel[s.type]||s.type}</span>
+          <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
+            <span class="risk-player">${s.player}</span>
+            <span class="risk-team">${s.team}</span>
+            ${propTag}
+          </span>
+        </div>
+        <div class="risk-stat">${s.stat}${s.recentGames?.length?` · Last ${s.recentGames.length} starts: ${s.recentGames.join(', ')} Ks`:''}</div>
+        <div class="risk-detail">${s.detail}</div>
+        <div class="risk-note">⚠ ${s.riskNote}</div>
+      </div>`;
+    }).join('');
+
+    if(!oddsHtml&&!signalsHtml) return;
+
     const html=`<div class="risk-panel">
       <div class="risk-panel-title">
         <span style="background:var(--red-dim);color:var(--red);padding:2px 8px;border-radius:3px;font-size:11px">RISK</span>
         Prop Risk Signals
-        ${risk.parkNote?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);font-weight:400;margin-left:4px">${risk.parkNote}</span>`:''}
+        ${risk?.parkNote?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);font-weight:400;margin-left:4px">${risk.parkNote}</span>`:''}
       </div>
-      ${risk.signals.map(s=>`
-        <div class="risk-signal ${s.level}">
-          <div class="risk-signal-top">
-            <span class="risk-level ${s.level}">${s.level}</span>
-            <span class="risk-type">${typeLabel[s.type]||s.type}</span>
-            <span style="margin-left:auto;display:flex;align-items:center;gap:6px">
-              <span class="risk-player">${s.player}</span>
-              <span class="risk-team">${s.team}</span>
-            </span>
-          </div>
-          <div class="risk-stat">${s.stat}${s.recentGames?.length?` · Last ${s.recentGames.length} starts: ${s.recentGames.join(', ')} Ks`:''}</div>
-          <div class="risk-detail">${s.detail}</div>
-          <div class="risk-note">⚠ ${s.riskNote}</div>
-        </div>`).join('')}
+      ${oddsHtml}
+      ${signalsHtml}
     </div>`;
     const el=$('pregameContent');
+    if(!el) return;
     const existing=el.querySelector('.risk-panel');
     if(existing) existing.outerHTML=html;
     else el.insertAdjacentHTML('beforeend',html);
@@ -1949,19 +2017,28 @@ function renderFieldDiagram(summary, feed){
     `${outs} out${outs!==1?'s':''}`;
 }
 
-async function loadSlate(renderOnly=false){
+async function loadSlate(renderOnly=false, attempt=1){
   try{
     const data=await api('/api/schedule');
     state.games=sortGames(data.games);
     if(data.date)$('sidebarDate').textContent=data.date;
     if(!state.selectedGamePk&&state.games.length){
-      // Prefer first live game, fall back to first game
       const liveGame=state.games.find(g=>g.status==='Live');
       state.selectedGamePk=(liveGame||state.games[0]).gamePk;
     }
     renderGames();
     if(state.selectedGamePk&&!renderOnly)await refreshGame();
-  }catch(e){$('games').innerHTML='<div class="empty" style="padding:16px">Failed to load schedule</div>';console.error('loadSlate failed:',e);}
+  }catch(e){
+    console.warn('loadSlate attempt',attempt,'failed:',e?.message||e);
+    if(attempt<4){
+      // Retry with backoff - server may still be starting up
+      const delay=[0,1500,3000,5000][attempt]||5000;
+      $('games').innerHTML=`<div class="loading"><div class="spin"></div> Connecting${attempt>1?' (retry '+attempt+')':''}…</div>`;
+      setTimeout(()=>loadSlate(renderOnly,attempt+1),delay);
+    } else {
+      $('games').innerHTML='<div class="empty" style="padding:16px;font-size:13px">Unable to load games.<br><span style="color:var(--sub)">Click Refresh to try again.</span></div>';
+    }
+  }
 }
 
 /* Poll the schedule every 20s to keep sidebar scores + inning live.
@@ -2018,6 +2095,8 @@ async function refreshGame(){
     $('nextBatterPanel').style.display='none';
     const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='none';
     const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
+    // Also clear scoring panel content in preview
+    $('scoringPlays').innerHTML='<div class="empty">No scoring plays yet</div>';
     // Clear dual pitcher panel
     $('awayPitcherCard').innerHTML='<div class="empty">Game not started</div>';
     $('homePitcherCard').innerHTML='<div class="empty">Game not started</div>';
