@@ -251,11 +251,35 @@ async function handleApi(reqUrl, res) {
 
   try {
     if (pathname === '/api/schedule') {
-      const date = getEtDateString();
-      const data = await fetchJson(`${MLB_BASE}/schedule?sportId=1&date=${date}&hydrate=probablePitcher,linescore,team`);
-      const games = (data.dates?.[0]?.games || []).map(compactGame)
-        .sort((a, b) => gameSortWeight(a.status) - gameSortWeight(b.status) || new Date(a.startTime) - new Date(b.startTime));
-      return sendJson(res, 200, { date, games });
+      const today = getEtDateString();
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterday = getEtDateString(yesterdayDate);
+
+      // Fetch today's games
+      const data = await fetchJson(`${MLB_BASE}/schedule?sportId=1&date=${today}&hydrate=probablePitcher,linescore,team`);
+      let games = (data.dates?.[0]?.games || []).map(compactGame);
+
+      // If it's early (before 6am ET) or any games from yesterday are still live, also fetch yesterday
+      const etHour = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', hour: 'numeric', hour12: false });
+      const isEarlyMorning = Number(etHour) < 6;
+
+      if (isEarlyMorning) {
+        try {
+          const yData = await fetchJson(`${MLB_BASE}/schedule?sportId=1&date=${yesterday}&hydrate=probablePitcher,linescore,team`);
+          const yGames = (yData.dates?.[0]?.games || []).map(compactGame);
+          // Only include yesterday's games that are still live or finished within last 3 hours
+          const liveOrRecent = yGames.filter(g => g.status === 'Live');
+          if (liveOrRecent.length) {
+            // Prepend yesterday's live games, avoid duplicates
+            const existingPks = new Set(games.map(g => g.gamePk));
+            games = [...liveOrRecent.filter(g => !existingPks.has(g.gamePk)), ...games];
+          }
+        } catch(e) { /* yesterday fetch failed, continue with today */ }
+      }
+
+      games.sort((a, b) => gameSortWeight(a.status) - gameSortWeight(b.status) || new Date(a.startTime) - new Date(b.startTime));
+      return sendJson(res, 200, { date: today, games });
     }
 
     if (pathname === '/api/live-summary') {
@@ -448,5 +472,3 @@ server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
 });
 
-
-  
