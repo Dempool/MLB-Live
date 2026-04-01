@@ -88,34 +88,29 @@ function pct(v, fallback = null) {
 // ── SAVANT URL BUILDERS ───────────────────────────────────────────────────────
 
 const SAVANT_BASE = 'https://baseballsavant.mlb.com';
+const PRIOR_YEAR = YEAR - 1; // Use prior season as baseline for players not yet qualified
 
-const URLS = {
-  // Batter exit velocity, barrels, hard hit rate
-  batterEV: `${SAVANT_BASE}/leaderboard/statcast?type=batter&year=${YEAR}&position=&team=&min=10&csv=true`,
+function buildUrls(year) {
+  return {
+    batterEV: `${SAVANT_BASE}/leaderboard/statcast?type=batter&year=${year}&position=&team=&min=10&csv=true`,
+    pitcherEV: `${SAVANT_BASE}/leaderboard/statcast?type=pitcher&year=${year}&position=&team=&min=10&csv=true`,
+    batterExpected: `${SAVANT_BASE}/leaderboard/expected_statistics?type=batter&year=${year}&position=&team=&min=10&csv=true`,
+    pitcherExpected: `${SAVANT_BASE}/leaderboard/expected_statistics?type=pitcher&year=${year}&position=&team=&min=10&csv=true`,
+    pitcherArsenal: `${SAVANT_BASE}/leaderboard/pitch-arsenal-stats?type=pitcher&pitchType=&year=${year}&team=&min=10&csv=true`,
+    batterWhiff: `${SAVANT_BASE}/leaderboard/swing-take?type=batter&year=${year}&min=10&csv=true`,
+    pitcherWhiff: `${SAVANT_BASE}/leaderboard/swing-take?type=pitcher&year=${year}&min=10&csv=true`,
+    sprintSpeed: `${SAVANT_BASE}/leaderboard/sprint_speed?position=&team=&min=10&year=${year}&csv=true`,
+  };
+}
 
-  // Pitcher exit velo allowed, hard hit allowed, barrel allowed
-  pitcherEV: `${SAVANT_BASE}/leaderboard/statcast?type=pitcher&year=${YEAR}&position=&team=&min=10&csv=true`,
-
-  // Expected stats - xBA, xSLG, xwOBA, xERA
-  batterExpected: `${SAVANT_BASE}/leaderboard/expected_statistics?type=batter&year=${YEAR}&position=&team=&min=10&csv=true`,
-  pitcherExpected: `${SAVANT_BASE}/leaderboard/expected_statistics?type=pitcher&year=${YEAR}&position=&team=&min=10&csv=true`,
-
-  // Pitch arsenal - pitch mix % and velocity per pitch type
-  pitcherArsenal: `${SAVANT_BASE}/leaderboard/pitch-arsenal-stats?type=pitcher&pitchType=&year=${YEAR}&team=&min=10&csv=true`,
-
-  // Swing/whiff rates
-  batterWhiff: `${SAVANT_BASE}/leaderboard/swing-take?type=batter&year=${YEAR}&min=10&csv=true`,
-  pitcherWhiff: `${SAVANT_BASE}/leaderboard/swing-take?type=pitcher&year=${YEAR}&min=10&csv=true`,
-
-  // Sprint speed (for stolen base tendency context)
-  sprintSpeed: `${SAVANT_BASE}/leaderboard/sprint_speed?position=&team=&min=10&year=${YEAR}&csv=true`,
-};
+const URLS = buildUrls(YEAR);
+const URLS_PRIOR = buildUrls(PRIOR_YEAR);
 
 // ── FETCH ALL ─────────────────────────────────────────────────────────────────
 
-async function fetchAll() {
+async function fetchAll(urls = URLS) {
   const results = {};
-  for (const [key, url] of Object.entries(URLS)) {
+  for (const [key, url] of Object.entries(urls)) {
     try {
       console.log(`  Fetching ${key}...`);
       const csv = await get(url);
@@ -126,8 +121,7 @@ async function fetchAll() {
       console.warn(`    ✗ ${key} failed: ${e.message}`);
       results[key] = [];
     }
-    // Small delay to be polite
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise(r => setTimeout(r, 300));
   }
   return results;
 }
@@ -340,23 +334,51 @@ function buildIntel(data) {
 
 async function main() {
   console.log(`\n⚾  MLB Live Tracker — Statcast Intel Generator`);
-  console.log(`   Season: ${YEAR}`);
+  console.log(`   Season: ${YEAR} (with ${PRIOR_YEAR} as baseline fallback)`);
   console.log(`   Output: ${OUT_FILE}\n`);
 
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  console.log('Fetching from Baseball Savant...');
-  const data = await fetchAll();
+  // Fetch prior year first as baseline (more players qualified)
+  console.log(`Fetching ${PRIOR_YEAR} baseline from Baseball Savant...`);
+  const priorData = await fetchAll(URLS_PRIOR);
+  const priorPlayers = buildIntel(priorData);
+  console.log(`  ${PRIOR_YEAR} baseline: ${Object.keys(priorPlayers).length} players`);
 
-  console.log('\nBuilding player intel...');
-  const players = buildIntel(data);
+  // Fetch current year — overrides prior year where available
+  console.log(`\nFetching ${YEAR} current season data...`);
+  const currentData = await fetchAll(URLS);
+  const currentPlayers = buildIntel(currentData);
+  console.log(`  ${YEAR} current: ${Object.keys(currentPlayers).length} players`);
+
+  // Merge: current year takes priority, prior year fills gaps
+  const players = { ...priorPlayers };
+  for (const [id, data] of Object.entries(currentPlayers)) {
+    if (!players[id]) {
+      players[id] = data;
+    } else {
+      // Override with current year data where available
+      if (data.batter) players[id].batter = { ...players[id].batter, ...data.batter, _season: YEAR };
+      if (data.pitcher) players[id].pitcher = { ...players[id].pitcher, ...data.pitcher, _season: YEAR };
+    }
+  }
+  // Mark prior-year-only players
+  for (const [id, data] of Object.entries(players)) {
+    if (!currentPlayers[id]) {
+      if (data.batter) data.batter._priorYear = true;
+      if (data.pitcher) data.pitcher._priorYear = true;
+    }
+  }
+
   const playerCount = Object.keys(players).length;
   const withBatter = Object.values(players).filter(p => p.batter).length;
   const withPitcher = Object.values(players).filter(p => p.pitcher).length;
+  const currentSeason = Object.values(players).filter(p => p.batter?._season === YEAR || p.pitcher?._season === YEAR).length;
 
   const output = {
     generatedAt: new Date().toISOString(),
     season: YEAR,
+    priorSeason: PRIOR_YEAR,
     source: 'Baseball Savant Statcast leaderboards (baseballsavant.mlb.com)',
     playerCount,
     players
@@ -365,7 +387,7 @@ async function main() {
   fs.writeFileSync(OUT_FILE, JSON.stringify(output, null, 2));
 
   console.log(`\n✅  Done!`);
-  console.log(`   ${playerCount} total players`);
+  console.log(`   ${playerCount} total players (${currentSeason} with ${YEAR} data, rest from ${PRIOR_YEAR})`);
   console.log(`   ${withBatter} batters with Statcast data`);
   console.log(`   ${withPitcher} pitchers with Statcast data`);
   console.log(`   Saved to: ${OUT_FILE}\n`);

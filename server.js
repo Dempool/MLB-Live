@@ -746,16 +746,51 @@ async function handleApi(reqUrl, res) {
       }
     }
 
-    // Debug route - shows what file is being served
-    if (pathname === '/api/debug') {
-      const indexPath = path.join(publicDir, 'index.html');
-      const exists = fs.existsSync(indexPath);
-      const size = exists ? fs.statSync(indexPath).size : 0;
-      const firstLine = exists ? fs.readFileSync(indexPath, 'utf8').split('\n')[1]?.trim() : 'N/A';
-      return sendJson(res, 200, { 
-        publicDir, indexPath, exists, size, firstLine,
-        nodeVersion: process.version,
-        cwd: process.cwd()
+    // Bullpen tracker — shows reliever availability, pitch counts, days rest
+    if (pathname === '/api/bullpen') {
+      if (!gamePk) return sendJson(res, 400, { error: 'Missing gamePk' });
+      const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
+      const box = gameData.liveData?.boxscore?.teams || {};
+      const today = getEtDateString();
+
+      function buildBullpen(teamSide) {
+        const team = box[teamSide] || {};
+        const players = team.players || {};
+        const pitcherIds = team.pitchers || [];
+        const bullpen = team.bullpen || [];
+
+        // Get all relievers (bullpen array = pitchers who haven't started)
+        const relievers = bullpen.map(id => {
+          const p = players[`ID${id}`];
+          if (!p) return null;
+          const stats = p.stats?.pitching || {};
+          const seasonStats = p.seasonStats?.pitching || {};
+          const pitchCount = stats.numberOfPitches || 0;
+          const hasAppeared = pitcherIds.includes(id) && pitchCount > 0;
+          return {
+            id,
+            name: p.person?.fullName || `Player ${id}`,
+            pitchCount,
+            hasAppeared,
+            inningsPitched: stats.inningsPitched || '0.0',
+            earnedRuns: stats.earnedRuns || 0,
+            strikeouts: stats.strikeOuts || 0,
+            era: seasonStats.era || '—',
+            seasonApps: seasonStats.gamesPlayed || 0,
+          };
+        }).filter(Boolean);
+
+        // Sort: appeared first (currently in game), then by name
+        relievers.sort((a, b) => (b.hasAppeared ? 1 : 0) - (a.hasAppeared ? 1 : 0));
+        return relievers;
+      }
+
+      return sendJson(res, 200, {
+        gamePk: Number(gamePk),
+        away: buildBullpen('away'),
+        home: buildBullpen('home'),
+        awayTeam: gameData.gameData?.teams?.away?.abbreviation || 'AWY',
+        homeTeam: gameData.gameData?.teams?.home?.abbreviation || 'HME',
       });
     }
 
