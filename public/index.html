@@ -778,12 +778,11 @@ window.switchTab=async function(tab){
   document.getElementById('allGamesView').style.display=tab==='all'?'flex':'none';
   document.getElementById('mainContent').style.display=tab==='games'?'':'none';
   if(tab==='all'){
-    // If games haven't loaded yet, wait for them
-    if(!state.games.length){
-      await loadSlate(true);
-    }
+    if(!state.games.length) await loadSlate(true);
     renderAllGamesView();
+    pollAllGames();
   }
+  if(tab==='games'&&state.selectedGamePk) await refreshGame();
 };
 
 /* ── ALL GAMES WAR ROOM ── */
@@ -1485,6 +1484,7 @@ const _pregameCache={};
 async function renderPregame(g){
   $('pregameBadge').textContent=`Preview · ${fmtTime(g.startTime)}`;
   const cacheKey=g.gamePk;
+  const season=new Date().getFullYear();
 
   let cached=_pregameCache[cacheKey];
   if(!cached){
@@ -1501,9 +1501,7 @@ async function renderPregame(g){
       fetchBatterIntelForTeam(g.teams.home.id)
     ]);
 
-    // ── EXTRA CONTEXT: last game, venue history, h2h ──
-    const season=new Date().getFullYear();
-    const venueId=g.venueId||null;
+    // ── EXTRA CONTEXT: last game, h2h ──
 
     // Fetch pitcher last game log via server proxy (avoids CORS)
     async function fetchPitcherContext(pitcher){
@@ -2082,6 +2080,8 @@ async function refreshGame(){
     $('scoringPlaysPanel').style.display='none';
     $('specialPlaysPanel').style.display='none';
     $('nextBatterPanel').style.display='none';
+    const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='none';
+    const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
     // Clear dual pitcher panel
     $('awayPitcherCard').innerHTML='<div class="empty">Game not started</div>';
     $('homePitcherCard').innerHTML='<div class="empty">Game not started</div>';
@@ -2099,6 +2099,8 @@ async function refreshGame(){
   $('inplayPanel').style.display='';
   $('scoringPlaysPanel').style.display='';
   $('specialPlaysPanel').style.display='none'; // shown only if data
+  const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='';
+  const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='';
 
   try{
     const [summary,feed,matchup]=await Promise.all([
@@ -2424,9 +2426,14 @@ async function pollLive(){
 $('knowledgeLevel').value=state.level;
 $('knowledgeLevel').addEventListener('change',async e=>{state.level=e.target.value;localStorage.setItem('knowledgeLevel',state.level);await refreshGame();});
 $('refreshSlate').addEventListener('click',()=>loadSlate());
+
+// Ensure mainContent is visible on startup (in case tab state got confused)
+document.getElementById('mainContent').style.display='';
+document.getElementById('allGamesView').style.display='none';
+
 loadSlate();
-setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check for play changes
-setInterval(()=>{ if(currentTab==='all') renderAllGamesView(); }, 25000); // refresh all-games view
+setInterval(pollAllGames, 20000);
+setInterval(()=>{ if(currentTab==='all') renderAllGamesView(); }, 25000);
 </script>
 </body>
 </html>
