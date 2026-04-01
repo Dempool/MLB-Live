@@ -86,14 +86,30 @@ function gameSortWeight(status) {
 function compactGame(game) {
   const linescore = game.linescore || {};
   const status = normalizeStatus(game);
+  const pp = game.teams?.away?.probablePitcher || null;
   return {
     gamePk: game.gamePk,
     status,
     detailedStatus: game.status?.detailedState || status,
     startTime: game.gameDate,
+    venue: game.venue?.name || null,
     teams: {
-      away: { id: game.teams?.away?.team?.id, name: game.teams?.away?.team?.name, abbr: game.teams?.away?.team?.abbreviation, score: game.teams?.away?.score ?? 0 },
-      home: { id: game.teams?.home?.team?.id, name: game.teams?.home?.team?.name, abbr: game.teams?.home?.team?.abbreviation, score: game.teams?.home?.score ?? 0 }
+      away: {
+        id: game.teams?.away?.team?.id,
+        name: game.teams?.away?.team?.name,
+        abbr: game.teams?.away?.team?.abbreviation,
+        score: game.teams?.away?.score ?? 0,
+        record: game.teams?.away?.leagueRecord ? `${game.teams.away.leagueRecord.wins}-${game.teams.away.leagueRecord.losses}` : null,
+        probablePitcher: game.teams?.away?.probablePitcher?.fullName || null
+      },
+      home: {
+        id: game.teams?.home?.team?.id,
+        name: game.teams?.home?.team?.name,
+        abbr: game.teams?.home?.team?.abbreviation,
+        score: game.teams?.home?.score ?? 0,
+        record: game.teams?.home?.leagueRecord ? `${game.teams.home.leagueRecord.wins}-${game.teams.home.leagueRecord.losses}` : null,
+        probablePitcher: game.teams?.home?.probablePitcher?.fullName || null
+      }
     },
     inning: linescore.currentInning || null,
     inningHalf: linescore.inningHalf || null
@@ -407,4 +423,3 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
 });
-
