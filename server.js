@@ -284,7 +284,7 @@ async function handleApi(reqUrl, res) {
       const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
       const live = gameData.liveData || {};
       const { currentPlay, events, allPlays } = getCurrentPitchEvents(live);
-      const recentPlays = allPlays.slice(-12).map((play) => {
+      const recentPlays = allPlays.map((play) => {
         const desc = play.result?.description || '';
         const eventType = play.result?.eventType || play.result?.event || '';
         const isSteal = /stolen base|steals|steal of/i.test(desc) || /stolen_base/i.test(eventType);
@@ -447,3 +447,6 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
 });
+
+
+  
