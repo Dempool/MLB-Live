@@ -1,3 +1,4 @@
+// v2 - dual year fetch
 #!/usr/bin/env node
 /**
  * generate_intel.js
