@@ -23,8 +23,8 @@
       --border-soft:#1e2d3e;
       /* Typography */
       --text:      #f0f4fc;   /* primary white */
-      --sub:       #8fa6c8;   /* secondary */
-      --muted:     #445b78;   /* tertiary / labels */
+      --sub:       #a0bad4;   /* secondary */
+      --muted:     #6b84a0;   /* tertiary / labels */
       /* Accent — MLB red */
       --red:       #e8182c;
       --red-dim:   rgba(232,24,44,0.13);
@@ -70,7 +70,7 @@
     .logo-text{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:22px;letter-spacing:.3px;color:var(--text)}
     .logo-text span{color:var(--red)}
     .header-right{display:flex;align-items:center;gap:10px}
-    .level-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+    .level-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub)}
     select,.btn{
       background:var(--card-2);color:var(--text);
       border:1px solid var(--border);border-radius:5px;
@@ -98,8 +98,8 @@
       border-bottom:1px solid var(--border);
       display:flex;align-items:center;justify-content:space-between;
     }
-    .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-    .date-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)}
+    .sidebar-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--sub)}
+    .date-tag{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
     #games{flex:1;overflow-y:auto;padding:0}
     #games::-webkit-scrollbar{width:3px}
     #games::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -128,22 +128,15 @@
     .card-teams{display:flex;align-items:center;gap:0;width:100%}
     .card-team{display:flex;align-items:center;gap:5px;flex:1}
     .card-team.home{justify-content:flex-end}
-    .team-logo-sm{width:22px;height:22px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .team-logo-sm{width:24px;height:24px;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,0.9);border-radius:4px;padding:2px}
     .team-logo-sm img{width:100%;height:100%;object-fit:contain}
     .team-abbr{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
     .card-score{font-family:'DM Mono',monospace;font-weight:700;font-size:13px;color:var(--sub);min-width:14px;text-align:center}
-    .card-sep{font-size:12px;color:var(--muted);padding:0 6px;flex-shrink:0}
+    .card-sep{font-size:12px;color:var(--sub);padding:0 6px;flex-shrink:0}
 
     /* Dots row — same two-column structure as card-teams */
-    .card-dots{display:flex;align-items:center;gap:0;width:100%;margin-top:5px}
-    .dots-away{display:flex;gap:3px;flex:1}
-    .dots-home{display:flex;gap:3px;flex:1;justify-content:flex-end}
-    .fg-dot{width:7px;height:7px;border-radius:50%}
-    .fg-dot.W{background:var(--live)}
-    .fg-dot.L{background:var(--red)}
-    .fg-dot.T{background:var(--gold)}
-
-    .card-time{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:4px}
+                            
+    .card-time{font-size:12px;color:var(--sub);font-family:'DM Mono',monospace;margin-top:4px}
     .card-live-row{display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:1px}
     .card-inning{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;color:var(--live);letter-spacing:.5px}
     .card-final-tag{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--gold)}
@@ -173,7 +166,8 @@
     .team-logo-lg{
       width:60px;height:60px;border-radius:10px;overflow:hidden;
       display:flex;align-items:center;justify-content:center;
-      background:var(--card-2);border:1px solid var(--border);
+      background:rgba(255,255,255,0.92);border:1px solid rgba(255,255,255,0.15);
+      padding:4px;
     }
     .team-logo-lg img{width:100%;height:100%;object-fit:contain}
     .banner-team-info{display:flex;flex-direction:column;gap:3px}
@@ -181,13 +175,20 @@
     .banner-score{font-family:'DM Mono',monospace;font-weight:700;font-size:48px;line-height:1;color:var(--text);letter-spacing:-1px}
     .banner-live-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:70px;padding:0 4px;gap:3px}
     .banner-inning-wrap{display:flex;flex-direction:column;align-items:center;line-height:1}
-    .banner-half{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+    .banner-half{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;color:var(--sub);text-transform:uppercase}
     .banner-inning-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:32px;color:var(--text);line-height:1}
     .banner-outs{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:3px;letter-spacing:.5px}
+    .banner-diamond{position:relative;width:48px;height:44px;flex-shrink:0;margin-top:4px}
+    .bd-base{position:absolute;width:13px;height:13px;border:2px solid var(--border);transform:rotate(45deg);border-radius:2px;background:transparent;transition:background .15s,border-color .15s}
+    .bd-base.on{background:var(--gold);border-color:#c8890a}
+    .bd-2{top:2px;left:50%;margin-left:-6px}
+    .bd-3{top:50%;margin-top:-6px;left:2px}
+    .bd-1{top:50%;margin-top:-6px;right:2px}
+    .bd-home{position:absolute;bottom:2px;left:50%;margin-left:-5px;width:10px;height:8px;background:#dde8f8;clip-path:polygon(50% 0%,100% 38%,100% 100%,0% 100%,0% 38%)}
     .banner-score-sub{font-size:13px;color:var(--sub);margin-top:4px;min-height:16px}
     .banner-sep{width:1px;height:52px;background:var(--border);margin:0 22px;flex-shrink:0}
     .banner-section{display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .banner-label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+    .banner-label{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:3px}
     .banner-value{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;color:var(--text)}
     .banner-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
     .banner-count{font-family:'DM Mono',monospace;font-weight:700;font-size:32px;color:var(--gold);line-height:1}
@@ -216,8 +217,8 @@
       display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
       background:rgba(255,255,255,.02);
     }
-    .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub)}
-    .panel-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
+    .panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)}
+    .panel-badge{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
     .panel-body{padding:12px 14px;flex:1;overflow-y:auto}
     .panel-body::-webkit-scrollbar{width:3px}
     .panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
@@ -245,30 +246,24 @@
     .ticker-nav:hover{background:var(--border);color:var(--text)}
     .ticker-nav:disabled{opacity:.3;cursor:default}
     .scoring-play-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-left:3px solid var(--live);border-radius:0 5px 5px 0;margin-bottom:5px}
-    .scoring-inn{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;min-width:32px}
+    .scoring-inn{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);flex-shrink:0;min-width:32px}
     .scoring-score{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);flex-shrink:0}
-    .scoring-desc{font-size:13px;color:var(--sub);flex:1}
+    .scoring-desc{font-size:13px;color:var(--text);flex:1}
     .ondeck-card{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:10px 12px}
     .ondeck-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;color:var(--text);margin-bottom:6px}
     .ondeck-stats{display:flex;gap:12px;flex-wrap:wrap}
     .ondeck-stat{text-align:center}
     .ondeck-stat-val{font-family:'DM Mono',monospace;font-weight:700;font-size:18px;color:var(--text)}
-    .ondeck-stat-lbl{font-family:'DM Sans',sans-serif;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+    .ondeck-stat-lbl{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--sub);letter-spacing:1px;text-transform:uppercase}
 
     /* ── PREGAME ── */
     .pregame-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .pregame-team-header{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border-soft);margin-bottom:10px}
-    .pregame-logo{width:48px;height:48px;border-radius:9px;overflow:hidden;background:var(--card-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pregame-logo{width:48px;height:48px;border-radius:9px;overflow:hidden;background:rgba(255,255,255,0.92);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px}
     .pregame-logo img{width:100%;height:100%;object-fit:contain}
     .pregame-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:19px;color:var(--text)}
     .pregame-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
-    .pregame-last5{display:flex;gap:4px;margin-top:5px;align-items:center}
-    .last5-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-right:4px}
-    .last5-pill{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;padding:2px 7px;border-radius:3px}
-    .last5-pill.W{background:var(--live-dim);color:var(--live)}
-    .last5-pill.L{background:var(--red-dim);color:var(--red)}
-    .last5-pill.T{background:var(--gold-dim);color:var(--gold)}
-    .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px;margin-top:2px}
+                            .section-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text);margin-bottom:6px;margin-top:2px}
     .spotlight-card{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:9px 11px 9px 14px;margin-bottom:6px;position:relative;overflow:hidden}
     .spotlight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
     .spotlight-card.is-starter::before{background:var(--blue)}
@@ -276,26 +271,26 @@
     .spotlight-card.is-cold::before{background:var(--red)}
     .spotlight-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
     .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
-    .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;margin-left:6px}
+    .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:3px;flex-shrink:0;margin-left:6px}
     .badge-hot{background:var(--live-dim);color:var(--live)}
     .badge-cold{background:var(--red-dim);color:var(--red)}
     .badge-starter{background:var(--blue-dim);color:var(--blue)}
-    .spotlight-stat{font-size:13px;color:var(--sub);line-height:1.6}
+    .spotlight-stat{font-size:13px;color:var(--text);line-height:1.6}
     .spotlight-stat strong{color:var(--gold)}
-    .spotlight-extra{font-size:12px;color:var(--sub);margin-top:3px;line-height:1.5}
+    .spotlight-extra{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.5}
 
     /* ── STAT BARS ── */
     .bar-group{margin-bottom:6px}
-    .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:13px;color:var(--sub)}
+    .bar-label{display:flex;justify-content:space-between;margin-bottom:3px;font-size:13px;color:var(--text)}
     .bar-label span:last-child{font-family:'DM Mono',monospace;font-weight:700;color:var(--text)}
-    .bar-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
-    .bar-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .5s ease}
+    .bar-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+    .bar-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .5s ease}
     .bar-fill.green{background:var(--live)}
     .bar-fill.amber{background:var(--gold)}
     .bar-fill.red{background:var(--red)}
     .stat-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border-soft)}
     .stat-row:last-child{border-bottom:none}
-    .stat-key{font-size:13px;color:var(--sub)}
+    .stat-key{font-size:13px;color:var(--text)}
     .stat-val{font-family:'DM Mono',monospace;font-weight:700;font-size:14px;color:var(--text)}
 
     /* ── MIX GRID ── */
@@ -308,9 +303,9 @@
     /* ── MATCHUP ── */
     .matchup-display{display:flex;align-items:center;gap:8px}
     .matchup-player{flex:1;background:var(--card-2);border:1px solid var(--border-soft);border-radius:7px;padding:9px 10px;text-align:center}
-    .matchup-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .matchup-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
     .matchup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
-    .matchup-vs{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:var(--muted)}
+    .matchup-vs{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:13px;color:var(--sub)}
     .matchup-hand{display:inline-block;margin-top:4px;font-family:'DM Mono',monospace;font-size:12px;color:var(--blue);background:var(--blue-dim);border:1px solid var(--blue-mid);padding:1px 6px;border-radius:3px}
 
     /* ── PITCH CHIPS ── */
@@ -321,7 +316,7 @@
     .pitch-chip.top .pitch-type{color:var(--red)}
     .pitch-pct{font-family:'DM Mono',monospace;font-weight:700;font-size:20px;color:var(--text);line-height:1.2}
     .pitch-chip.top .pitch-pct{color:var(--text)}
-    .pitch-unit{font-size:10px;color:var(--muted)}
+    .pitch-unit{font-size:11px;color:var(--sub)}
 
     /* ── PITCH ROW ── */
     .pitch-row{display:grid;grid-template-columns:22px 1fr auto auto auto;gap:6px;align-items:center;padding:7px 8px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:4px;font-size:13px}
@@ -343,21 +338,21 @@
     .ag-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px 16px 16px;border-top:1px solid var(--border-soft);align-items:start}
     @media(max-width:900px){.ag-body{grid-template-columns:1fr 1fr}}
     @media(max-width:600px){.ag-body{grid-template-columns:1fr}}
-    .ag-section-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+    .ag-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px}
     .ag-section-box{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:9px 11px}
     .ag-play{font-size:12px;color:var(--sub);line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
     .ag-team-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;color:var(--text);line-height:1}
-    .ag-record{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+    .ag-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:2px}
     .ag-pitcher{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
     .ag-score-lead{color:var(--live)!important}
     .ag-outs{display:flex;gap:5px;margin-bottom:6px}
     .ag-out-dot{width:9px;height:9px;border-radius:50%;background:var(--border)}
     .ag-out-dot.on{background:var(--red)}
     .ag-count{font-family:'DM Mono',monospace;font-weight:700;font-size:22px;color:var(--gold);line-height:1}
-    .ag-count-label{font-size:10px;color:var(--muted);margin-top:1px}
+    .ag-count-label{font-size:11px;color:var(--sub);margin-top:1px}
     .ag-buzz-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:5px}
     .ag-buzz-item:last-child{margin-bottom:0}
-    .ag-buzz-text{font-size:11px;color:var(--sub);line-height:1.4}
+    .ag-buzz-text{font-size:13px;color:var(--sub);line-height:1.4}
     .lineup-side{padding:12px 14px;border-right:1px solid var(--border-soft)}
     .lineup-side:last-child{border-right:none}
     .lineup-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)}
@@ -376,21 +371,21 @@
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
     .inplay-player{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px}
-    .inplay-role{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-    .inplay-summary{font-size:13px;color:var(--sub);margin-bottom:6px}
+    .inplay-role{font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
+    .inplay-summary{font-size:13px;color:var(--text);margin-bottom:6px}
     .inplay-summary strong{color:var(--gold)}
     .pitch-meter{margin:6px 0 8px}
     .pitch-meter-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:3px}
     .pitch-meter-fill{height:100%;border-radius:3px;transition:width .4s ease}
-    .pitch-meter-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
+    .pitch-meter-label{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);margin-top:2px}
     .pa-log{display:flex;flex-direction:column;gap:3px;margin-top:4px}
-    .pa-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);padding:3px 6px;background:var(--card-2);border-radius:3px}
-    .pa-inn{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);min-width:36px}
+    .pa-row{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);padding:4px 7px;background:var(--card-2);border-radius:3px}
+    .pa-inn{font-family:'DM Mono',monospace;font-weight:500;font-size:11px;color:var(--sub);min-width:36px}
     .pa-result{color:var(--text)}
     .pa-result.positive{color:var(--live)}
     .pa-result.hr{color:var(--gold)}
     /* ── BUZZ TYPE TAGS ── */
-    .buzz-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:1px 5px;border-radius:3px;margin-right:5px;flex-shrink:0}
+    .buzz-type{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 6px;border-radius:3px;margin-right:5px;flex-shrink:0}
     .buzz-type.scoring{background:var(--live-dim);color:var(--live)}
     .buzz-type.warning{background:var(--red-dim);color:var(--red)}
     .buzz-type.info{background:var(--blue-dim);color:var(--blue)}
@@ -402,12 +397,12 @@
     .buzz-item{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;margin-bottom:5px}
     .buzz-item:last-child{margin-bottom:0}
     .buzz-dot{width:6px;height:6px;border-radius:50%;background:var(--red);margin-top:5px;flex-shrink:0}
-    .buzz-text{font-size:14px;color:var(--sub)}
+    .buzz-text{font-size:14px;color:var(--text)}
     .buzz-text strong{color:var(--text)}
 
     /* ── UTILS ── */
-    .empty{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.3px}
-    .loading{color:var(--muted);font-size:12px;padding:10px 13px;display:flex;align-items:center;gap:6px}
+    .empty{color:var(--sub);font-size:13px;text-align:center;padding:16px 0;font-family:'DM Sans',sans-serif;font-weight:500}
+    .loading{color:var(--sub);font-size:13px;padding:10px 13px;display:flex;align-items:center;gap:6px}
     .spin{width:12px;height:12px;border:1.5px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -515,12 +510,22 @@
     <div class="team-logo-lg" id="bnHomeLogo"></div>
   </div>
 
-  <!-- RIGHT: count + outs (live only) -->
+  <!-- RIGHT: count + outs + runners (live only) -->
   <div class="banner-sep" id="bnCountSep" style="display:none"></div>
   <div class="banner-section" id="bnCountSection" style="display:none">
     <div class="banner-label">Count</div>
     <div class="banner-count" id="bnCount">—</div>
     <div class="banner-outs" id="bnOuts"></div>
+  </div>
+  <div class="banner-sep" id="bnRunnerSep" style="display:none"></div>
+  <div class="banner-section" id="bnRunnerSection" style="display:none">
+    <div class="banner-label">Runners</div>
+    <div class="banner-diamond">
+      <div class="bd-base bd-2" id="r2"></div>
+      <div class="bd-base bd-3" id="r3"></div>
+      <div class="bd-base bd-1" id="r1"></div>
+      <div class="bd-home"></div>
+    </div>
   </div>
 </div>
 
@@ -557,7 +562,7 @@
           </div>
         </div>
 
-        <!-- ROW 1: LIVE TICKER (wide) | FIELD + BUZZ (stacked) -->
+        <!-- ROW 1: TICKER (wide) | FIELD (right) -->
         <div class="panel grid-wide" id="liveTickerPanel">
           <div class="panel-head">
             <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:2px"></span>Live Ticker</span>
@@ -570,46 +575,48 @@
           <div class="panel-body" id="liveTicker"><div class="empty">No plays yet</div></div>
         </div>
 
-        <!-- FIELD DIAGRAM -->
+        <!-- FIELD + BUZZ combined right column -->
         <div class="panel" id="fieldPanel" style="display:none">
           <div class="panel-head">
-            <span class="panel-title">Field</span>
+            <span class="panel-title">Situation</span>
             <span class="panel-badge" id="fieldBadge"></span>
           </div>
-          <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;align-items:center;gap:6px">
-            <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:180px;display:block">
-              <path d="M 25 155 Q 90 15 155 155 Z" fill="#1a3a1a" stroke="#2d5a2d" stroke-width="1.5"/>
-              <polygon points="90,138 45,93 90,48 135,93" fill="#6b4423" stroke="#8a5a30" stroke-width="1"/>
-              <line x1="90" y1="138" x2="25" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
-              <line x1="90" y1="138" x2="155" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
-              <line x1="90" y1="138" x2="45" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
-              <line x1="45" y1="93" x2="90" y2="48" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
-              <line x1="90" y1="48" x2="135" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
-              <line x1="135" y1="93" x2="90" y2="138" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
-              <circle cx="90" cy="97" r="4" fill="#7a5030" stroke="#9a6a40" stroke-width="0.8"/>
-              <polygon points="90,145 85,140 85,135 95,135 95,140" fill="#dde8f8" stroke="#8a9ab0" stroke-width="0.5"/>
-              <rect id="base1" x="128" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 135 93)"/>
-              <rect id="base2" x="83" y="41" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 90 48)"/>
-              <rect id="base3" x="38" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 45 93)"/>
-              <text x="90" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">CF</text>
-              <text x="40" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">LF</text>
-              <text x="140" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">RF</text>
-              <circle id="ballSpot" cx="-50" cy="-50" r="4" fill="var(--gold)" opacity="0.85" style="display:none"/>
-              <text id="label1" x="153" y="96" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
-              <text id="label2" x="90" y="37" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
-              <text id="label3" x="27" y="96" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
-            </svg>
-            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;width:100%">
+          <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:160px;display:block">
+                <path d="M 25 155 Q 90 15 155 155 Z" fill="#1a3a1a" stroke="#2d5a2d" stroke-width="1.5"/>
+                <polygon points="90,138 45,93 90,48 135,93" fill="#6b4423" stroke="#8a5a30" stroke-width="1"/>
+                <line x1="90" y1="138" x2="25" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
+                <line x1="90" y1="138" x2="155" y2="25" stroke="#6b5a3a" stroke-width="0.8" opacity="0.7"/>
+                <line x1="90" y1="138" x2="45" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+                <line x1="45" y1="93" x2="90" y2="48" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+                <line x1="90" y1="48" x2="135" y2="93" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+                <line x1="135" y1="93" x2="90" y2="138" stroke="#9a8a6a" stroke-width="0.8" opacity="0.6"/>
+                <circle cx="90" cy="97" r="4" fill="#7a5030" stroke="#9a6a40" stroke-width="0.8"/>
+                <polygon points="90,145 85,140 85,135 95,135 95,140" fill="#dde8f8" stroke="#8a9ab0" stroke-width="0.5"/>
+                <rect id="base1" x="128" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 135 93)"/>
+                <rect id="base2" x="83" y="41" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 90 48)"/>
+                <rect id="base3" x="38" y="86" width="14" height="14" rx="2" fill="var(--border)" stroke="#666" stroke-width="2" transform="rotate(45 45 93)"/>
+                <text x="90" y="10" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">CF</text>
+                <text x="40" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">LF</text>
+                <text x="140" y="50" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" fill="#ffffff" opacity="0.35">RF</text>
+                <circle id="ballSpot" cx="-50" cy="-50" r="4" fill="var(--gold)" opacity="0.85" style="display:none"/>
+                <text id="label1" x="153" y="96" text-anchor="start" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
+                <text id="label2" x="90" y="37" text-anchor="middle" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
+                <text id="label3" x="27" y="96" text-anchor="end" font-family="'DM Sans',sans-serif" font-size="8" font-weight="700" fill="var(--gold)" style="display:none"></text>
+              </svg>
               <div id="fieldOutsDots" style="display:flex;gap:6px;justify-content:center"></div>
               <div id="fieldHitInfo" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);text-align:center"></div>
             </div>
+            <!-- Buzz folded in below field -->
+            <div style="border-top:1px solid var(--border-soft);padding-top:8px" id="gameBuzz"><div class="empty" style="font-size:11px">—</div></div>
           </div>
         </div>
 
-        <!-- GAME BUZZ — sits below field -->
+        <!-- Buzz panel for pregame (field hidden) -->
         <div class="panel" id="gameBuzzPanel">
           <div class="panel-head"><span class="panel-title">Game Buzz</span></div>
-          <div class="panel-body" id="gameBuzz"><div class="empty">—</div></div>
+          <div class="panel-body" id="gameBuzzStandalone"><div class="empty">—</div></div>
         </div>
 
         <!-- ROW 2: LINEUPS (full width) -->
@@ -623,87 +630,65 @@
           </div>
         </div>
 
-        <!-- ROW 3: MATCHUP + ON DECK | TODAY'S STATS -->
-        <div class="panel grid-wide">
+        <!-- ROW 3: AT BAT (wide) — matchup + pitch by pitch | SCORING -->
+        <div class="panel grid-wide" id="atBatPanel">
           <div class="panel-head">
-            <span class="panel-title">Current Matchup</span>
+            <span class="panel-title">At Bat</span>
             <span class="panel-badge" id="matchupHand"></span>
           </div>
-          <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
-        </div>
-
-        <div class="panel" id="nextBatterPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">On Deck</span>
-            <span class="panel-badge" id="nextBatterBadge"></span>
+          <div class="panel-body" style="padding:0">
+            <div style="display:grid;grid-template-columns:1fr 1fr;height:100%">
+              <div style="padding:10px 12px;border-right:1px solid var(--border-soft)" id="currentMatchup"><div class="empty">—</div></div>
+              <div style="padding:10px 12px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">
+                  Pitch By Pitch <span id="pitchBadge" style="margin-left:6px;font-weight:400"></span>
+                </div>
+                <div id="pitchByPitch"><div class="empty">No pitches yet</div></div>
+              </div>
+            </div>
           </div>
-          <div class="panel-body" id="nextBatterCard"><div class="empty">—</div></div>
         </div>
 
-        <!-- ROW 4: PITCHERS (wide) | BATTER INTEL -->
-        <div class="panel grid-wide">
+        <!-- SCORING + ON DECK combined -->
+        <div class="panel">
+          <div class="panel-head">
+            <span class="panel-title">Scoring</span>
+            <span class="panel-badge" id="scoringPlaysBadge"></span>
+          </div>
+          <div class="panel-body" style="padding:0;display:flex;flex-direction:column">
+            <div style="padding:8px 10px;flex:1" id="scoringPlays"><div class="empty">No scoring plays</div></div>
+            <div id="nextBatterPanel" style="display:none;border-top:1px solid var(--border-soft);padding:8px 10px">
+              <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px">On Deck</div>
+              <div id="nextBatterCard"><div class="empty">—</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ROW 4: PITCHERS (full width — both cards + batter intel) -->
+        <div class="panel grid-full" id="pitchersPanel">
           <div class="panel-head">
             <span class="panel-title">Pitchers</span>
             <span class="panel-badge" id="pitchersBadge"></span>
           </div>
           <div class="panel-body" style="padding:0">
-            <div style="display:grid;grid-template-columns:1fr 1fr;height:100%">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;height:100%">
               <div id="awayPitcherCard" style="padding:10px 13px;border-right:1px solid var(--border-soft)"><div class="empty">—</div></div>
-              <div id="homePitcherCard" style="padding:10px 13px"><div class="empty">—</div></div>
+              <div id="homePitcherCard" style="padding:10px 13px;border-right:1px solid var(--border-soft)"><div class="empty">—</div></div>
+              <div style="padding:10px 13px">
+                <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Batter Intel</div>
+                <div id="batterCard"><div class="empty">—</div></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-head"><span class="panel-title">Batter Intel</span></div>
-          <div class="panel-body" id="batterCard"><div class="empty">—</div></div>
-        </div>
-
-        <!-- TODAY'S STATS — below batter intel -->
-        <div class="panel" id="inplayPanel" style="display:none">
-          <div class="panel-head"><span class="panel-title">Today's Stats</span></div>
-          <div class="panel-body" id="inplayStats"><div class="empty">—</div></div>
-        </div>
-
-        <!-- ROW 5: PITCH BY PITCH | NEXT PITCH | KEY ANGLES -->
-        <div class="panel">
-          <div class="panel-head">
-            <span class="panel-title">Pitch By Pitch</span>
-            <span class="panel-badge" id="pitchBadge"></span>
-          </div>
-          <div class="panel-body" id="pitchByPitch"><div class="empty">No pitches yet</div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><span class="panel-title">Next Pitch Model</span></div>
-          <div class="panel-body" id="nextPitch"><div class="empty">—</div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><span class="panel-title">Key Angles</span></div>
-          <div class="panel-body" id="simpleAngles"><div class="empty">—</div></div>
-        </div>
-
-        <!-- ROW 6: SCORING PLAYS | NOTABLE PLAYS | PITCHER VS BATTER -->
-        <div class="panel" id="scoringPlaysPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">Scoring Plays</span>
-            <span class="panel-badge" id="scoringPlaysBadge"></span>
-          </div>
-          <div class="panel-body" id="scoringPlays"><div class="empty">No scoring plays yet</div></div>
-        </div>
-
-        <div class="panel" id="specialPlaysPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">Notable Plays</span>
-          </div>
-          <div class="panel-body" id="specialPlays"><div class="empty">—</div></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head"><span class="panel-title">Pitcher vs Batter</span></div>
-          <div class="panel-body" id="pitcherVsBatter"><div class="empty">—</div></div>
-        </div>
+        <!-- Hidden panels kept for JS compatibility -->
+        <div style="display:none" id="inplayPanel"><div id="inplayStats"></div></div>
+        <div style="display:none" id="nextPitch"></div>
+        <div style="display:none" id="simpleAngles"></div>
+        <div style="display:none" id="pitcherVsBatter"></div>
+        <div style="display:none" id="specialPlaysPanel"><div id="specialPlays"></div></div>
+        <div style="display:none" id="scoringPlaysPanel"></div>
 
       </div>
     </div>
@@ -734,15 +719,15 @@ function renderTickerPage(){
   $('tickerNext').disabled=state.tickerPage<=0;
   $('liveTicker').innerHTML=pagePlays.map(p=>{
     const time=fmtPlayTime(p.endTime||p.startTime);
-    const timeHtml=time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto;flex-shrink:0">${time}</span>`:'';
+    const timeHtml=time?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);margin-left:auto;flex-shrink:0">${time}</span>`:'';
     const evLine=p.exitVelocity?`<div style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
       <span style="font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${p.hardHit?'var(--red)':'var(--gold)'}">EV ${p.exitVelocity} mph</span>
-      ${p.totalDistance?`<span style="font-size:11px;color:var(--muted)">${p.totalDistance} ft</span>`:''}
+      ${p.totalDistance?`<span style="font-size:12px;color:var(--sub)">${p.totalDistance} ft</span>`:''}
       ${p.hardHit?`<span style="font-size:10px;font-family:'DM Sans',sans-serif;font-weight:700;color:var(--red);background:var(--red-dim);padding:1px 5px;border-radius:3px">HARD HIT</span>`:''}
     </div>`:'';
     const isDP=p.isDoublePlay;
     const isSpecial=p.isSpecial;
-    if(p.isSteal) return `<div class="item item-steal"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-steal">STEAL</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--muted)">Speed play — advances runner without a hit.</div>`:''}</div>`;
+    if(p.isSteal) return `<div class="item item-steal"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-steal">STEAL</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div>${state.level!=='experienced'?`<div style="margin-top:3px;font-size:12px;color:var(--sub)">Speed play — advances runner without a hit.</div>`:''}</div>`;
     if(p.isCaughtStealing) return `<div class="item item-cs"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-cs">OUT — CS</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div></div>`;
     if(isDP) return `<div class="item item-dp"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-dp">DOUBLE PLAY</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:14px;font-weight:600;color:var(--text)">${p.description}</div></div>`;
     if(isSpecial) return `<div class="item item-special"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="tag tag-special">${p.specialTag||'NOTABLE'}</span><span class="tag tag-info">${p.half||''} ${p.inning||''}</span>${timeHtml}</div><div style="margin-top:4px;font-size:13px;color:var(--text)">${p.description}</div></div>`;
@@ -817,7 +802,7 @@ function agOutDots(outs){
 function agBuzzLines(feed,summary){
   const lines=[];
   const last=feed?.recentPlays?.at(-1);
-  if(!last) return '<div style="font-size:11px;color:var(--muted)">Awaiting play data</div>';
+  if(!last) return '<div style="font-size:12px;color:var(--sub)">Awaiting play data</div>';
   if(last.scoringPlay) lines.push({c:'var(--live)',t:'Scoring play: '+last.description});
   else if(last.isSteal) lines.push({c:'#b06aff',t:'Stolen base: '+last.description});
   else if(last.hardHit) lines.push({c:'var(--red)',t:'Hard hit EV '+last.exitVelocity+' mph'+(last.totalDistance?' - '+last.totalDistance+'ft':'')});
@@ -834,9 +819,9 @@ async function renderAllGamesView(){
   const grid=$('allGamesGrid');
   if(!grid) return;
   const games=state.games;
-  if(!games.length){grid.innerHTML='<div style="padding:20px;color:var(--muted)">No games today</div>';return;}
+  if(!games.length){grid.innerHTML='<div style="padding:20px;color:var(--sub)">No games today</div>';return;}
   grid.innerHTML=games.map(g=>`<div class="ag-card${g.status==='Live'?' is-live':''}" id="agc-${g.gamePk}" style="cursor:pointer">
-    <div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Loading...</div>
+    <div style="padding:16px;text-align:center;color:var(--sub);font-size:13px">Loading...</div>
   </div>`).join('');
   await Promise.all(games.map(async g=>{
     const el=document.getElementById('agc-'+g.gamePk);
@@ -873,7 +858,7 @@ function renderAgCard(g,snap){
       <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${half} ${inn}${sfx}</div>
     </div>`;
   } else if(isFinal){
-    statusBadge=`<div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1px">FINAL</div>`;
+    statusBadge=`<div style="font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;color:var(--sub);letter-spacing:1px">FINAL</div>`;
   } else {
     statusBadge=`<div style="font-family:'DM Mono',monospace;font-size:13px;color:var(--sub)">${fmtTime(g.startTime)||'Preview'}</div>`;
   }
@@ -890,12 +875,12 @@ function renderAgCard(g,snap){
   </div>`;
 
   const teamBlock=(team,side)=>`<div style="display:flex;align-items:center;gap:12px;flex:1;${side==='home'?'flex-direction:row-reverse;text-align:right':''}">
-    <div style="width:56px;height:56px;border-radius:10px;overflow:hidden;background:var(--card-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-      ${logoImg(team.id,46)}
+    <div style="width:56px;height:56px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.92);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:4px">
+      ${logoImg(team.id,48)}
     </div>
     <div>
       <div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;color:var(--text);line-height:1">${team.abbr}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px">${team.record||pseudoRecord(team.id)}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:2px">${team.record}</div>
       <div style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--sub);margin-top:2px">${side==='away'?awayP:homeP}</div>
     </div>
   </div>`;
@@ -912,11 +897,11 @@ function renderAgCard(g,snap){
     return head+`<div style="padding:0 16px 14px;border-top:1px solid var(--border-soft)">
       <div style="display:flex;gap:8px">
         <div style="flex:1;background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:10px 12px">
-          <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Starting Pitchers</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">Starting Pitchers</div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-            <div><div style="font-size:10px;color:var(--muted)">${g.teams.away.abbr}</div><div style="font-size:14px;font-weight:700;color:var(--text)">${awayP}</div></div>
+            <div><div style="font-size:11px;color:var(--sub)">${g.teams.away.abbr}</div><div style="font-size:14px;font-weight:700;color:var(--text)">${awayP}</div></div>
             <div style="font-size:13px;color:var(--border)">vs</div>
-            <div style="text-align:right"><div style="font-size:10px;color:var(--muted)">${g.teams.home.abbr}</div><div style="font-size:14px;font-weight:700;color:var(--text)">${homeP}</div></div>
+            <div style="text-align:right"><div style="font-size:11px;color:var(--sub)">${g.teams.home.abbr}</div><div style="font-size:14px;font-weight:700;color:var(--text)">${homeP}</div></div>
           </div>
         </div>
       </div>
@@ -928,7 +913,7 @@ function renderAgCard(g,snap){
     const lastPlay=feed?.recentPlays?.at(-1)?.description||'Game complete';
     return head+`<div style="padding:0 16px 12px;border-top:1px solid var(--border-soft)">
       <div style="background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:8px 12px">
-        <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Final Play</div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">Final Play</div>
         <div style="font-size:12px;color:var(--sub);line-height:1.4">${lastPlay}</div>
       </div>
     </div>`;
@@ -943,7 +928,7 @@ function renderAgCard(g,snap){
 
   return head+`<div class="ag-body">
     <div class="ag-section-box" style="align-self:start">
-      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Situation</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:8px">Situation</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
         ${agDiamond(runners)}
         <div style="display:flex;flex-direction:column;gap:5px">
@@ -952,36 +937,26 @@ function renderAgCard(g,snap){
         </div>
       </div>
       <div style="border-top:1px solid var(--border-soft);padding-top:7px">
-        <div style="font-size:11px;color:var(--muted)">P: <span style="color:var(--sub);font-weight:600">${pitcher}</span></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">AB: <span style="color:var(--text);font-weight:600">${batter}</span></div>
+        <div style="font-size:12px;color:var(--sub)">P: <span style="color:var(--sub);font-weight:600">${pitcher}</span></div>
+        <div style="font-size:12px;color:var(--sub);margin-top:2px">AB: <span style="color:var(--text);font-weight:600">${batter}</span></div>
       </div>
     </div>
     <div class="ag-section-box" style="align-self:start">
-      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Latest Play</div>
-      <div style="font-size:12px;color:var(--sub);line-height:1.5">${feed?.recentPlays?.at(-1)?.description||'Awaiting play...'}</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Latest Play</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.5">${feed?.recentPlays?.at(-1)?.description||'Awaiting play...'}</div>
       ${feed?.recentPlays?.at(-1)?.exitVelocity?`<div style="margin-top:5px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${feed.recentPlays.at(-1).hardHit?'var(--red)':'var(--gold)'}">EV ${feed.recentPlays.at(-1).exitVelocity} mph</div>`:''}
     </div>
     <div class="ag-section-box" style="align-self:start">
-      <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Buzz</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Buzz</div>
       ${agBuzzLines(feed,sum)}
     </div>
   </div>`;
 }
 function logoImg(teamId,size){
-  if(!teamId) return `<div style="width:${size}px;height:${size}px;background:var(--border);border-radius:3px"></div>`;
-  return `<img src="https://www.mlbstatic.com/team-logos/${teamId}.svg" width="${size}" height="${size}" alt="" onerror="this.style.opacity='.2'" loading="lazy" style="display:block">`;
+  if(!teamId) return `<div style="width:${size}px;height:${size}px;background:rgba(255,255,255,0.1);border-radius:3px"></div>`;
+  return `<img src="https://www.mlbstatic.com/team-logos/${teamId}.svg" width="${size}" height="${size}" alt="" onerror="this.style.opacity='.3'" loading="lazy" style="display:block;object-fit:contain;width:100%;height:100%">`;
 }
 
-/* ── FORM GUIDE (seeded from teamId for demo) ── */
-function pseudoLast5(teamId){
-  const outcomes=['W','L','W','W','L','W','L','L','W','W'];
-  const t=Number(teamId)||1;
-  return outcomes.slice(t%5,(t%5)+5);
-}
-function pseudoRecord(teamId){
-  const t=Number(teamId)||1;
-  return `${30+(t%32)}-${30+((t+7)%30)}`;
-}
 
 /* ── GAME CARDS ── */
 function sortGames(g){const w={Live:0,Preview:1,Final:2};return g.sort((a,b)=>(w[a.status]-w[b.status])||(new Date(a.startTime)-new Date(b.startTime)));}
@@ -991,8 +966,7 @@ function renderGames(){
   el.innerHTML=state.games.map(g=>{
     const sCls=g.status==='Live'?'live':g.status==='Final'?'final':'preview';
     const sTxt=g.status==='Live'?`● ${g.detailedStatus}`:g.status==='Final'?'FINAL':g.detailedStatus;
-    const awayForm=pseudoLast5(g.teams.away.id); const homeForm=pseudoLast5(g.teams.home.id); const dots=arr=>arr.map(r=>`<span class="fg-dot ${r}" title="${r}"></span>`).join('');
-
+    
     // Live game inline state
     const isLive=g.status==='Live';
     const isFinal=g.status==='Final';
@@ -1022,26 +996,21 @@ function renderGames(){
         </div>
       </div>
       ${liveRow}
-      <div class="card-dots">
-        <div class="dots-away">${dots(awayForm)}</div>
-        <div class="dots-home">${dots(homeForm)}</div>
-      </div>
       <div class="card-time">${isLive||isFinal?'':fmtTime(g.startTime)}</div>
     </div>`;
   }).join('');
 }
 
 /* ── BANNER ── */
-function show(id,visible){$(id).style.display=visible?'':'none';}
+function show(id,visible){const el=$(id);if(el)el.style.display=visible?'':'none';}
 function updateBanner(g,summary){
   if(!g)return;
-  $('bnAwayLogo').innerHTML=logoImg(g.teams.away.id,32);
-  $('bnHomeLogo').innerHTML=logoImg(g.teams.home.id,32);
+  $('bnAwayLogo').innerHTML=logoImg(g.teams.away.id,52);
+  $('bnHomeLogo').innerHTML=logoImg(g.teams.home.id,52);
   $('bnAwayName').textContent=g.teams.away.abbr;
   $('bnHomeName').textContent=g.teams.home.abbr;
-  const bnDots=arr=>'<span style="display:inline-flex;gap:3px;vertical-align:middle;margin-left:5px">'+arr.map(r=>`<span class="fg-dot ${r}"></span>`).join('')+'</span>';
-  $('bnAwayRecord').innerHTML=pseudoRecord(g.teams.away.id)+bnDots(pseudoLast5(g.teams.away.id));
-  $('bnHomeRecord').innerHTML=pseudoRecord(g.teams.home.id)+bnDots(pseudoLast5(g.teams.home.id));
+    $('bnAwayRecord').innerHTML=(g.teams.away.record);
+  $('bnHomeRecord').innerHTML=(g.teams.home.record);
 
   const isLive = g.status==='Live';
   const isFinal = g.status==='Final';
@@ -1051,6 +1020,8 @@ function updateBanner(g,summary){
   show('bnLiveSep', isLive);
   show('bnCountSection', isLive);
   show('bnCountSep', isLive);
+  show('bnRunnerSection', isLive);
+  show('bnRunnerSep', isLive);
 
   if(summary){
     $('bnScore').textContent=`${summary.score.away} – ${summary.score.home}`;
@@ -1061,7 +1032,7 @@ function updateBanner(g,summary){
     } else if(isFinal){
       $('bnScoreSub').innerHTML=`<span style="color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px">FINAL</span>`;
     } else {
-      $('bnScoreSub').innerHTML=`<span style="color:var(--muted);font-size:11px">${fmtTime(g.startTime)}</span>`;
+      $('bnScoreSub').innerHTML=`<span style="color:var(--sub);font-size:12px">${fmtTime(g.startTime)}</span>`;
     }
 
     if(isLive){
@@ -1072,13 +1043,14 @@ function updateBanner(g,summary){
       $('bnInning').textContent=`${inn}${suffix}`;
       $('bnCount').textContent=`${summary.count?.balls??0}–${summary.count?.strikes??0}`;
       $('bnOuts').textContent=`${summary.outs??0} out${summary.outs!==1?'s':''}`;
-      // Update SVG field bases (r1/r2/r3 now live in the field diagram SVG)
+      // Update banner runner diamond (r1/r2/r3 in banner)
       const r=summary.runners||{};
-      if($('r1')) $('r1').className='base'+(r.first?' on':'');
-      if($('r2')) $('r2').className='base'+(r.second?' on':'');
-      if($('r3')) $('r3').className='base'+(r.third?' on':'');
+      const setBase=(id,on)=>{ const el=$(id); if(el){ el.className='bd-base '+(id==='r1'?'bd-1':id==='r2'?'bd-2':'bd-3')+(on?' on':''); }};
+      setBase('r1', r.first);
+      setBase('r2', r.second);
+      setBase('r3', r.third);
     } else {
-      ['r1','r2','r3'].forEach(id=>{ if($(id)) $(id).className='base'; });
+      ['r1','r2','r3'].forEach(id=>{ const el=$(id); if(el) el.className='bd-base '+(id==='r1'?'bd-1':id==='r2'?'bd-2':'bd-3'); });
     }
   } else {
     // No summary yet — just show score from game card data
@@ -1182,7 +1154,7 @@ function spotlightPitcher(player,intel,ctx,oppAbbr){
       <span class="spotlight-name">${name}</span>
       <div style="display:flex;gap:5px;align-items:center">
         <span class="spotlight-badge badge-starter">SP</span>
-        <span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">${hand}HP</span>
+        <span style="font-size:11px;color:var(--sub);font-family:'DM Mono',monospace">${hand}HP</span>
       </div>
     </div>
     ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
@@ -1312,7 +1284,7 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
     <div class="spotlight-top">
       <div style="display:flex;align-items:center;gap:6px">
         <span class="spotlight-name">${name}</span>
-        ${stand?`<span style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace">Bats ${stand}</span>`:''}
+        ${stand?`<span style="font-size:11px;color:var(--sub);font-family:'DM Mono',monospace">Bats ${stand}</span>`:''}
       </div>
       <span class="spotlight-badge ${badge}">${badgeLbl}</span>
     </div>
@@ -1327,7 +1299,7 @@ async function fetchPlayerName(pid){
   try{
     const r=await fetch(`https://statsapi.mlb.com/api/v1/people/${pid}`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
     if(r.ok){const d=await r.json();const name=d.people?.[0]?.fullName;if(name){_nameCache[pid]=name;return name;}}
-  }catch{}
+  }catch(e){console.warn("fetch failed:",e?.message||e);}
   _nameCache[pid]=null;
   return null;
 }
@@ -1345,7 +1317,7 @@ async function fetchBatterIntelForTeam(teamId){
         .slice(0,6)
         .map(e=>e.person.id);
     }
-  }catch{}
+  }catch(e){console.warn("fetch failed:",e?.message||e);}
   /* Fallback to seeded IDs if roster call fails */
   if(!pids.length){
     const base=660000+(Number(teamId)%30)*30;
@@ -1362,7 +1334,7 @@ async function fetchBatterIntelForTeam(teamId){
       if(intelRes.data&&name){
         results.push({player:{fullName:name,id:pid},intel:intelRes.data});
       }
-    }catch{}
+    }catch(e){console.warn("fetch failed:",e?.message||e);}
   }));
 
   return results.sort((a,b)=>{
@@ -1380,14 +1352,12 @@ async function renderPregame(g){
 
   let cached=_pregameCache[cacheKey];
   if(!cached){
-    const awayLast5=pseudoLast5(g.teams.away.id);
-    const homeLast5=pseudoLast5(g.teams.home.id);
     let awayStarter=null,homeStarter=null,awayIntel=null,homeIntel=null;
     try{
       const summary=await api(`/api/live-summary?gamePk=${g.gamePk}`);
       awayStarter=summary.probableStarters?.away;
       homeStarter=summary.probableStarters?.home;
-    }catch{}
+    }catch(e){console.warn("fetch failed:",e?.message||e);}
     if(awayStarter?.id){try{const r=await api(`/api/savant/pitcher/${awayStarter.id}`);awayIntel=r.data;}catch{}}
     if(homeStarter?.id){try{const r=await api(`/api/savant/pitcher/${homeStarter.id}`);homeIntel=r.data;}catch{}}
     const [awayBatters,homeBatters]=await Promise.all([
@@ -1447,19 +1417,17 @@ async function renderPregame(g){
       homeBatters.slice(0,2).map(b=>fetchBatterContext(b.player?.id,g.teams.away.id))
     );
 
-    cached={awayLast5,homeLast5,awayStarter,homeStarter,awayIntel,homeIntel,
+    cached={awayStarter,homeStarter,awayIntel,homeIntel,
             awayBatters,homeBatters,awayStarterCtx,homeStarterCtx,
             awayBatterCtx,homeBatterCtx};
     _pregameCache[cacheKey]=cached;
   }
 
-  const {awayLast5,homeLast5,awayStarter,homeStarter,awayIntel,homeIntel,
+  const {awayStarter,homeStarter,awayIntel,homeIntel,
          awayBatters,homeBatters,awayStarterCtx,homeStarterCtx,
          awayBatterCtx,homeBatterCtx}=cached;
 
-  function teamSide(team,last5,starter,starterIntel,starterCtx,batters,batterCtxArr,oppTeamAbbr){
-    const pillsHtml=last5.map(r=>`<span class="last5-pill ${r}">${r}</span>`).join('');
-    const l5label=state.level==='new'?'Last 5 games':state.level==='intermediate'?'Last 5':'L5';
+  function teamSide(team,starter,starterIntel,starterCtx,batters,batterCtxArr,oppTeamAbbr){
     const starterLabel=state.level==='new'?'Starting Pitcher':'Probable Starter';
     const watchLabel=state.level==='new'?'Players to Know Today':state.level==='intermediate'?'Players to Watch':'Key Bats';
     const starterHtml=starter
@@ -1470,12 +1438,10 @@ async function renderPregame(g){
     ).join('');
     return `<div>
       <div class="pregame-team-header">
-        <div class="pregame-logo">${logoImg(team.id,42)}</div>
+        <div class="pregame-logo">${logoImg(team.id,40)}</div>
         <div>
           <div class="pregame-team-name">${team.name||team.abbr}</div>
-          <div class="pregame-record">${pseudoRecord(team.id)}</div>
-          <div class="pregame-last5"><span class="last5-label">${l5label}</span>${pillsHtml}</div>
-        </div>
+          <div class="pregame-record">${team.record}</div>        </div>
       </div>
       <div class="section-label">${starterLabel}</div>
       ${starterHtml}
@@ -1484,8 +1450,8 @@ async function renderPregame(g){
   }
 
   $('pregameContent').innerHTML=
-    teamSide(g.teams.away,awayLast5,awayStarter,awayIntel,awayStarterCtx,awayBatters,awayBatterCtx,g.teams.home.abbr)+
-    teamSide(g.teams.home,homeLast5,homeStarter,homeIntel,homeStarterCtx,homeBatters,homeBatterCtx,g.teams.away.abbr);
+    teamSide(g.teams.away,awayStarter,awayIntel,awayStarterCtx,awayBatters,awayBatterCtx,g.teams.home.abbr)+
+    teamSide(g.teams.home,homeStarter,homeIntel,homeStarterCtx,homeBatters,homeBatterCtx,g.teams.away.abbr);
 }
 
 /* ── LIVE HELPERS ── */
@@ -1535,7 +1501,7 @@ function explain(t){
     else
       note='';
     if(!note) return t;
-    return `${t}<div style="margin-top:4px;font-size:11px;color:var(--muted);line-height:1.4;border-left:2px solid var(--border);padding-left:6px">${note}</div>`;
+    return `${t}<div style="margin-top:4px;font-size:12px;color:var(--sub);line-height:1.4;border-left:2px solid var(--border);padding-left:6px">${note}</div>`;
   }
 
   // Intermediate
@@ -1557,7 +1523,7 @@ function explain(t){
     note='Hit puts pressure on — runner in scoring position matters here.';
 
   if(!note) return t;
-  return `${t}<span style="display:block;margin-top:3px;font-size:11px;color:var(--muted)">${note}</span>`;
+  return `${t}<span style="display:block;margin-top:3px;font-size:12px;color:var(--sub)">${note}</span>`;
 }
 function callClass(c=''){const l=c.toLowerCase();if(l.includes('strike')||l.includes('swinging')||l.includes('called'))return'call-strike';if(l.includes('ball')||l.includes('intentional'))return'call-ball';if(l.includes('hit')||l.includes('foul')||l.includes('in play'))return'call-hit';return'call-other';}
 function bar(label,pct,cls=''){return`<div class="bar-group"><div class="bar-label"><span>${label}</span><span>${pct}%</span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div></div>`;}
@@ -1567,9 +1533,9 @@ function renderPitcherCard(p, name, teamId, isActive){
   const mix=p.pitchMix||{}, vel=p.velocityByPitch||{};
   const activeBadge=isActive
     ? `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--live-dim);color:var(--live);padding:1px 6px;border-radius:3px;margin-left:6px">ON MOUND</span>`
-    : `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--border);color:var(--muted);padding:1px 6px;border-radius:3px;margin-left:6px">NEXT UP</span>`;
+    : `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:var(--border-soft);color:var(--sub);padding:2px 7px;border-radius:3px;margin-left:6px">NEXT UP</span>`;
   const header=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border-soft)">
-    <div style="width:20px;height:20px;border-radius:3px;overflow:hidden;flex-shrink:0">${logoImg(teamId,18)}</div>
+    <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.9);padding:1px">${logoImg(teamId,20)}</div>
     <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text);flex:1">${name||'Pitcher'}</span>
     ${activeBadge}
   </div>`;
@@ -1587,14 +1553,14 @@ function renderBatterCard(b){
   const h=b.hotCold?.recentHot,tr=b.hotCold?.trend;
   return`<div style="display:flex;gap:6px;margin-bottom:8px">
     <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">FORM</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);letter-spacing:1px">FORM</div>
       <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px;color:${h?'var(--live)':'var(--red)'}">${h?'🔥 HOT':'❄ COLD'}</div>
-      <div style="font-size:10px;color:var(--muted)">trend ${tr>0?'+':''}${tr}</div>
+      <div style="font-size:11px;color:var(--sub)">trend ${tr>0?'+':''}${tr}</div>
     </div>
     <div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;color:var(--muted);letter-spacing:1px">BARREL</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);letter-spacing:1px">BARREL</div>
       <div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>
-      <div style="font-size:10px;color:var(--muted)">hard hit ${b.hardHitRate}%</div>
+      <div style="font-size:11px;color:var(--sub)">hard hit ${b.hardHitRate}%</div>
     </div>
   </div>
   ${bar('Hard Hit Rate',b.hardHitRate,'amber')}${bar('Contact',b.contactTendency,'green')}${bar('Whiff',b.whiffTendency,'red')}${bar('Chase',b.chaseTendency,'red')}
@@ -1629,7 +1595,7 @@ function renderLineups(data){
     }).join('');
     return `<div class="lineup-side">
       <div class="lineup-header">
-        <div style="width:20px;height:20px;overflow:hidden;flex-shrink:0">${logoImg(team.id,18)}</div>
+        <div style="width:22px;height:22px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.9);border-radius:4px;padding:1px">${logoImg(team.id,20)}</div>
         <span class="lineup-team-name">${team.abbr}</span>
         <span class="lineup-col-today">Today</span>
         <span class="lineup-col-season">AVG / OBP</span>
@@ -1661,7 +1627,7 @@ function renderInplayStats(data){
         ${p.hitsAllowed}H · ${p.earnedRuns}ER · ERA ${p.era}
       </div>
       <div class="pitch-meter">
-        <div style="font-size:11px;color:var(--muted)">Pitch count vs avg hook (${p.avgHook})</div>
+        <div style="font-size:12px;color:var(--sub)">Pitch count vs avg hook (${p.avgHook})</div>
         <div class="pitch-meter-track">
           <div class="pitch-meter-fill" style="width:${pct}%;background:${meterColor}"></div>
         </div>
@@ -1671,7 +1637,7 @@ function renderInplayStats(data){
           <span>${p.avgHook}</span>
         </div>
       </div>
-      <div style="font-size:11px;color:var(--muted);padding:4px 6px;background:var(--card-2);border-radius:4px">${p.stressNote}</div>
+      <div style="font-size:12px;color:var(--sub);padding:5px 8px;background:var(--card-2);border-radius:4px">${p.stressNote}</div>
     </div>`;
   }
 
@@ -1684,7 +1650,7 @@ function renderInplayStats(data){
       return `<div class="pa-row">
         <span class="pa-inn">${halfShort}${pa.inning||'?'}</span>
         <span class="pa-result ${isHR?'hr':isHit?'positive':''}">${pa.result}</span>
-        <span style="margin-left:auto;color:var(--muted)">${pa.pitchCount}p</span>
+        <span style="margin-left:auto;color:var(--sub)">${pa.pitchCount}p</span>
         ${pa.scoringPlay?'<span style="color:var(--live);font-size:10px">🔥</span>':''}
       </div>`;
     }).join('');
@@ -1692,7 +1658,7 @@ function renderInplayStats(data){
       <div class="inplay-role">Batter — Today</div>
       <div class="inplay-player">${b.name}</div>
       <div class="inplay-summary"><strong>${b.summary}</strong> · Season: ${b.seasonAvg} AVG / ${b.seasonOBP} OBP</div>
-      ${paRows?`<div class="pa-log">${paRows}</div>`:'<div style="font-size:11px;color:var(--muted)">No plate appearances yet</div>'}
+      ${paRows?`<div class="pa-log">${paRows}</div>`:'<div style="font-size:12px;color:var(--sub)">No plate appearances yet</div>'}
     </div>`;
   }
   $('inplayStats').innerHTML=html;
@@ -1904,11 +1870,11 @@ async function pollAllGames(){
         const feed=await api(`/api/pitch-feed?gamePk=${state.selectedGamePk}`);
         // Always do a full refresh so runners/count/inning stay current
         await refreshGame();
-      }catch{}
+      }catch(e){console.warn("fetch failed:",e?.message||e);}
     }
     // If a game just went live (was Preview, now Live) and it's selected, full refresh
     if(!hadLive&&state.games.some(g=>g.status==='Live')&&sel?.status==='Live')await refreshGame();
-  }catch{}
+  }catch(e){console.warn("fetch failed:",e?.message||e);}
 }
 
 function updateBannerScore(g){
@@ -1952,18 +1918,17 @@ async function refreshGame(){
 
   $('pregamePanel').style.display='none';
   $('liveTickerPanel').style.display='';
-  $('gameBuzzPanel').style.display='';
+  $('gameBuzzPanel').style.display='none';
   $('lineupsPanel').style.display='';
   $('inplayPanel').style.display='';
   $('scoringPlaysPanel').style.display='';
   $('specialPlaysPanel').style.display='none'; // shown only if data
 
   try{
-    const [summary,feed,matchup,buzz]=await Promise.all([
+    const [summary,feed,matchup]=await Promise.all([
       api(`/api/live-summary?gamePk=${gamePk}`),
       api(`/api/pitch-feed?gamePk=${gamePk}`),
-      api(`/api/matchup?gamePk=${gamePk}`),
-      api(`/api/game-buzz?gamePk=${gamePk}`)
+      api(`/api/matchup?gamePk=${gamePk}`)
     ]);
     updateBanner(g,summary);
     renderFieldDiagram(summary, feed);
@@ -2011,7 +1976,6 @@ async function refreshGame(){
           <div class="scoring-score">${sp.awayScore??''}–${sp.homeScore??''}</div>
         </div>`).join('');
     } else {
-      $('scoringPlaysPanel').style.display='';
       $('scoringPlays').innerHTML='<div class="empty">No scoring plays yet</div>';
     }
 
@@ -2029,7 +1993,7 @@ async function refreshGame(){
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
             <span class="tag tag-special">${tag}</span>
             <span class="tag tag-info">${sp.half||''} ${sp.inning||''}</span>
-            ${sp.time?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:auto">${fmtPlayTime(sp.time)}</span>`:''}
+            ${sp.time?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);margin-left:auto">${fmtPlayTime(sp.time)}</span>`:''}
           </div>
           <div style="font-size:13px;color:var(--text)">${sp.description}</div>
         </div>`;
@@ -2074,12 +2038,12 @@ async function refreshGame(){
       const todayLine=ab>0?`${h}/${ab}${hr>0?` · ${hr}HR`:''}${rbi>0?` · ${rbi}RBI`:''}${k>0?` · ${k}K`:''}${bb>0?` · ${bb}BB`:''}`:'No AB yet';
       const avg=s.avg||'—', obp=s.obp||'—', slg=s.slg||'—';
       return `<div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
-        <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Today</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">Today</div>
         <div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:${hr>0?'var(--gold)':h>0?'var(--live)':ab>0?'var(--sub)':'var(--muted)'}">${todayLine}</div>
         <div style="display:flex;gap:12px;margin-top:6px">
-          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${avg}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">AVG</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${obp}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">OBP</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${slg}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">SLG</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${avg}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px">AVG</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${obp}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px">OBP</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${slg}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px">SLG</div></div>
         </div>
       </div>`;
     }
@@ -2091,11 +2055,11 @@ async function refreshGame(){
       const era=ss.era||'—', whip=ss.whip||'—';
       const todayLine=pc>0?`${ip} IP · ${k}K · ${bb}BB · ${h}H · ${er}ER · ${pc}p`:'Not yet pitched';
       return `<div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
-        <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Today</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">Today</div>
         <div style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--sub)">${todayLine}</div>
         <div style="display:flex;gap:12px;margin-top:6px">
-          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${era}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">ERA</div></div>
-          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${whip}</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">WHIP</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${era}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px">ERA</div></div>
+          <div><div style="font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text)">${whip}</div><div style="font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:1px">WHIP</div></div>
         </div>
       </div>`;
     }
@@ -2108,7 +2072,7 @@ async function refreshGame(){
         <div class="matchup-player" style="flex:1">
           <div class="matchup-role">Pitcher</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-            <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(pitcherTeamId,18)}</div>
+            <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.9);padding:1px">${logoImg(pitcherTeamId,20)}</div>
             <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
           </div>
           <div class="matchup-hand">${pitcherHand}HP</div>
@@ -2118,7 +2082,7 @@ async function refreshGame(){
         <div class="matchup-player" style="flex:1">
           <div class="matchup-role">Batter</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
-            <div style="width:20px;height:20px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,18)}</div>
+            <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.9);padding:1px">${logoImg(batterTeamId,20)}</div>
             <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
           </div>
           <div class="matchup-hand">Bats ${batterSide}</div>
@@ -2136,12 +2100,12 @@ async function refreshGame(){
           const intel=b.data;
           $('nextBatterCard').innerHTML=`<div class="ondeck-card">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-              <div style="width:24px;height:24px;border-radius:3px;overflow:hidden">${logoImg(batterTeamId,22)}</div>
+              <div style="width:26px;height:26px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.9);padding:2px">${logoImg(batterTeamId,22)}</div>
               <div class="ondeck-name" style="margin:0">${matchup.onDeck.fullName||'On Deck'}</div>
             </div>
             ${batterStatLine(onDeckBox)}
             <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--border-soft)">
-              <div style="font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Tendencies</div>
+              <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Tendencies</div>
               <div class="ondeck-stats">
                 <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.hardHitRate||'—'}%</div><div class="ondeck-stat-lbl">Hard Hit</div></div>
                 <div class="ondeck-stat"><div class="ondeck-stat-val">${intel?.barrelRate||'—'}%</div><div class="ondeck-stat-lbl">Barrel</div></div>
@@ -2271,6 +2235,7 @@ async function refreshGame(){
         <div class="buzz-dot" style="background:${dotColor[b.dot]||'var(--blue)'}"></div>
         <div class="buzz-text">${state.level!=='new'?`<strong>${b.type.charAt(0).toUpperCase()+b.type.slice(1)}:</strong> `:''}${b.text}</div>
       </div>`).join('');
+    const _bStandalone=$('gameBuzzStandalone');if(_bStandalone)_bStandalone.innerHTML=$('gameBuzz').innerHTML;
 
     state.playStateToken=feed.playStateToken;
   }catch(e){console.error('Refresh failed:',e);}
