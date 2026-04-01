@@ -89,8 +89,10 @@
     /* ── SHELL ── */
     .shell{display:flex;flex:1;min-height:0;overflow:hidden}
 
-    /* ── SIDEBAR ── */
-    .sidebar{width:248px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .sidebar-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+    .stab{flex:1;background:none;border:none;padding:8px 0;font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
+    .stab:hover{color:var(--sub)}
+    .stab.active{color:var(--text);border-bottom-color:var(--red)}flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
     .sidebar-head{
       padding:11px 14px 9px;
       border-bottom:1px solid var(--border);
@@ -333,7 +335,54 @@
     .call-other{background:var(--border);color:var(--sub)}
     .pitch-cnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
 
-    /* ── LINEUP TABLE ── */
+    /* ── ALL GAMES WAR ROOM ── */
+    .ag-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .15s}
+    .ag-card:hover{border-color:var(--blue)}
+    .ag-card.is-live{border-color:var(--live);box-shadow:0 0 0 1px rgba(0,210,106,.12)}
+    .ag-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 16px 12px;gap:12px;position:relative}
+    .ag-head::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(232,24,44,.05) 0%,transparent 50%,rgba(31,142,241,.05) 100%);pointer-events:none}
+    .ag-team{display:flex;align-items:center;gap:10px}
+    .ag-team.home{flex-direction:row-reverse;text-align:right}
+    .ag-logo{width:44px;height:44px;border-radius:8px;overflow:hidden;background:var(--card-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .ag-logo img{width:100%;height:100%;object-fit:contain}
+    .ag-team-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:17px;color:var(--text);line-height:1}
+    .ag-record{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
+    .ag-pitcher{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--sub);margin-top:3px}
+    .ag-score-block{text-align:center;min-width:110px}
+    .ag-score{font-family:'DM Mono',monospace;font-weight:700;font-size:36px;color:var(--text);line-height:1;letter-spacing:-1px}
+    .ag-score-lead{color:var(--live)}
+    .ag-status{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;margin-top:4px}
+    .ag-status.live{color:var(--live)}
+    .ag-status.final{color:var(--muted)}
+    .ag-status.preview{color:var(--sub)}
+    .ag-inning{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--text);margin-top:2px}
+    .ag-body{padding:0 16px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .ag-body.preview-body{grid-template-columns:1fr}
+    .ag-section{background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px;padding:8px 10px}
+    .ag-section-title{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+    .ag-bases{display:flex;align-items:center;gap:8px}
+    .ag-diamond{position:relative;width:38px;height:34px;flex-shrink:0}
+    .ag-diamond .ab{position:absolute;width:11px;height:11px;border:2px solid var(--border);transform:rotate(45deg);border-radius:1px;background:transparent;transition:background .15s,border-color .15s}
+    .ag-diamond .ab.on{background:var(--gold);border-color:#c8890a}
+    .ag-diamond .b2{top:0;left:50%;margin-left:-5px}
+    .ag-diamond .b3{bottom:0;left:0}
+    .ag-diamond .b1{bottom:0;right:0}
+    .ag-outs{display:flex;gap:4px}
+    .ag-out-dot{width:8px;height:8px;border-radius:50%;background:var(--border)}
+    .ag-out-dot.on{background:var(--red)}
+    .ag-count{font-family:'DM Mono',monospace;font-weight:700;font-size:20px;color:var(--gold);line-height:1}
+    .ag-count-label{font-size:10px;color:var(--muted);margin-top:1px}
+    .ag-play{font-size:12px;color:var(--sub);line-height:1.4;max-height:52px;overflow:hidden}
+    .ag-play strong{color:var(--text)}
+    .ag-buzz-item{display:flex;align-items:flex-start;gap:6px;margin-bottom:4px}
+    .ag-buzz-item:last-child{margin-bottom:0}
+    .ag-buzz-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+    .ag-buzz-text{font-size:11px;color:var(--sub);line-height:1.4}
+    .ag-preview-info{display:flex;gap:20px;align-items:center}
+    .ag-time{font-family:'DM Mono',monospace;font-size:14px;color:var(--text);font-weight:700}
+    .ag-pregame-pitcher{flex:1}
+    .ag-pp-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+    .ag-pp-name{font-size:13px;font-weight:700;color:var(--text)}
     .lineup-side{padding:12px 14px;border-right:1px solid var(--border-soft)}
     .lineup-side:last-child{border-right:none}
     .lineup-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)}
@@ -468,12 +517,20 @@
       <span class="sidebar-title">Today's Games</span>
       <span class="date-tag" id="sidebarDate">—</span>
     </div>
+    <div class="sidebar-tabs">
+      <button class="stab active" id="stab-games" onclick="switchTab('games')">Games</button>
+      <button class="stab" id="stab-all" onclick="switchTab('all')">All Games</button>
+    </div>
     <div id="games"><div class="loading"><div class="spin"></div> Loading…</div></div>
   </aside>
 
   <div class="main">
+    <!-- ALL GAMES WAR ROOM VIEW -->
+    <div id="allGamesView" style="display:none;flex:1;overflow-y:auto;padding:12px">
+      <div id="allGamesGrid" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
 
-    <div class="content">
+    <div class="content" id="mainContent">
       <div class="grid">
 
         <!-- PRE-GAME (preview only) -->
@@ -695,7 +752,209 @@ async function api(path){const r=await fetch(path);if(!r.ok)throw new Error(awai
 function fmtTime(iso){try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch{return ''}}
 function fmtPlayTime(iso){if(!iso)return '';try{return new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'});}catch{return '';}}
 
-/* ── LOGOS ── */
+/* ── TABS ── */
+let currentTab='games';
+window.switchTab=function(tab){
+  currentTab=tab;
+  document.getElementById('stab-games').classList.toggle('active',tab==='games');
+  document.getElementById('stab-all').classList.toggle('active',tab==='all');
+  document.getElementById('allGamesView').style.display=tab==='all'?'flex':'none';
+  document.getElementById('mainContent').style.display=tab==='games'?'flex':'none';
+  if(tab==='all') renderAllGamesView();
+};
+
+/* ── ALL GAMES WAR ROOM ── */
+const agCache={}; // gamePk -> {summary, feed, matchup}
+async function fetchGameSnapshot(gamePk){
+  try{
+    const [summary,feed]=await Promise.all([
+      api(`/api/live-summary?gamePk=${gamePk}`),
+      api(`/api/pitch-feed?gamePk=${gamePk}`)
+    ]);
+    agCache[gamePk]={summary,feed,ts:Date.now()};
+    return agCache[gamePk];
+  }catch{ return agCache[gamePk]||null; }
+}
+
+function agBaseDiamond(runners,suffix){
+  const r=runners||{};
+  return `<div class="ag-diamond ag-diamond-${suffix}">
+    <div class="ab b2${r.second?' on':''}"></div>
+    <div class="ab b3${r.third?' on':''}"></div>
+    <div class="ab b1${r.first?' on':''}"></div>
+  </div>`;
+}
+
+function agOutDots(outs){
+  return [0,1,2].map(i=>`<div class="ag-out-dot${i<(outs??0)?' on':''}"></div>`).join('');
+}
+
+function agBuzzLines(feed,summary){
+  const lines=[];
+  const last=feed?.recentPlays?.at(-1);
+  if(!last) return '<div style="font-size:11px;color:var(--muted)">Awaiting play data…</div>';
+  if(last.scoringPlay) lines.push({dot:'var(--live)',text:`Scoring play: ${last.description}`});
+  if(last.isSteal) lines.push({dot:'#b06aff',text:`Stolen base: ${last.description}`});
+  if(last.hardHit) lines.push({dot:'var(--red)',text:`Hard hit ball EV ${last.exitVelocity} mph${last.totalDistance?' · '+last.totalDistance+'ft':''}`});
+  if(last.isDoublePlay) lines.push({dot:'#ff8c00',text:`Double play: ${last.description}`});
+  if(!lines.length) lines.push({dot:'var(--muted)',text:last.description||'—'});
+  // Situation line
+  if(summary){
+    const r=summary.runners||{};
+    const onBase=[r.first&&'1st',r.second&&'2nd',r.third&&'3rd'].filter(Boolean);
+    if(onBase.length) lines.push({dot:'var(--gold)',text:`Runners on ${onBase.join(', ')}`});
+  }
+  return lines.slice(0,3).map(l=>`<div class="ag-buzz-item"><div class="ag-buzz-dot" style="background:${l.dot}"></div><div class="ag-buzz-text">${l.text}</div></div>`).join('');
+}
+
+async function renderAllGamesView(){
+  const grid=$('allGamesGrid');
+  if(!grid) return;
+  const games=state.games;
+  if(!games.length){grid.innerHTML='<div style="padding:20px;color:var(--muted)">No games today</div>';return;}
+
+  // Render shell immediately, then fill with data
+  grid.innerHTML=games.map(g=>`<div class="ag-card${g.status==='Live'?' is-live':''}" id="agc-${g.gamePk}">
+    <div style="padding:20px;text-align:center;color:var(--muted);font-size:12px">Loading ${g.teams.away.abbr} vs ${g.teams.home.abbr}…</div>
+  </div>`).join('');
+
+  // Fetch data for live/final games, render all
+  await Promise.all(games.map(async g=>{
+    const el=document.getElementById(`agc-${g.gamePk}`);
+    if(!el) return;
+    let snap=null;
+    if(g.status==='Live'||g.status==='Final'){
+      snap=await fetchGameSnapshot(g.gamePk);
+    }
+    el.innerHTML=renderAgCard(g,snap);
+    el.onclick=()=>{ switchTab('games'); selectGame(g.gamePk); };
+  }));
+}
+
+function renderAgCard(g,snap){
+  const isLive=g.status==='Live';
+  const isFinal=g.status==='Final';
+  const isPreview=g.status==='Preview';
+  const summary=snap?.summary;
+  const feed=snap?.feed;
+
+  const awayScore=summary?.score?.away??g.teams.away.score??'';
+  const homeScore=summary?.score?.home??g.teams.home.score??'';
+  const awayLeads=Number(awayScore)>Number(homeScore);
+  const homeLeads=Number(homeScore)>Number(awayScore);
+
+  const awayPitcher=g.teams.away.probablePitcher||'TBD';
+  const homePitcher=g.teams.home.probablePitcher||'TBD';
+
+  // Inning string
+  let inningStr='';
+  if(isLive&&summary){
+    const half=(summary.half||'').toLowerCase().includes('bot')?'▼':'▲';
+    const inn=summary.inning||1;
+    const sfx=inn===1?'st':inn===2?'nd':inn===3?'rd':'th';
+    inningStr=`${half} ${inn}${sfx}`;
+  }
+
+  const statusHtml=isLive
+    ?`<div class="ag-status live"><span class="live-dot" style="margin-right:4px"></span>LIVE</div><div class="ag-inning">${inningStr}</div>`
+    :isFinal?`<div class="ag-status final">FINAL</div>`
+    :`<div class="ag-status preview">${fmtTime(g.startTime)||'Preview'}</div>`;
+
+  const head=`<div class="ag-head">
+    <div class="ag-team away">
+      <div class="ag-logo">${logoImg(g.teams.away.id,40)}</div>
+      <div>
+        <div class="ag-team-name">${g.teams.away.abbr}</div>
+        <div class="ag-record">${g.teams.away.record||pseudoRecord(g.teams.away.id)}</div>
+        <div class="ag-pitcher">${awayPitcher}</div>
+      <div class="ag-score">
+        <span class="${awayLeads?'ag-score-lead':''}">${awayScore}</span>
+        <span style="color:var(--border);font-size:24px;margin:0 4px">–</span>
+        <span class="${homeLeads?'ag-score-lead':''}">${homeScore}</span>
+      </div>
+      ${statusHtml}
+    </div>
+    <div class="ag-team home">
+      <div>
+        <div class="ag-team-name">${g.teams.home.abbr}</div>
+        <div class="ag-record">${g.teams.home.record||pseudoRecord(g.teams.home.id)}</div>
+        <div class="ag-pitcher">${homePitcher}</div>
+      </div>
+      <div class="ag-logo">${logoImg(g.teams.home.id,40)}</div>
+    </div>
+  </div>`;
+
+  if(isPreview){
+    const body=`<div class="ag-body preview-body">
+      <div class="ag-section">
+        <div class="ag-section-title">Starting Pitchers</div>
+        <div class="ag-preview-info">
+          <div class="ag-pregame-pitcher">
+            <div class="ag-pp-label">${g.teams.away.abbr}</div>
+            <div class="ag-pp-name">${awayPitcher}</div>
+          </div>
+          <div style="color:var(--border);font-size:18px;font-weight:300">vs</div>
+          <div class="ag-pregame-pitcher" style="text-align:right">
+            <div class="ag-pp-label">${g.teams.home.abbr}</div>
+            <div class="ag-pp-name">${homePitcher}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+    return head+body;
+  }
+
+  if(isFinal){
+    const lastPlay=feed?.recentPlays?.at(-1);
+    const body=`<div class="ag-body" style="grid-template-columns:1fr">
+      <div class="ag-section">
+        <div class="ag-section-title">Final — Last Play</div>
+        <div class="ag-play">${lastPlay?.description||'Game complete'}</div>
+      </div>
+    </div>`;
+    return head+body;
+  }
+
+  // LIVE card
+  const runners=summary?.runners||{};
+  const outs=summary?.outs??0;
+  const count=summary?.count||{balls:0,strikes:0};
+  const currentBatter=summary?.batter?.fullName||summary?.currentBatter||'—';
+  const currentPitcher=summary?.pitcher?.fullName||summary?.currentPitcher||'—';
+
+  const situationSection=`<div class="ag-section">
+    <div class="ag-section-title">Situation</div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      ${agBaseDiamond(runners,g.gamePk)}
+      <div>
+        <div class="ag-outs">${agOutDots(outs)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${outs} out${outs!==1?'s':''}</div>
+      </div>
+      <div>
+        <div class="ag-count">${count.balls}-${count.strikes}</div>
+        <div class="ag-count-label">Count</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;border-top:1px solid var(--border-soft);padding-top:6px">
+      <div style="font-size:11px;color:var(--muted)">P: <strong style="color:var(--sub)">${currentPitcher}</strong></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">AB: <strong style="color:var(--text)">${currentBatter}</strong></div>
+    </div>
+  </div>`;
+
+  const lastPlayDesc=feed?.recentPlays?.slice(-1)?.[0]?.description||'Awaiting play…';
+  const playSection=`<div class="ag-section">
+    <div class="ag-section-title">Latest Play</div>
+    <div class="ag-play">${explain(lastPlayDesc)}</div>
+    ${feed?.recentPlays?.at(-1)?.exitVelocity?`<div style="margin-top:5px;font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:${feed.recentPlays.at(-1).hardHit?'var(--red)':'var(--gold)'}">EV ${feed.recentPlays.at(-1).exitVelocity} mph</div>`:''}
+  </div>`;
+
+  const buzzSection=`<div class="ag-section">
+    <div class="ag-section-title">Buzz</div>
+    ${agBuzzLines(feed,summary)}
+  </div>`;
+
+  return head+`<div class="ag-body">${situationSection}${playSection}${buzzSection}</div>`;
+}
 function logoImg(teamId,size){
   if(!teamId) return `<div style="width:${size}px;height:${size}px;background:var(--border);border-radius:3px"></div>`;
   return `<img src="https://www.mlbstatic.com/team-logos/${teamId}.svg" width="${size}" height="${size}" alt="" onerror="this.style.opacity='.2'" loading="lazy" style="display:block">`;
@@ -1824,5 +2083,3 @@ setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check fo
 </body>
 </html>
 
-
-  
