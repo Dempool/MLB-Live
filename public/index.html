@@ -49,11 +49,11 @@
 
     /* ── HEADER ── */
     .header{
-      height:clamp(44px,5vh,54px);
+      height:54px;
       background:var(--surface);
       border-bottom:2px solid var(--accent-stripe);
       display:flex;align-items:center;justify-content:space-between;
-      padding:0 clamp(10px,2vw,20px);flex-shrink:0;
+      padding:0 20px;flex-shrink:0;
       position:relative;
     }
     /* subtle red glow under header */
@@ -158,8 +158,8 @@
       flex-shrink:0;
       background:var(--surface);
       border-bottom:2px solid var(--border);
-      padding:0 clamp(12px,2vw,28px);
-      height:clamp(64px,8vw,96px);
+      padding:0 28px;
+      height:96px;
       display:flex;align-items:center;gap:0;
       position:relative;
       overflow:hidden;
@@ -178,19 +178,19 @@
     .team-logo-lg img{width:100%;height:100%;object-fit:contain}
     .banner-team-info{display:flex;flex-direction:column;gap:3px}
     .banner-score-block{text-align:center;min-width:160px}
-    .banner-score{font-family:'DM Mono',monospace;font-weight:700;font-size:clamp(24px,4vw,48px);line-height:1;color:var(--text);letter-spacing:-1px}
+    .banner-score{font-family:'DM Mono',monospace;font-weight:700;font-size:48px;line-height:1;color:var(--text);letter-spacing:-1px}
     .banner-live-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:70px;padding:0 4px;gap:3px}
     .banner-inning-wrap{display:flex;flex-direction:column;align-items:center;line-height:1}
     .banner-half{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
-    .banner-inning-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:clamp(18px,2.5vw,32px);color:var(--text);line-height:1}
+    .banner-inning-num{font-family:'DM Sans',sans-serif;font-weight:700;font-size:32px;color:var(--text);line-height:1}
     .banner-outs{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:3px;letter-spacing:.5px}
     .banner-score-sub{font-size:13px;color:var(--sub);margin-top:4px;min-height:16px}
     .banner-sep{width:1px;height:52px;background:var(--border);margin:0 22px;flex-shrink:0}
     .banner-section{display:flex;flex-direction:column;align-items:center;justify-content:center}
     .banner-label{font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
-    .banner-value{font-family:'DM Sans',sans-serif;font-weight:700;font-size:clamp(14px,1.6vw,22px);color:var(--text)}
+    .banner-value{font-family:'DM Sans',sans-serif;font-weight:700;font-size:22px;color:var(--text)}
     .banner-record{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub)}
-    .banner-count{font-family:'DM Mono',monospace;font-weight:700;font-size:clamp(18px,2.5vw,32px);color:var(--gold);line-height:1}
+    .banner-count{font-family:'DM Mono',monospace;font-weight:700;font-size:32px;color:var(--gold);line-height:1}
     .banner-state{font-size:13px;color:var(--sub)}
     .live-dot{display:inline-block;width:8px;height:8px;background:var(--live);border-radius:50%;margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
     @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
@@ -345,7 +345,7 @@
     @media(max-width:600px){.ag-body{grid-template-columns:1fr}}
     .ag-section-title{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
     .ag-play{font-size:12px;color:var(--sub);line-height:1.4}
-    .ag-team-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:clamp(14px,2vw,18px);color:var(--text);line-height:1}
+    .ag-team-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;color:var(--text);line-height:1}
     .ag-record{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px}
     .ag-pitcher{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
     .ag-score-lead{color:var(--live)!important}
@@ -419,75 +419,47 @@
 
     /* ── RESPONSIVE ── */
 
-    /* Large screens: full 3-col grid */
-    @media(min-width:1201px){
-      .grid{grid-template-columns:repeat(3,1fr)}
-      .grid-wide{grid-column:span 2}
-      .grid-full{grid-column:span 3}
-    }
-
-    /* Medium-large: 3-col still but tighter */
-    @media(max-width:1400px) and (min-width:1201px){
-      .sidebar{width:200px}
-    }
-
-    /* Medium: 2-col grid */
-    @media(max-width:1200px) and (min-width:801px){
-      .sidebar{width:190px}
+    /* Tablet: 2-col grid */
+    @media(max-width:1100px) and (min-width:701px){
+      .sidebar{width:180px}
       .grid{grid-template-columns:repeat(2,1fr)}
       .grid-wide{grid-column:span 2}
       .grid-full{grid-column:span 2}
-      .banner{height:auto;min-height:72px;padding:10px 16px}
-      .banner-score{font-size:36px}
-      .team-logo-lg{width:46px;height:46px}
-      .banner-value{font-size:18px}
-      .banner-inning-num{font-size:24px}
-      .banner-count{font-size:24px}
-      .ag-card .ag-body{grid-template-columns:1fr 1fr!important}
     }
 
-    /* Small-medium: sidebar becomes top bar */
-    @media(max-width:800px){
+    /* Mobile: sidebar becomes top strip, single column */
+    @media(max-width:700px){
       body{overflow:auto}
       .shell{flex-direction:column;overflow:visible}
-      .sidebar{width:100%;height:auto;flex-shrink:0;border-right:none;border-bottom:1px solid var(--border);flex-direction:column}
-      .sidebar-tabs{display:flex}
+      .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border)}
       #games{display:flex;flex-direction:row;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
       .game-card{min-width:140px;border-bottom:none;border-right:1px solid var(--border-soft);flex-shrink:0}
       .main{overflow:visible}
       .content{overflow:visible;padding:8px}
       #allGamesView{overflow:visible}
-      .banner{height:auto;min-height:64px;padding:8px 12px;flex-wrap:wrap;gap:8px}
-      .banner-score{font-size:28px}
-      .banner-score-block{min-width:100px}
-      .team-logo-lg{width:36px;height:36px}
-      .banner-value{font-size:16px}
-      .banner-record{font-size:11px}
-      .banner-inning-num{font-size:20px}
-      .banner-count{font-size:20px}
-      .banner-sep{height:24px;margin:0 8px}
+      .banner{height:auto;min-height:60px;padding:8px 12px;flex-wrap:wrap;gap:6px}
+      .banner-score{font-size:26px}
+      .banner-score-block{min-width:90px}
+      .team-logo-lg{width:34px;height:34px}
+      .banner-value{font-size:15px}
+      .banner-record{font-size:10px}
+      .banner-inning-num{font-size:18px}
+      .banner-count{font-size:18px}
+      .banner-sep{height:22px;margin:0 8px}
       .grid{grid-template-columns:1fr}
       .grid-wide,.grid-full{grid-column:span 1}
       .pregame-grid{grid-template-columns:1fr}
-      .ag-card .ag-body{grid-template-columns:1fr!important}
-      .lineup-row{grid-template-columns:18px 1fr 28px auto!important}
-      .lineup-season{display:none}
-      .lineup-col-season{display:none}
+      .ag-body{grid-template-columns:1fr!important}
+      .lineup-season,.lineup-col-season{display:none}
     }
 
-    /* Extra small: phones */
-    @media(max-width:480px){
-      .header{padding:6px 10px}
-      .logo-text{font-size:18px}
-      .header-right{gap:6px}
+    /* Small phones */
+    @media(max-width:420px){
+      .header{padding:5px 10px}
+      .logo-text{font-size:17px}
       select,.btn{padding:4px 8px;font-size:12px}
-      .banner{padding:6px 8px}
-      .banner-score{font-size:22px}
-      .team-logo-lg{width:28px;height:28px}
-      .banner-value{font-size:14px}
       .panel-head{padding:6px 10px}
       .panel-body{padding:7px 9px}
-      .item{font-size:12px;padding:6px 8px}
     }
   </style>
 </head>
@@ -798,13 +770,19 @@ function fmtPlayTime(iso){if(!iso)return '';try{return new Date(iso).toLocaleTim
 
 /* ── TABS ── */
 let currentTab='games';
-window.switchTab=function(tab){
+window.switchTab=async function(tab){
   currentTab=tab;
   document.getElementById('stab-games').classList.toggle('active',tab==='games');
   document.getElementById('stab-all').classList.toggle('active',tab==='all');
   document.getElementById('allGamesView').style.display=tab==='all'?'flex':'none';
-  document.getElementById('mainContent').style.display=tab==='games'?'flex':'none';
-  if(tab==='all') renderAllGamesView();
+  document.getElementById('mainContent').style.display=tab==='games'?'':'none';
+  if(tab==='all'){
+    // If games haven't loaded yet, wait for them
+    if(!state.games.length){
+      await loadSlate(true);
+    }
+    renderAllGamesView();
+  }
 };
 
 /* ── ALL GAMES WAR ROOM ── */
@@ -817,7 +795,10 @@ async function fetchGameSnapshot(gamePk){
     ]);
     agCache[gamePk]={summary,feed,ts:Date.now()};
     return agCache[gamePk];
-  }catch{ return agCache[gamePk]||null; }
+  }catch(e){
+    console.warn('fetchGameSnapshot failed for',gamePk,e.message?.slice(0,80));
+    return agCache[gamePk]||null;
+  }
 }
 
 function agDiamond(r){
@@ -2110,7 +2091,7 @@ $('knowledgeLevel').addEventListener('change',async e=>{state.level=e.target.val
 $('refreshSlate').addEventListener('click',()=>loadSlate());
 loadSlate();
 setInterval(pollAllGames, 20000); // every 20s: update sidebar scores + check for play changes
+setInterval(()=>{ if(currentTab==='all') renderAllGamesView(); }, 25000); // refresh all-games view
 </script>
 </body>
 </html>
-
