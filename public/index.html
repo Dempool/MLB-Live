@@ -1546,7 +1546,7 @@ function _renderPregameHTML(g,cached){
     teamSide(g.teams.away,awayStarter,awayIntel,awayStarterCtx,awayBatters,awayBatterCtx,g.teams.home.abbr)+
     teamSide(g.teams.home,homeStarter,homeIntel,homeStarterCtx,homeBatters,homeBatterCtx,g.teams.away.abbr);
 
-  if(riskSignals) renderRiskPanel(riskSignals, cached?.oddsProps||[]);
+  if(cached.riskSignals) renderRiskPanel(cached.riskSignals, cached?.oddsProps||[]);
 
   function renderRiskPanel(risk, props){
     const typeLabel={PITCHER_K:'⚡ Pitcher Strikeouts',BATTER_HR:'💣 Home Run Prop'};
