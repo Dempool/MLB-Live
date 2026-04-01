@@ -470,5 +470,35 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
+  refreshIntelIfStale();
 });
 
+// Auto-refresh intel daily — runs generate_intel.js if file is missing or older than 20 hours
+function refreshIntelIfStale() {
+  const staleAfterMs = 20 * 60 * 60 * 1000; // 20 hours
+  let isStale = true;
+  if (fs.existsSync(intelPath)) {
+    try {
+      const intel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
+      const age = Date.now() - new Date(intel.generatedAt || 0).getTime();
+      isStale = age > staleAfterMs;
+      if (!isStale) {
+        console.log(`Intel is fresh (generated ${Math.round(age/3600000)}h ago), skipping refresh`);
+      }
+    } catch { isStale = true; }
+  }
+  if (isStale) {
+    console.log('Intel is stale or missing — regenerating from Baseball Savant...');
+    const { execFile } = require('child_process');
+    execFile('node', [path.join(__dirname, 'generate_intel.js')], (err, stdout, stderr) => {
+      if (err) {
+        console.warn('Intel refresh failed:', err.message);
+      } else {
+        console.log('Intel refreshed successfully');
+        if (stdout) console.log(stdout);
+      }
+    });
+  }
+  // Schedule next check in 6 hours
+  setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
+}

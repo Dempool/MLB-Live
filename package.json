@@ -1,11 +1,15 @@
 {
   "name": "mlb-live-tracker",
   "version": "1.0.0",
-  "description": "MLB live tracker with MLB Stats API live truth and local player intelligence",
+  "description": "MLB Live Tracker with real Statcast intel",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js",
-    "generate:intel": "node scripts/generate-player-intel.js"
+    "build": "node generate_intel.js",
+    "intel": "node generate_intel.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
