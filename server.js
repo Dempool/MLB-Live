@@ -38,8 +38,11 @@ function pctMap(playerId, keys, salt) {
   const sum = raw.reduce((a, b) => a + b, 0);
   return Object.fromEntries(keys.map((k, i) => [k, Number(((raw[i] / sum) * 100).toFixed(1))]));
 }
+// FALLBACK ONLY — used when player is not in player_intel.json (e.g. call-ups, rookies)
+// Real data comes from generate_intel.js which pulls from Baseball Savant CSVs
 function buildPitcherFallback(playerId) {
   return {
+    _isFallback: true,
     hand: 'R', pitchMix: pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 10),
     velocityByPitch: { Fastball: seeded(playerId, 91, 99, 21), Slider: seeded(playerId, 82, 91, 22), Changeup: seeded(playerId, 80, 89, 23), Curveball: seeded(playerId, 76, 84, 24) },
     whiffRate: seeded(playerId, 18, 38, 31), strikeoutRate: seeded(playerId, 16, 35, 32), walkRate: seeded(playerId, 4, 12, 33),
@@ -48,18 +51,18 @@ function buildPitcherFallback(playerId) {
     firstPitchStrikeTendency: seeded(playerId, 53, 69, 38), twoStrikePutawayTendency: seeded(playerId, 24, 43, 39),
     likelyUsageByCount: { '0-0': pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 40), '1-1': pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 50), '0-2': pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 60), '3-2': pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 70) },
     nextPitchTendencyByBatterSide: { R: pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 80), L: pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 90) },
-    summary: { missBatsNote: 'Misses bats at the top of the zone with velocity.', aheadNote: 'When ahead, expands with offspeed out of zone.' }
+    summary: { missBatsNote: 'Statcast data not yet available for this pitcher.', aheadNote: 'Run generate_intel.js to fetch real data.' }
   };
 }
 function buildBatterFallback(playerId) {
   return {
-    stand: 'R', hardHitRate: seeded(playerId, 28, 56, 101), barrelRate: seeded(playerId, 3, 18, 102), whiffTendency: seeded(playerId, 17, 37, 103),
-    chaseTendency: seeded(playerId, 20, 40, 104), contactTendency: seeded(playerId, 63, 86, 105),
-    splitVsHandedness: { vsR: { avg: seeded(playerId, 0.21, 0.33, 106) }, vsL: { avg: seeded(playerId, 0.19, 0.34, 107) } },
-    damageByPitchType: pctMap(playerId, ['Fastball', 'Slider', 'Changeup', 'Curveball'], 108), firstPitchSwingTendency: seeded(playerId, 19, 39, 109),
-    hotCold: { recentHot: seeded(playerId, 0, 1, 110) > 0.55, trend: seeded(playerId, -12, 12, 111) },
-    likelyVulnerabilitiesByPitchType: { Fastball: seeded(playerId, 0, 35, 112), Slider: seeded(playerId, 0, 35, 113), Changeup: seeded(playerId, 0, 35, 114), Curveball: seeded(playerId, 0, 35, 115) },
-    summary: { handlesFastballs: 'Hitter handles fastballs well when ahead in the count.', chaseNote: 'Can chase sliders off the outside edge.' }
+    _isFallback: true,
+    stand: 'R', hardHitRate: null, barrelRate: null, whiffTendency: null,
+    chaseTendency: null, contactTendency: null,
+    splitVsHandedness: { vsR: { avg: null }, vsL: { avg: null } },
+    firstPitchSwingTendency: null,
+    hotCold: { recentHot: null, trend: 0 },
+    summary: { handlesFastballs: 'Statcast data not yet available for this batter.', chaseNote: 'Run generate_intel.js to fetch real data.' }
   };
 }
 function ensurePlayerIntel(intelPlayers, playerId) {
@@ -446,12 +449,6 @@ async function handleApi(reqUrl, res) {
       return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: profile });
     }
 
-    if (pathname === '/api/game-buzz') {
-      if (!gamePk) return sendJson(res, 400, { error: 'Missing gamePk' });
-      const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
-      const buzz = buildBuzz({ liveData: gameData.liveData, gameData });
-      return sendJson(res, 200, { gamePk: Number(gamePk), buzz });
-    }
 
     return sendJson(res, 404, { error: 'Not found' });
   } catch (err) {
