@@ -286,7 +286,7 @@
     .spotlight-card.is-starter::before{background:var(--blue)}
     .spotlight-card.is-hot::before{background:var(--live)}
     .spotlight-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
-    .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
+    .spotlight-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:17px;color:var(--text)}
     .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:3px;flex-shrink:0;margin-left:6px}
     .badge-hot{background:var(--live-dim);color:var(--live)}
     .badge-cold{background:var(--blue-dim);color:var(--blue)}
@@ -374,21 +374,21 @@
     .lineup-side{padding:12px 14px;border-right:1px solid var(--border-soft)}
     .lineup-side:last-child{border-right:none}
     .lineup-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)}
-    .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
+    .lineup-team-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;color:var(--text)}
     .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);width:88px;text-align:right;flex-shrink:0}
     .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);width:100px;text-align:right;flex-shrink:0}
     .lineup-row{display:grid;grid-template-columns:20px 1fr 32px 88px 100px;gap:6px;align-items:center;padding:7px 8px;border-radius:5px;margin-bottom:2px;transition:background .1s}
     .lineup-row:hover{background:var(--card-2)}
-    .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
+    .lineup-row.active-batter{background:rgba(245,185,66,0.08);border:1px solid rgba(245,185,66,0.3)}
     .lineup-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);text-align:right;font-weight:700}
-    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.2px}
+    .lineup-name{font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.2px}
     .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);text-align:center;background:var(--card-2);border-radius:3px;padding:1px 4px}
     .lineup-today{font-family:'DM Mono',monospace;font-size:11px;text-align:right;white-space:nowrap;width:88px;font-weight:700}
     .lineup-season{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:right;white-space:nowrap;width:100px;font-weight:700}
     /* ── IN-PLAY STATS ── */
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
-    .inplay-player{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text);margin-bottom:6px}
+    .inplay-player{font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;color:var(--text);margin-bottom:6px}
     .inplay-role{font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:2px}
     .inplay-summary{font-size:13px;color:var(--text);margin-bottom:6px}
     .inplay-summary strong{color:var(--gold)}
@@ -1571,7 +1571,7 @@ function _renderPregameHTML(g,cached){
     if(!fdO&&!fdU) return '';
     const mktLabel=market==='pitcher_strikeouts'?`K ${p.point}`:market==='batter_home_runs'?`HR ${p.point}`:market==='batter_hits'?`H ${p.point}`:`TB ${p.point}`;
     return `<div style="margin-top:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border-soft);border-radius:4px;display:inline-flex;align-items:center;gap:8px">
-      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--muted)">${mktLabel}</span>
+      <span style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:11px;color:var(--muted)">${mktLabel}</span>
       <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--live)">▲${fdO||'—'}</span>
       <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--blue)">▼${fdU||'—'}</span>
       <span style="font-size:10px;color:var(--muted)">FD</span>
@@ -1638,7 +1638,7 @@ function _renderPregameHTML(g,cached){
           <span class="risk-level ${s.level}">${s.level}</span>
           <span class="risk-type">${typeLabel[s.type]||s.type}</span>
           <span style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            <span class="risk-player">${s.player}</span>
+            <span class="risk-player" style="font-family:'DM Sans',sans-serif;font-weight:700">${s.player}</span>
             <span class="risk-team">${s.team}</span>
             ${propTag}
           </span>
@@ -1759,7 +1759,7 @@ function renderPitcherCard(p, name, teamId, isActive){
     : `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:var(--border-soft);color:var(--sub);padding:2px 7px;border-radius:3px;margin-left:6px">NEXT UP</span>`;
   const header=`<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border-soft)">
     <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.9);padding:1px">${logoImg(teamId,20)}</div>
-    <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text);flex:1">${name||'Pitcher'}</span>
+    <span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;color:var(--text);flex:1">${name||'Pitcher'}</span>
     ${activeBadge}
   </div>`;
   const hasMix=p&&Object.keys(mix).length>0;
@@ -1769,14 +1769,21 @@ function renderPitcherCard(p, name, teamId, isActive){
   // MLB Stats API fallback - show basic season stats
   if(p._mlbFallback){
     return `${header}
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px">
       ${p.seasonERA!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${p.seasonERA}</div><div style="font-size:10px;color:var(--muted)">ERA</div></div>`:''}
       ${p.whipSeason!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${p.whipSeason}</div><div style="font-size:10px;color:var(--muted)">WHIP</div></div>`:''}
+      ${p.inningsPitched!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${p.inningsPitched}</div><div style="font-size:10px;color:var(--muted)">IP</div></div>`:''}
     </div>
-    ${p.strikeouts!=null?`<div class="stat-row"><span class="stat-key">Strikeouts</span><span class="stat-val">${p.strikeouts}</span></div>`:''}
-    ${p.walks!=null?`<div class="stat-row"><span class="stat-key">Walks</span><span class="stat-val">${p.walks}</span></div>`:''}
-    ${p.inningsPitched!=null?`<div class="stat-row"><span class="stat-key">Innings Pitched</span><span class="stat-val">${p.inningsPitched}</span></div>`:''}
-    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats API · Savant loading</div>`;
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+      ${p.strikeouts!=null?`<span style="font-size:12px;color:var(--text)"><strong>${p.strikeouts}</strong> K</span>`:''}
+      ${p.walks!=null?`<span style="font-size:12px;color:var(--text)"><strong>${p.walks}</strong> BB</span>`:''}
+      ${p.hitsAllowed!=null?`<span style="font-size:12px;color:var(--text)"><strong>${p.hitsAllowed}</strong> H</span>`:''}
+      ${p.gamesStarted?`<span style="font-size:12px;color:var(--sub)"><strong>${p.gamesStarted}</strong> GS</span>`:''}
+    </div>
+    ${p.strikeoutRate!=null?`<div class="stat-row"><span class="stat-key">K%</span><span class="stat-val">${p.strikeoutRate}%${statContext('k',p.strikeoutRate)}</span></div>`:''}
+    ${p.walkRate!=null?`<div class="stat-row"><span class="stat-key">BB%</span><span class="stat-val">${p.walkRate}%${statContext('bb',p.walkRate)}</span></div>`:''}
+    ${p.strikeoutsPer9!=null?`<div class="stat-row"><span class="stat-key">K/9</span><span class="stat-val">${Number(p.strikeoutsPer9).toFixed(1)}</span></div>`:''}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats · Savant loading</div>`;
   }
   if(!hasMix&&!p.whiffRate&&!p.strikeoutRate) return `${header}<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>`;
   return`${header}
@@ -1796,11 +1803,15 @@ function renderBatterCard(b){
       ${b.obp!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${b.obp}</div><div style="font-size:10px;color:var(--muted)">OBP</div></div>`:''}
       ${b.slg!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${b.slg}</div><div style="font-size:10px;color:var(--muted)">SLG</div></div>`:''}
     </div>
-    ${b.homeRuns!=null?`<div class="stat-row"><span class="stat-key">Home Runs</span><span class="stat-val">${b.homeRuns}</span></div>`:''}
-    ${b.rbi!=null?`<div class="stat-row"><span class="stat-key">RBI</span><span class="stat-val">${b.rbi}</span></div>`:''}
-    ${b.strikeOuts!=null?`<div class="stat-row"><span class="stat-key">Strikeouts</span><span class="stat-val">${b.strikeOuts}</span></div>`:''}
-    ${b.stolenBases?`<div class="stat-row"><span class="stat-key">Stolen Bases</span><span class="stat-val">${b.stolenBases}</span></div>`:''}
-    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats API · Savant loading</div>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+      ${b.homeRuns!=null?`<span style="font-size:12px;color:var(--text)"><strong>${b.homeRuns}</strong> HR</span>`:''}
+      ${b.rbi!=null?`<span style="font-size:12px;color:var(--text)"><strong>${b.rbi}</strong> RBI</span>`:''}
+      ${b.stolenBases?`<span style="font-size:12px;color:var(--text)"><strong>${b.stolenBases}</strong> SB</span>`:''}
+      ${b.strikeoutPct!=null?`<span style="font-size:12px;color:var(--sub)">K% <strong style="color:${b.strikeoutPct>25?'var(--red)':'var(--text)'}">${b.strikeoutPct}%</strong>${statContext('k',b.strikeoutPct)}</span>`:''}
+      ${b.walkPct!=null?`<span style="font-size:12px;color:var(--sub)">BB% <strong>${b.walkPct}%</strong></span>`:''}
+    </div>
+    ${b.stand?`<div style="font-size:11px;color:var(--muted)">Bats ${b.stand} · ${b.plateAppearances||b.atBats||0} PA this season</div>`:''}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats · Savant loading</div>`;
   }
   const h=b.hotCold?.recentHot;
   const hasData=b.barrelRate!=null||b.hardHitRate!=null||b.whiffTendency!=null;
@@ -1808,7 +1819,7 @@ function renderBatterCard(b){
   const vsR=b.splitVsHandedness?.vsR?.avg;
   const vsL=b.splitVsHandedness?.vsL?.avg;
   const topRow=[];
-  if(b.barrelRate!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);letter-spacing:1px">BARREL</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>${b.hardHitRate!=null?`<div style="font-size:11px;color:var(--sub)">hard hit ${b.hardHitRate}%</div>`:''}</div>`);
+  if(b.barrelRate!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.5px;color:var(--sub)">BARREL</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>${b.hardHitRate!=null?`<div style="font-size:11px;color:var(--sub)">hard hit ${b.hardHitRate}%</div>`:''}</div>`);
   // FORM removed from batter card - hotCold is season Savant data not recent form
   return`${topRow.length?`<div style="display:flex;gap:6px;margin-bottom:8px">${topRow.join('')}</div>`:''}
   ${b.hardHitRate!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Rate</span><span>${b.hardHitRate}%${statContext('hardHit',b.hardHitRate)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(b.hardHitRate,100)}%"></div></div></div>`:''}${b.contactTendency!=null?bar('Contact',b.contactTendency,'green'):''}${b.whiffTendency!=null?bar('Whiff',b.whiffTendency,'red'):''}${b.chaseTendency!=null?bar('Chase',b.chaseTendency,'red'):''}
@@ -1834,7 +1845,7 @@ function renderLineups(data){
       const todayColor=hasHR?'var(--red)':hasHit?'var(--live)':p.todayAB>0?'var(--muted)':'var(--muted)';
       return `<div class="lineup-row ${isUp?'active-batter':''}">
         <div class="lineup-num">${p.order}</div>
-        <div class="lineup-name">${isUp?`<span style="color:var(--red);font-weight:700">${p.name}</span>`:p.name}</div>
+        <div class="lineup-name">${isUp?`<span style="color:var(--gold);font-weight:700">${p.name}</span>`:p.name}${p.hand?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:5px;font-weight:500">${p.hand}</span>`:''}</div>
         <div class="lineup-pos">${p.position}</div>
         <div class="lineup-today" style="color:${todayColor}">${p.note}</div>
         <div class="lineup-season">${p.avg} / ${p.obp}</div>
@@ -1954,6 +1965,7 @@ async function fetchAndRenderLineups(gamePk, matchup){
           order:idx+1,
           name:p.person?.fullName||`Player ${pid}`,
           position:p.position?.abbreviation||'',
+          hand:p.batSide?.code||p.person?.batSide?.code||'',
           todayH,todayHR,todayAB,note,
           avg,obp
         };
@@ -2108,7 +2120,7 @@ async function fetchAndRenderBullpen(gamePk, g){
           return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-soft)">
             <div style="flex:1">
               <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text)">${r.name.split(' ').pop()}</span>
+                <span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;color:var(--text)">${r.name.split(' ').pop()}</span>
                 ${active?`<span style="background:var(--red-dim);color:var(--red);font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px">IN GAME</span>`:''}
               </div>
               ${active?`<div style="font-size:11px;color:var(--sub)">${r.pitchCount}p · ${r.inningsPitched} IP · ${r.strikeouts}K${r.earnedRuns>0?` · ${r.earnedRuns}ER`:''}</div>`
@@ -2174,7 +2186,7 @@ async function fetchAndRenderLiveOdds(g){
           :impliedPct&&Number(impliedPct)<40
           ?`<span style="color:var(--blue);font-size:10px;font-weight:700">▼${100-impliedPct}%</span>`:'';
         return `<tr style="border-bottom:1px solid var(--border-soft)">
-          <td style="padding:4px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text);white-space:nowrap">${lastName} <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">@${p.point}</span> ${flag}</td>
+          <td style="padding:4px 8px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;color:var(--text);white-space:nowrap">${lastName} <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">@${p.point}</span> ${flag}</td>
           ${bookCells}
         </tr>`;
       }).join('');
