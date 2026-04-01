@@ -888,51 +888,54 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
-  // Log index.html size so we can confirm correct version is deployed
   try {
     const idxSize = fs.statSync(path.join(publicDir, 'index.html')).size;
     console.log(`Serving index.html: ${idxSize} bytes from ${publicDir}`);
   } catch(e) { console.warn('Could not stat index.html:', e.message); }
-  refreshIntelIfStale();
+  // Intel is generated at build time — just log status and schedule daily refresh
+  if (fs.existsSync(intelPath)) {
+    try {
+      const intel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
+      console.log(`Intel ready: ${intel.playerCount} players (generated ${intel.generatedAt})`);
+    } catch { console.log('Intel file present'); }
+  } else {
+    console.warn('Intel file missing — running emergency refresh');
+    refreshIntelIfStale();
+    return;
+  }
+  // Schedule daily refresh
+  setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
 });
 
-// Auto-refresh intel daily — runs generate_intel.js if file is missing or older than 20 hours
-function refreshIntelIfStale(forceFresh = false) {
-  const staleAfterMs = 20 * 60 * 60 * 1000; // 20 hours
-  let isStale = true;
-  if (!forceFresh && fs.existsSync(intelPath)) {
+// Auto-refresh intel daily — scheduled check only, build handles initial generation
+function refreshIntelIfStale() {
+  const staleAfterMs = 20 * 60 * 60 * 1000;
+  if (fs.existsSync(intelPath)) {
     try {
       const intel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
       const age = Date.now() - new Date(intel.generatedAt || 0).getTime();
-      isStale = age > staleAfterMs;
-      // Also force refresh if playerCount is suspiciously low (old single-year file)
-      if (!isStale && (intel.playerCount || 0) < 200) {
-        console.log(`Intel has only ${intel.playerCount} players — forcing refresh for full dataset`);
-        isStale = true;
+      if (age < staleAfterMs && (intel.playerCount || 0) >= 400) {
+        console.log(`Intel is fresh (${intel.playerCount} players, ${Math.round(age/3600000)}h ago)`);
+        setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
+        return;
       }
-      if (!isStale) {
-        console.log(`Intel is fresh (${intel.playerCount} players, generated ${Math.round(age/3600000)}h ago)`);
-      }
-    } catch { isStale = true; }
+    } catch {}
   }
-  if (isStale) {
-    console.log('Intel is stale or missing — regenerating from Baseball Savant...');
-    const { execFile } = require('child_process');
-    execFile('node', [path.join(__dirname, 'generate_intel.js')], { timeout: 5 * 60 * 1000 }, (err, stdout, stderr) => {
-      if (err) {
-        console.warn('Intel refresh failed:', err.message);
-      } else {
-        // Verify the new file actually has good data
+  console.log('Refreshing intel from Baseball Savant...');
+  const { execFile } = require('child_process');
+  const proc = execFile('node', [path.join(__dirname, 'generate_intel.js')],
+    { timeout: 10 * 60 * 1000, maxBuffer: 10 * 1024 * 1024 },
+    (err) => {
+      if (err) console.warn('Intel refresh failed:', err.message);
+      else {
         try {
           const newIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
-          console.log(`Intel refreshed: ${newIntel.playerCount} players (${newIntel.season} + ${newIntel.priorSeason} baseline)`);
-        } catch {
-          console.log('Intel refreshed successfully');
-        }
-        if (stdout) console.log(stdout.slice(-500)); // last 500 chars of output
+          console.log(`✅ Intel refreshed: ${newIntel.playerCount} players`);
+        } catch {}
       }
-    });
-  }
-  // Schedule next check in 6 hours
-  setTimeout(() => refreshIntelIfStale(false), 6 * 60 * 60 * 1000);
+      setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
+    }
+  );
+  proc.stdout?.on('data', d => process.stdout.write(d));
+  proc.stderr?.on('data', d => process.stderr.write(d));
 }

@@ -1,5 +1,5 @@
 [build]
-buildCommand = "echo 'Build complete'"
+buildCommand = "node generate_intel.js"
 
 [deploy]
 startCommand = "node server.js"
