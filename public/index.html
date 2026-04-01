@@ -375,16 +375,16 @@
     .lineup-side:last-child{border-right:none}
     .lineup-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border-soft)}
     .lineup-team-name{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:16px;color:var(--text)}
-    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);margin-left:auto;min-width:85px;text-align:right}
-    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);min-width:95px;text-align:right}
-    .lineup-row{display:grid;grid-template-columns:22px 1fr 34px auto auto;gap:8px;align-items:center;padding:8px 8px;border-radius:5px;margin-bottom:3px;transition:background .1s}
+    .lineup-col-today{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);width:88px;text-align:right;flex-shrink:0}
+    .lineup-col-season{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--sub);width:100px;text-align:right;flex-shrink:0}
+    .lineup-row{display:grid;grid-template-columns:20px 1fr 32px 88px 100px;gap:6px;align-items:center;padding:7px 8px;border-radius:5px;margin-bottom:2px;transition:background .1s}
     .lineup-row:hover{background:var(--card-2)}
     .lineup-row.active-batter{background:var(--red-dim);border:1px solid var(--red-mid)}
     .lineup-num{font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);text-align:right;font-weight:700}
-    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .lineup-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0.2px}
     .lineup-pos{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);text-align:center;background:var(--card-2);border-radius:3px;padding:1px 4px}
-    .lineup-today{font-family:'DM Mono',monospace;font-size:11px;text-align:right;white-space:nowrap;min-width:85px;font-weight:700}
-    .lineup-season{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:right;white-space:nowrap;min-width:95px;font-weight:700}
+    .lineup-today{font-family:'DM Mono',monospace;font-size:11px;text-align:right;white-space:nowrap;width:88px;font-weight:700}
+    .lineup-season{font-family:'DM Mono',monospace;font-size:12px;color:var(--text);text-align:right;white-space:nowrap;width:100px;font-weight:700}
     /* ── IN-PLAY STATS ── */
     .inplay-section{margin-bottom:12px}
     .inplay-section:last-child{margin-bottom:0}
@@ -807,7 +807,7 @@ function fmtPlayTime(iso){if(!iso)return '';try{return new Date(iso).toLocaleTim
 
 /* ── TABS ── */
 let currentTab='games';
-window.switchTab=async function(tab){
+window.switchTab=async function(tab, skipRefresh=false){
   currentTab=tab;
   document.getElementById('stab-games').classList.toggle('active',tab==='games');
   document.getElementById('stab-all').classList.toggle('active',tab==='all');
@@ -818,7 +818,7 @@ window.switchTab=async function(tab){
     renderAllGamesView();
     pollAllGames();
   }
-  if(tab==='games'&&state.selectedGamePk) await refreshGame();
+  if(tab==='games'&&state.selectedGamePk&&!skipRefresh) await refreshGame();
 };
 
 /* ── ALL GAMES WAR ROOM ── */
@@ -880,7 +880,7 @@ async function renderAllGamesView(){
     let snap=null;
     if(g.status==='Live'||g.status==='Final') snap=await fetchGameSnapshot(g.gamePk);
     el.innerHTML=renderAgCard(g,snap);
-    el.onclick=()=>{ switchTab('games'); selectGame(g.gamePk); };
+    el.onclick=()=>{ switchTab('games', true); selectGame(g.gamePk); };
   }));
 }
 function renderAgCard(g,snap){
@@ -1115,7 +1115,7 @@ function updateBanner(g,summary){
 }
 
 /* ── SPOTLIGHT CARDS ── */
-function spotlightPitcher(player,intel,ctx,oppAbbr){
+function spotlightPitcher(player,intel,ctx,oppAbbr,propTagFn){
   if(!player) return '';
   const season=new Date().getFullYear();
   const mix=intel?.pitchMix||{};
@@ -1219,10 +1219,11 @@ function spotlightPitcher(player,intel,ctx,oppAbbr){
       </div>
     </div>
     ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
+    ${propTagFn?propTagFn(name,'pitcher_strikeouts'):''}
   </div>`;
 }
 
-function spotlightBatter(player,intel,ctx,oppAbbr){
+function spotlightBatter(player,intel,ctx,oppAbbr,propTagFn){
   if(!player||!intel) return '';
   const season=new Date().getFullYear();
 
@@ -1352,10 +1353,8 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
     }
   }
 
-  // Hot = green, Cold = blue (not red — red is for danger/alerts)
-  const cls=isHot===true?'is-hot':'is-cold';
-  const badge=isHot===true?'badge-hot':'badge-cold';
-  const badgeLbl=isHot===true?'🔥 HOT':'❄ COLD';
+  // Show HR prop for power hitters, hits prop for contact/hot hitters
+  const propMarket=(isElitePower||isHot===true&&intel?.barrelRate>8)?'batter_home_runs':'batter_hits';
   return `<div class="spotlight-card ${cls}">
     <div class="spotlight-top">
       <div style="display:flex;align-items:center;gap:6px">
@@ -1365,6 +1364,7 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
       <span class="spotlight-badge ${badge}">${badgeLbl}</span>
     </div>
     ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
+    ${propTagFn?propTagFn(name,propMarket):''}
   </div>`;
 }
 
@@ -1535,6 +1535,9 @@ async function renderPregame(g){
       }
       if (risk) cached.riskSignals = risk;
       cached.oddsProps = props;
+      // Re-render the whole pregame with props injected into spotlight cards
+      _renderPregameHTML(g, cached);
+      // Then append just the risk signal panel (no big table)
       renderRiskPanel(risk, props);
     }).catch(()=>{});
 
@@ -1549,15 +1552,40 @@ function _renderPregameHTML(g,cached){
   const {awayStarter,homeStarter,awayIntel,homeIntel,
          awayBatters,homeBatters,awayStarterCtx,homeStarterCtx,
          awayBatterCtx,homeBatterCtx}=cached;
+  const props=cached.oddsProps||[];
+
+  // Build props lookup by player last name + market
+  const propsLookup={};
+  for(const p of props){
+    const lastName=(p.player||'').split(' ').pop().toLowerCase();
+    propsLookup[`${lastName}|${p.market}`]=p;
+  }
+  function getProp(playerName,market){
+    return propsLookup[`${(playerName||'').split(' ').pop().toLowerCase()}|${market}`]||null;
+  }
+  function propTag(playerName, market){
+    const p=getProp(playerName,market);
+    if(!p) return '';
+    const fdO=p.over?.FanDuel?Number(p.over.FanDuel).toFixed(2):null;
+    const fdU=p.under?.FanDuel?Number(p.under.FanDuel).toFixed(2):null;
+    if(!fdO&&!fdU) return '';
+    const mktLabel=market==='pitcher_strikeouts'?`K ${p.point}`:market==='batter_home_runs'?`HR ${p.point}`:market==='batter_hits'?`H ${p.point}`:`TB ${p.point}`;
+    return `<div style="margin-top:5px;padding:4px 8px;background:var(--card);border:1px solid var(--border-soft);border-radius:4px;display:inline-flex;align-items:center;gap:8px">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--muted)">${mktLabel}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--live)">▲${fdO||'—'}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--blue)">▼${fdU||'—'}</span>
+      <span style="font-size:10px;color:var(--muted)">FD</span>
+    </div>`;
+  }
 
   function teamSide(team,starter,starterIntel,starterCtx,batters,batterCtxArr,oppTeamAbbr){
     const starterLabel=state.level==='new'?'Starting Pitcher':'Probable Starter';
     const watchLabel=state.level==='new'?'Players to Know Today':state.level==='intermediate'?'Players to Watch':'Key Bats';
     const starterHtml=starter
-      ?spotlightPitcher(starter,starterIntel,starterCtx,oppTeamAbbr)
+      ?spotlightPitcher(starter,starterIntel,starterCtx,oppTeamAbbr,propTag)
       :'<div class="empty" style="padding:6px 0;text-align:left;font-size:12px">TBD</div>';
     const battersHtml=batters.slice(0,2).map((p,i)=>
-      spotlightBatter(p.player,p.intel,batterCtxArr?.[i]||null,oppTeamAbbr)
+      spotlightBatter(p.player,p.intel,batterCtxArr?.[i]||null,oppTeamAbbr,propTag)
     ).join('');
     return `<div>
       <div class="pregame-team-header">
@@ -1580,114 +1608,31 @@ function _renderPregameHTML(g,cached){
   if(cached.riskSignals) renderRiskPanel(cached.riskSignals, cached?.oddsProps||[]);
 
   function renderRiskPanel(risk, props){
+    if(!risk?.signals?.length) return;
     const typeLabel={PITCHER_K:'⚡ Pitcher Strikeouts',BATTER_HR:'💣 Home Run Prop'};
 
-    // Props are now grouped by player+market with over{} and under{} per book
-    // Build lookup by player last name + market
+    // Build props lookup for risk signal inline tags
     const propsMap={};
     for(const p of (props||[])){
       const lastName=(p.player||'').split(' ').pop().toLowerCase();
-      const key=`${lastName}|${p.market}`;
-      propsMap[key]=p;
+      propsMap[`${lastName}|${p.market}`]=p;
     }
     function getProp(playerName,market){
-      const lastName=(playerName||'').split(' ').pop().toLowerCase();
-      return propsMap[`${lastName}|${market}`]||null;
+      return propsMap[`${(playerName||'').split(' ').pop().toLowerCase()}|${market}`]||null;
     }
-
-    // Format decimal odds: 1.95 → "1.95"
     function dec(v){ return v?Number(v).toFixed(2):null; }
 
-    // Which side has value? If Over < 2.00 (implied >50%) flag as popular
-    function sideLabel(over,under){
-      if(!over&&!under) return '';
-      const oProb=over?1/over:0;
-      const uProb=under?1/under:0;
-      if(oProb>0.6) return '<span style="color:var(--live);font-size:10px;font-weight:700">▲ OVER POPULAR</span>';
-      if(uProb>0.6) return '<span style="color:var(--blue);font-size:10px;font-weight:700">▼ UNDER POPULAR</span>';
-      return '<span style="color:var(--muted);font-size:10px">SPLIT</span>';
-    }
-
-    // Best odds finder
-    function bestOdds(bookObj){ 
-      if(!bookObj||!Object.keys(bookObj).length) return null;
-      return Math.max(...Object.values(bookObj).map(Number)).toFixed(2);
-    }
-
-    // Build props display
-    let oddsHtml='';
-    if((props||[]).length){
-      const MARKET_LABELS={'pitcher_strikeouts':'K','batter_home_runs':'HR','batter_hits':'H','batter_total_bases':'TB'};
-      const BOOKS=['FanDuel','DraftKings','BetMGM','Caesars'];
-
-      const rows=(props||[]).map(p=>{
-        const mktLabel=MARKET_LABELS[p.market]||p.market;
-        const fdOver=dec(p.over?.FanDuel);
-        const fdUnder=dec(p.under?.FanDuel);
-        const bestOver=bestOdds(p.over);
-        const bestUnder=bestOdds(p.under);
-        const side=sideLabel(p.over?.FanDuel,p.under?.FanDuel);
-        const lastName=p.player.split(' ').pop();
-
-        // Book comparison for over
-        const bookComp=BOOKS.map(b=>{
-          const o=dec(p.over?.[b]);
-          const u=dec(p.under?.[b]);
-          if(!o&&!u) return '';
-          return `<span style="font-size:10px;color:var(--sub)">${b.replace('FanDuel','FD').replace('DraftKings','DK').replace('BetMGM','MGM').replace('Caesars','CZR')}: <span style="color:var(--text)">${o||'—'}/${u||'—'}</span></span>`;
-        }).filter(Boolean).join(' · ');
-
-        return `<div style="padding:6px 0;border-bottom:1px solid var(--border-soft)">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
-            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;color:var(--text)">${lastName}</span>
-            <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--card);padding:1px 5px;border-radius:3px">${mktLabel} ${p.point}</span>
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--live)">▲ ${fdOver||bestOver||'—'}</span>
-            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--blue)">▼ ${fdUnder||bestUnder||'—'}</span>
-            ${side}
-          </div>
-          ${bookComp?`<div style="display:flex;gap:8px;flex-wrap:wrap">${bookComp}</div>`:''}
-        </div>`;
-      }).join('');
-
-      if(rows){
-        oddsHtml=`<div style="margin-bottom:12px;padding:10px 12px;background:var(--card-2);border:1px solid var(--border-soft);border-radius:6px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:8px">
-            📊 Prop Lines — FD ▲Over / ▼Under · Book Comparison
-          </div>
-          ${rows}
-        </div>`;
-      }
-    } else if(!(risk?.signals?.length)){
-      return;
-    }
-
-    // Risk signals with prop line + risk reason
-    const signalsHtml=(risk?.signals||[]).map(s=>{
+    const signalsHtml=risk.signals.map(s=>{
       const mkt=s.type==='PITCHER_K'?'pitcher_strikeouts':'batter_home_runs';
       const prop=getProp(s.player,mkt);
       const fdOver=prop?dec(prop.over?.FanDuel):null;
       const fdUnder=prop?dec(prop.under?.FanDuel):null;
       const propTag=prop
-        ?`<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);margin-left:8px">
-            FD: ▲${fdOver||'—'} / ▼${fdUnder||'—'} @ ${prop.point}
-          </span>`
+        ?`<span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);margin-left:6px">FD: ▲${fdOver||'—'} / ▼${fdUnder||'—'} @ ${prop.point}</span>`
         :'';
-
-      // Risk reason — use server flag if available, else derive from type
-      const serverFlag = prop?.riskFlag || prop?.sharpFlag;
-      const riskReason = serverFlag
-        ? serverFlag === 'FD OVER GENEROUS' ? `FanDuel offering better Over odds than market avg (${dec(prop.avgOver)}) — bettors will take the value`
-        : serverFlag === 'FD UNDER GENEROUS' ? `FanDuel offering better Under odds than market avg (${dec(prop.avgUnder)}) — value on Under`
-        : serverFlag === 'SHARP OVER ACTION' ? `Sharp money already on Over — FD shorter than market (${dec(prop.fdOver)} vs avg ${dec(prop.avgOver)})`
-        : serverFlag === 'SHARP UNDER ACTION' ? `Sharp money on Under — FD shorter than market (${dec(prop.fdUnder)} vs avg ${dec(prop.avgUnder)})`
-        : s.type==='PITCHER_K' ? `High whiff rate + lineup chase tendency = expect Over action`
-        : `Elite barrel rate — expect Anytime HR action`
-        : s.type==='PITCHER_K' ? `High whiff rate + lineup chase tendency = expect Over action`
-        : `Elite barrel rate — expect Anytime HR action`;
-
-      const flagBadge = serverFlag
-        ? `<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;background:${serverFlag.includes('SHARP')?'rgba(245,185,66,0.15)':'var(--red-dim)'};color:${serverFlag.includes('SHARP')?'var(--gold)':'var(--red)'}">${serverFlag}</span>`
-        : '';
+      const riskReason=s.type==='PITCHER_K'
+        ?`High whiff rate + lineup chase tendency = Over value`
+        :`Elite power metrics — Anytime HR worth targeting`;
       return `<div class="risk-signal ${s.level}">
         <div class="risk-signal-top">
           <span class="risk-level ${s.level}">${s.level}</span>
@@ -1695,26 +1640,22 @@ function _renderPregameHTML(g,cached){
           <span style="margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
             <span class="risk-player">${s.player}</span>
             <span class="risk-team">${s.team}</span>
-            ${flagBadge}
             ${propTag}
           </span>
         </div>
         <div class="risk-stat">${s.stat}${s.recentGames?.length?` · Last ${s.recentGames.length} starts: ${s.recentGames.join(', ')} Ks`:''}</div>
         <div class="risk-detail">${s.detail}</div>
-        <div style="font-size:11px;color:var(--gold);margin-top:4px;font-weight:600">📌 Why flagged: ${riskReason}</div>
+        <div style="font-size:11px;color:var(--gold);margin-top:3px;font-weight:600">📌 ${riskReason}</div>
         <div class="risk-note">⚠ ${s.riskNote}</div>
       </div>`;
     }).join('');
-
-    if(!oddsHtml&&!signalsHtml) return;
 
     const html=`<div class="risk-panel">
       <div class="risk-panel-title">
         <span style="background:var(--red-dim);color:var(--red);padding:2px 8px;border-radius:3px;font-size:11px">RISK</span>
         Prop Risk Signals
-        ${risk?.parkNote?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);font-weight:400;margin-left:4px">${risk.parkNote}</span>`:''}
+        ${risk.parkNote?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);font-weight:400;margin-left:4px">${risk.parkNote}</span>`:''}
       </div>
-      ${oddsHtml}
       ${signalsHtml}
     </div>`;
     const el=$('pregameContent');
@@ -1812,8 +1753,7 @@ function statContext(metric,val){
 }
 
 function renderPitcherCard(p, name, teamId, isActive){
-  if(!p) return '<div class="empty">No data</div>';
-  const mix=p.pitchMix||{}, vel=p.velocityByPitch||{};
+  const mix=p?.pitchMix||{}, vel=p?.velocityByPitch||{};
   const activeBadge=isActive
     ? `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--live-dim);color:var(--live);padding:1px 6px;border-radius:3px;margin-left:6px">ON MOUND</span>`
     : `<span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;background:var(--border-soft);color:var(--sub);padding:2px 7px;border-radius:3px;margin-left:6px">NEXT UP</span>`;
@@ -1822,10 +1762,23 @@ function renderPitcherCard(p, name, teamId, isActive){
     <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--text);flex:1">${name||'Pitcher'}</span>
     ${activeBadge}
   </div>`;
-  const hasMix=Object.keys(mix).length>0;
+  const hasMix=p&&Object.keys(mix).length>0;
   const vsR=p.splitsByHandedness?.vsR?.avgAllowed;
   const vsL=p.splitsByHandedness?.vsL?.avgAllowed;
-  if(!hasMix&&!p.whiffRate&&!p.strikeoutRate) return `${header}<div class="empty" style="font-size:12px;padding:8px 0">No Statcast data available</div>`;
+  if(!p) return `${header}<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>`;
+  // MLB Stats API fallback - show basic season stats
+  if(p._mlbFallback){
+    return `${header}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px">
+      ${p.seasonERA!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${p.seasonERA}</div><div style="font-size:10px;color:var(--muted)">ERA</div></div>`:''}
+      ${p.whipSeason!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${p.whipSeason}</div><div style="font-size:10px;color:var(--muted)">WHIP</div></div>`:''}
+    </div>
+    ${p.strikeouts!=null?`<div class="stat-row"><span class="stat-key">Strikeouts</span><span class="stat-val">${p.strikeouts}</span></div>`:''}
+    ${p.walks!=null?`<div class="stat-row"><span class="stat-key">Walks</span><span class="stat-val">${p.walks}</span></div>`:''}
+    ${p.inningsPitched!=null?`<div class="stat-row"><span class="stat-key">Innings Pitched</span><span class="stat-val">${p.inningsPitched}</span></div>`:''}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats API · Savant loading</div>`;
+  }
+  if(!hasMix&&!p.whiffRate&&!p.strikeoutRate) return `${header}<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>`;
   return`${header}
   ${hasMix?`<div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]?vel[t]+' mph':'—'}</div></div>`).join('')}</div>`:''}
   ${p.whiffRate!=null?`<div class="bar-group"><div class="bar-label"><span>Whiff Rate</span><span>${p.whiffRate}%${statContext('whiff',p.whiffRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.whiffRate,100)}%"></div></div></div>`:''}${p.strikeoutRate!=null?`<div class="bar-group"><div class="bar-label"><span>K%</span><span>${p.strikeoutRate}%${statContext('k',p.strikeoutRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.strikeoutRate,100)}%"></div></div></div>`:''}${p.walkRate!=null?`<div class="bar-group"><div class="bar-label"><span>BB%</span><span>${p.walkRate}%${statContext('bb',p.walkRate)}</span></div><div class="bar-track"><div class="bar-fill red" style="width:${Math.min(p.walkRate,100)}%"></div></div></div>`:''}${p.hardHitAllowed!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Allowed</span><span>${p.hardHitAllowed}%${statContext('hardHit',p.hardHitAllowed)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(p.hardHitAllowed,100)}%"></div></div></div>`:''}
@@ -1835,10 +1788,23 @@ function renderPitcherCard(p, name, teamId, isActive){
   ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg allowed</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}`;
 }
 function renderBatterCard(b){
-  if(!b)return'<div class="empty">No data</div>';
+  if(!b) return '<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>';
+  // MLB Stats API fallback
+  if(b._mlbFallback){
+    return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:6px">
+      ${b.avg!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${b.avg}</div><div style="font-size:10px;color:var(--muted)">AVG</div></div>`:''}
+      ${b.obp!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${b.obp}</div><div style="font-size:10px;color:var(--muted)">OBP</div></div>`:''}
+      ${b.slg!=null?`<div style="text-align:center;background:var(--card-2);border-radius:4px;padding:5px"><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:16px;color:var(--text)">${b.slg}</div><div style="font-size:10px;color:var(--muted)">SLG</div></div>`:''}
+    </div>
+    ${b.homeRuns!=null?`<div class="stat-row"><span class="stat-key">Home Runs</span><span class="stat-val">${b.homeRuns}</span></div>`:''}
+    ${b.rbi!=null?`<div class="stat-row"><span class="stat-key">RBI</span><span class="stat-val">${b.rbi}</span></div>`:''}
+    ${b.strikeOuts!=null?`<div class="stat-row"><span class="stat-key">Strikeouts</span><span class="stat-val">${b.strikeOuts}</span></div>`:''}
+    ${b.stolenBases?`<div class="stat-row"><span class="stat-key">Stolen Bases</span><span class="stat-val">${b.stolenBases}</span></div>`:''}
+    <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats API · Savant loading</div>`;
+  }
   const h=b.hotCold?.recentHot;
   const hasData=b.barrelRate!=null||b.hardHitRate!=null||b.whiffTendency!=null;
-  if(!hasData) return '<div class="empty" style="font-size:12px;padding:8px 0">No Statcast data available</div>';
+  if(!hasData) return '<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>';
   const vsR=b.splitVsHandedness?.vsR?.avg;
   const vsL=b.splitVsHandedness?.vsL?.avg;
   const topRow=[];
@@ -1875,9 +1841,10 @@ function renderLineups(data){
       </div>`;
     }).join('');
     return `<div class="lineup-side">
-      <div class="lineup-header">
-        <div style="width:22px;height:22px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.9);border-radius:4px;padding:1px">${logoImg(team.id,20)}</div>
-        <span class="lineup-team-name">${team.abbr}</span>
+      <div class="lineup-header" style="display:grid;grid-template-columns:20px 1fr 32px 88px 100px;gap:6px;align-items:center">
+        <div style="width:20px;height:20px;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,0.9);border-radius:3px;padding:1px">${logoImg(team.id,18)}</div>
+        <span class="lineup-team-name">${team.name||team.abbr}</span>
+        <span></span>
         <span class="lineup-col-today">Today</span>
         <span class="lineup-col-season">AVG / OBP</span>
       </div>
