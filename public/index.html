@@ -345,6 +345,7 @@
     .call-strike{background:var(--red-dim);color:var(--red)}
     .call-ball{background:var(--blue-dim);color:var(--blue)}
     .call-hit{background:var(--live-dim);color:var(--live)}
+    .call-foul{background:var(--gold-dim);color:var(--gold)}
     .call-other{background:var(--border);color:var(--sub)}
     .pitch-cnt{font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)}
 
@@ -636,6 +637,15 @@
           <div class="panel-body" id="gameBuzzStandalone"><div class="empty">—</div></div>
         </div>
 
+        <!-- PITCH BY PITCH — above lineups for constant visibility -->
+        <div class="panel grid-full" id="pitchByPitchPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:4px"></span>Pitch By Pitch</span>
+            <span class="panel-badge" id="pitchBadge"></span>
+          </div>
+          <div class="panel-body" id="pitchByPitch" style="padding:8px 12px"><div class="empty">No pitches yet</div></div>
+        </div>
+
         <!-- ROW 2: LINEUPS (full width) -->
         <div class="panel grid-full" id="lineupsPanel" style="display:none">
           <div class="panel-head">
@@ -647,23 +657,13 @@
           </div>
         </div>
 
-        <!-- ROW 3: AT BAT (wide) — matchup + pitch by pitch | SCORING -->
+        <!-- ROW 3: AT BAT (wide) — matchup only now | SCORING -->
         <div class="panel grid-wide" id="atBatPanel">
           <div class="panel-head">
             <span class="panel-title">At Bat</span>
             <span class="panel-badge" id="matchupHand"></span>
           </div>
-          <div class="panel-body" style="padding:0">
-            <div style="display:grid;grid-template-columns:1fr 1fr;height:100%">
-              <div style="padding:10px 12px;border-right:1px solid var(--border-soft)" id="currentMatchup"><div class="empty">—</div></div>
-              <div style="padding:10px 12px">
-                <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">
-                  Pitch By Pitch <span id="pitchBadge" style="margin-left:6px;font-weight:400"></span>
-                </div>
-                <div id="pitchByPitch"><div class="empty">No pitches yet</div></div>
-              </div>
-            </div>
-          </div>
+          <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
         </div>
 
         <!-- SCORING + ON DECK combined -->
@@ -706,6 +706,20 @@
             <span class="panel-badge" id="liveOddsBadge" style="color:var(--sub)">FanDuel · DraftKings · BetMGM · Caesars</span>
           </div>
           <div class="panel-body" id="liveOddsContent"><div class="empty">—</div></div>
+        </div>
+
+        <!-- BULLPEN TRACKER -->
+        <div class="panel grid-full" id="bullpenPanel" style="display:none">
+          <div class="panel-head">
+            <span class="panel-title">🔥 Bullpen Tracker</span>
+            <span class="panel-badge" id="bullpenBadge"></span>
+          </div>
+          <div class="panel-body" style="padding:0">
+            <div style="display:grid;grid-template-columns:1fr 1fr" id="bullpenContent">
+              <div id="bullpenAway" style="padding:10px 13px;border-right:1px solid var(--border-soft)"></div>
+              <div id="bullpenHome" style="padding:10px 13px"></div>
+            </div>
+          </div>
         </div>
 
         <!-- Hidden panels kept for JS compatibility -->
@@ -1212,18 +1226,24 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
   if(!player||!intel) return '';
   const season=new Date().getFullYear();
 
-  // Hot/cold — use real Savant data if available, otherwise base on last game
+  // Hot/cold — ONLY use recent game results, never Savant season barrel rate
   const hasRealData=intel.hardHitRate!=null||intel.barrelRate!=null;
-  let isHot=intel.hotCold?.recentHot;
-  const trend=intel.hotCold?.trend||0;
+  let isHot=null; // default unknown until we have game data
+  const trend=0;
 
-  // If we have last game data, use it to inform hot/cold
-  if(ctx?.lastGame&&ctx.lastGame.stat){
+  // Determine form from last 3 games if available
+  if(ctx?.recentGames?.length){
+    const recentABs=ctx.recentGames.reduce((a,g)=>a+(g.stat?.atBats??0),0);
+    const recentH=ctx.recentGames.reduce((a,g)=>a+(g.stat?.hits??0),0);
+    const recentHR=ctx.recentGames.reduce((a,g)=>a+(g.stat?.homeRuns??0),0);
+    if(recentABs>=5) isHot=(recentHR>=1)||(recentH/recentABs>=0.280);
+    else if(recentABs>0) isHot=(recentHR>=1)||(recentH/recentABs>=0.300);
+  } else if(ctx?.lastGame&&ctx.lastGame.stat){
     const s=ctx.lastGame.stat;
     const ab=s.atBats??0;
     const h=s.hits??0;
     const hr=s.homeRuns??0;
-    if(ab>0) isHot=(hr>0)||(h/ab>=0.300);
+    if(ab>=3) isHot=(hr>0)||(h/ab>=0.300);
   }
 
   const barrel=intel.barrelRate;
@@ -1464,8 +1484,10 @@ async function renderPregame(g){
           api(`/api/player-log/${batterId}/hitting`),
           api(`/api/player-splits/${batterId}/hitting/${oppTeamId||''}`).catch(()=>null)
         ]);
+        const splits=log.stats?.[0]?.splits||[];
         return {
-          lastGame:(log.stats?.[0]?.splits||[])[0]||null,
+          lastGame:splits[0]||null,
+          recentGames:splits.slice(0,5), // last 5 for form calculation
           vsOpp:(vsTeam?.stats?.[0]?.splits||[])[0]||null
         };
       }catch(e){ return null; }
@@ -1774,8 +1796,20 @@ function explain(t){
   if(!note) return t;
   return `${t}<span style="display:block;margin-top:3px;font-size:12px;color:var(--sub)">${note}</span>`;
 }
-function callClass(c=''){const l=c.toLowerCase();if(l.includes('strike')||l.includes('swinging')||l.includes('called'))return'call-strike';if(l.includes('ball')||l.includes('intentional'))return'call-ball';if(l.includes('hit')||l.includes('foul')||l.includes('in play'))return'call-hit';return'call-other';}
+function callClass(c=''){const l=c.toLowerCase();if(l.includes('strike')||l.includes('swinging')||l.includes('called'))return'call-strike';if(l.includes('ball')||l.includes('intentional'))return'call-ball';if(l.includes('in play'))return'call-hit';if(l.includes('foul'))return'call-foul';return'call-other';}
 function bar(label,pct,cls=''){return`<div class="bar-group"><div class="bar-label"><span>${label}</span><span>${pct}%</span></div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div></div>`;}
+function statContext(metric,val){
+  if(val==null) return '';
+  const avgs={whiff:24,k:22,bb:8.5,hardHit:38,barrel:8,chase:29,contact:78,fps:60};
+  const avg=avgs[metric]; if(!avg) return '';
+  const diff=val-avg; const abs=Math.abs(diff);
+  if(abs<2) return '<span style="color:var(--muted);font-size:10px"> (avg)</span>';
+  const dir=diff>0?'above':'below';
+  const degree=abs>=8?'well ':abs>=4?'':'slightly ';
+  const good=['hardHit','k','barrel','contact'].includes(metric);
+  const color=(good&&diff>0)||(!good&&diff<0)?'var(--live)':'var(--red)';
+  return `<span style="color:${color};font-size:10px"> (${degree}${dir} avg)</span>`;
+}
 
 function renderPitcherCard(p, name, teamId, isActive){
   if(!p) return '<div class="empty">No data</div>';
@@ -1794,11 +1828,11 @@ function renderPitcherCard(p, name, teamId, isActive){
   if(!hasMix&&!p.whiffRate&&!p.strikeoutRate) return `${header}<div class="empty" style="font-size:12px;padding:8px 0">No Statcast data available</div>`;
   return`${header}
   ${hasMix?`<div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]?vel[t]+' mph':'—'}</div></div>`).join('')}</div>`:''}
-  ${p.whiffRate!=null?bar('Whiff Rate',p.whiffRate,'green'):''}${p.strikeoutRate!=null?bar('K%',p.strikeoutRate,'green'):''}${p.walkRate!=null?bar('BB%',p.walkRate,'red'):''}${p.hardHitAllowed!=null?bar('Hard Hit Allowed',p.hardHitAllowed,'amber'):''}
+  ${p.whiffRate!=null?`<div class="bar-group"><div class="bar-label"><span>Whiff Rate</span><span>${p.whiffRate}%${statContext('whiff',p.whiffRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.whiffRate,100)}%"></div></div></div>`:''}${p.strikeoutRate!=null?`<div class="bar-group"><div class="bar-label"><span>K%</span><span>${p.strikeoutRate}%${statContext('k',p.strikeoutRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.strikeoutRate,100)}%"></div></div></div>`:''}${p.walkRate!=null?`<div class="bar-group"><div class="bar-label"><span>BB%</span><span>${p.walkRate}%${statContext('bb',p.walkRate)}</span></div><div class="bar-track"><div class="bar-fill red" style="width:${Math.min(p.walkRate,100)}%"></div></div></div>`:''}${p.hardHitAllowed!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Allowed</span><span>${p.hardHitAllowed}%${statContext('hardHit',p.hardHitAllowed)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(p.hardHitAllowed,100)}%"></div></div></div>`:''}
   ${p.firstPitchStrikeTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Strike</span><span class="stat-val">${p.firstPitchStrikeTendency}%</span></div>`:''}
   ${p.twoStrikePutawayTendency!=null?`<div class="stat-row"><span class="stat-key">2-Strike Putaway</span><span class="stat-val">${p.twoStrikePutawayTendency}%</span></div>`:''}
-  ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg allowed</span><span class="stat-val">${vsR}</span></div>`:''}
-  ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg allowed</span><span class="stat-val">${vsL}</span></div>`:''}`;
+  ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg allowed</span><span class="stat-val">${Number(vsR).toFixed(3)}</span></div>`:''}
+  ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg allowed</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}`;
 }
 function renderBatterCard(b){
   if(!b)return'<div class="empty">No data</div>';
@@ -1809,11 +1843,11 @@ function renderBatterCard(b){
   const vsL=b.splitVsHandedness?.vsL?.avg;
   const topRow=[];
   if(b.barrelRate!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);letter-spacing:1px">BARREL</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>${b.hardHitRate!=null?`<div style="font-size:11px;color:var(--sub)">hard hit ${b.hardHitRate}%</div>`:''}</div>`);
-  if(h!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;color:var(--sub);letter-spacing:1px">FORM</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px;color:${h?'var(--live)':'var(--blue)'}">${h?'🔥 HOT':'❄ COLD'}</div></div>`);
+  // FORM removed from batter card - hotCold is season Savant data not recent form
   return`${topRow.length?`<div style="display:flex;gap:6px;margin-bottom:8px">${topRow.join('')}</div>`:''}
-  ${b.hardHitRate!=null?bar('Hard Hit Rate',b.hardHitRate,'amber'):''}${b.contactTendency!=null?bar('Contact',b.contactTendency,'green'):''}${b.whiffTendency!=null?bar('Whiff',b.whiffTendency,'red'):''}${b.chaseTendency!=null?bar('Chase',b.chaseTendency,'red'):''}
-  ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg</span><span class="stat-val">${vsR}</span></div>`:''}
-  ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg</span><span class="stat-val">${vsL}</span></div>`:''}
+  ${b.hardHitRate!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Rate</span><span>${b.hardHitRate}%${statContext('hardHit',b.hardHitRate)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(b.hardHitRate,100)}%"></div></div></div>`:''}${b.contactTendency!=null?bar('Contact',b.contactTendency,'green'):''}${b.whiffTendency!=null?bar('Whiff',b.whiffTendency,'red'):''}${b.chaseTendency!=null?bar('Chase',b.chaseTendency,'red'):''}
+  ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg</span><span class="stat-val">${Number(vsR).toFixed(3)}</span></div>`:''}
+  ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}
   ${b.firstPitchSwingTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Swing</span><span class="stat-val">${b.firstPitchSwingTendency}%</span></div>`:''}`;
 }
 
@@ -1991,7 +2025,12 @@ async function fetchAndRenderInplay(gamePk, matchup){
       if(pp){
         const s=pp.stats?.pitching||{};
         const season=pp.seasonStats?.pitching||{};
-        const avgHook=Math.round(Number(season.inningsPitched||6)*15)||90;
+        // Realistic hook point: use last game's pitch count as proxy, or 95 as league avg
+        const seasonPitches=Number(season.numberOfPitches||0);
+        const seasonStarts=Number(season.gamesStarted||1);
+        const avgHook=seasonStarts>0&&seasonPitches>0
+          ?Math.round(Math.min(105,Math.max(80,seasonPitches/seasonStarts)))
+          :95; // MLB avg starter hook is ~95 pitches
         const pitchCount=s.numberOfPitches??0;
         const ip=s.inningsPitched||'0.0';
         const k=s.strikeOuts??0;
@@ -2084,6 +2123,44 @@ function renderFieldDiagram(summary, feed){
   const runnerCount=[r.first,r.second,r.third].filter(Boolean).length;
   $('fieldBadge').textContent=runnerCount?`${runnerCount} on · ${outs} out${outs!==1?'s':''}`:
     `${outs} out${outs!==1?'s':''}`;
+}
+
+async function fetchAndRenderBullpen(gamePk, g){
+  const panel=$('bullpenPanel');
+  if(!panel) return;
+  try{
+    const data=await api(`/api/bullpen?gamePk=${gamePk}`);
+    if(!data.away?.length&&!data.home?.length){ panel.style.display='none'; return; }
+
+    function renderSide(relievers, teamAbbr){
+      if(!relievers?.length) return `<div class="empty">No bullpen data</div>`;
+      return `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;color:var(--sub);margin-bottom:8px">${teamAbbr} BULLPEN</div>`+
+        relievers.map(r=>{
+          const active=r.hasAppeared&&r.pitchCount>0;
+          const pitchBar=active?`<div style="width:${Math.min(100,Math.round(r.pitchCount/30*100))}%;height:3px;background:${r.pitchCount>=25?'var(--red)':r.pitchCount>=15?'var(--gold)':'var(--live)'};border-radius:2px;margin-top:3px"></div>`:'';
+          return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-soft)">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px">
+                <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--text)">${r.name.split(' ').pop()}</span>
+                ${active?`<span style="background:var(--red-dim);color:var(--red);font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px">IN GAME</span>`:''}
+              </div>
+              ${active?`<div style="font-size:11px;color:var(--sub)">${r.pitchCount}p · ${r.inningsPitched} IP · ${r.strikeouts}K${r.earnedRuns>0?` · ${r.earnedRuns}ER`:''}</div>`
+                :`<div style="font-size:11px;color:var(--muted)">ERA ${r.era} · ${r.seasonApps} G this season</div>`}
+              ${pitchBar}
+            </div>
+          </div>`;
+        }).join('');
+    }
+
+    $('bullpenAway').innerHTML=renderSide(data.away, data.awayTeam);
+    $('bullpenHome').innerHTML=renderSide(data.home, data.homeTeam);
+    $('bullpenBadge').textContent=`${data.away.filter(r=>r.hasAppeared).length+data.home.filter(r=>r.hasAppeared).length} pitchers used`;
+    panel.style.display='';
+  }catch(e){
+    const panel=$('bullpenPanel');
+    if(panel) panel.style.display='none';
+    console.warn('Bullpen fetch failed:',e?.message);
+  }
 }
 
 async function fetchAndRenderLiveOdds(g){
@@ -2233,6 +2310,8 @@ async function refreshGame(){
     const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='none';
     const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
     const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='none';
+    const _pbp2=$('pitchByPitchPanel');if(_pbp2)_pbp2.style.display='none';
+    const _bp=$('bullpenPanel');if(_bp)_bp.style.display='none';
     // Also clear scoring panel content in preview
     $('scoringPlays').innerHTML='<div class="empty">No scoring plays yet</div>';
     // Clear dual pitcher panel
@@ -2254,6 +2333,8 @@ async function refreshGame(){
   $('specialPlaysPanel').style.display='none'; // shown only if data
   const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='';
   const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='';
+  const _pbp=$('pitchByPitchPanel');if(_pbp)_pbp.style.display='';
+  const _bp2=$('bullpenPanel');if(_bp2)_bp2.style.display='';
   // Show live odds panel if odds API key is configured
   const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='';
 
@@ -2272,6 +2353,8 @@ async function refreshGame(){
 
     // Fetch live odds non-blocking
     fetchAndRenderLiveOdds(g);
+    // Fetch bullpen non-blocking
+    fetchAndRenderBullpen(gamePk, g);
 
     // ── TICKER: enrich plays with special flags then hand to paginator ──
     const enriched=(feed.recentPlays||[]).map(p=>{
