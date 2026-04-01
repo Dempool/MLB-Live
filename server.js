@@ -273,7 +273,12 @@ async function handleApi(reqUrl, res) {
       const exists = fs.existsSync(idxPath);
       const size = exists ? fs.statSync(idxPath).size : 0;
       const firstLine = exists ? fs.readFileSync(idxPath,'utf8').split('\n')[1]?.trim() : '';
-      return sendJson(res, 200, { publicDir, indexPath: idxPath, exists, size, firstLine, nodeVersion: process.version, cwd: process.cwd() });
+      const intelExists = fs.existsSync(intelPath);
+      const intelSize = intelExists ? fs.statSync(intelPath).size : 0;
+      const intelData = intelExists ? JSON.parse(fs.readFileSync(intelPath,'utf8')) : null;
+      const intelPlayers = intelData?.playerCount || 0;
+      const intelGenerated = intelData?.generatedAt || null;
+      return sendJson(res, 200, { publicDir, indexPath: idxPath, exists, size, firstLine, nodeVersion: process.version, cwd: process.cwd(), intel: { exists: intelExists, size: intelSize, players: intelPlayers, generatedAt: intelGenerated } });
     }
 
     if (pathname === '/api/schedule') {
@@ -475,17 +480,24 @@ async function handleApi(reqUrl, res) {
         const s = statsData.stats?.[0]?.splits?.[0]?.stat || {};
         const person = infoData.people?.[0] || {};
         if (Object.keys(s).length) {
+          // K% = strikeOuts / battersFaced, BB% = baseOnBalls / battersFaced
+          const bf = Number(s.battersFaced) || 0;
+          const kPct = bf > 0 ? Math.round((Number(s.strikeOuts||0) / bf) * 100) : null;
+          const bbPct = bf > 0 ? Math.round((Number(s.baseOnBalls||0) / bf) * 100) : null;
           return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: {
             _mlbFallback: true,
             hand: person.pitchHand?.code || 'R',
             era: s.era || null,
             whipSeason: s.whip || null,
-            strikeoutRate: s.strikePercentage ? Math.round(Number(s.strikePercentage)) : null,
-            walkRate: s.walksPer9Inn ? Math.round(Number(s.walksPer9Inn)) : null,
+            strikeoutRate: kPct,
+            walkRate: bbPct,
+            strikeoutsPer9: s.strikeoutsPer9Inn || null,
+            walksPer9: s.walksPer9Inn || null,
             inningsPitched: s.inningsPitched || null,
             strikeouts: s.strikeOuts || null,
             walks: s.baseOnBalls || null,
             hitsAllowed: s.hits || null,
+            battersFaced: bf || null,
             gamesStarted: s.gamesStarted || null,
             seasonERA: s.era || null,
           }});
@@ -511,9 +523,15 @@ async function handleApi(reqUrl, res) {
         const s = statsData.stats?.[0]?.splits?.[0]?.stat || {};
         const person = infoData.people?.[0] || {};
         if (Object.keys(s).length) {
+          const batSideCode = person.batSide?.code || 'R';
+          // Map MLB API bat side codes: L=Left, R=Right, S=Switch
+          const stand = batSideCode === 'S' ? 'S (Switch)' : batSideCode;
+          const pa = Number(s.plateAppearances) || 0;
+          const kPct = pa > 0 ? Math.round((Number(s.strikeOuts||0) / pa) * 100) : null;
+          const bbPct = pa > 0 ? Math.round((Number(s.baseOnBalls||0) / pa) * 100) : null;
           return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: {
             _mlbFallback: true,
-            stand: person.batSide?.code || 'R',
+            stand,
             avg: s.avg || null,
             obp: s.obp || null,
             slg: s.slg || null,
@@ -521,9 +539,13 @@ async function handleApi(reqUrl, res) {
             homeRuns: s.homeRuns || 0,
             rbi: s.rbi || 0,
             strikeOuts: s.strikeOuts || 0,
+            strikeoutPct: kPct,
+            walkPct: bbPct,
             stolenBases: s.stolenBases || 0,
             atBats: s.atBats || 0,
             hits: s.hits || 0,
+            plateAppearances: pa || 0,
+            babip: s.babip || null,
           }});
         }
       } catch(e) {}
