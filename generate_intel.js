@@ -1,5 +1,5 @@
-// v2 - dual year fetch
 #!/usr/bin/env node
+// v2 - dual year fetch
 /**
  * generate_intel.js
  * Fetches real Statcast data from Baseball Savant leaderboard CSVs
