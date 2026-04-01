@@ -449,6 +449,130 @@ async function handleApi(reqUrl, res) {
       return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: profile });
     }
 
+    // Proxy: player game log (avoids CORS on direct MLB API calls from browser)
+    if (pathname.startsWith('/api/player-log/')) {
+      const parts = pathname.split('/'); // /api/player-log/{playerId}/{group}
+      const playerId = parts[3];
+      const group = parts[4] || 'hitting';
+      const season = new Date().getFullYear();
+      const url = `${MLB_BASE}/people/${playerId}/stats?stats=gameLog&group=${group}&season=${season}&limit=5`;
+      const data = await fetchJson(url);
+      return sendJson(res, 200, data);
+    }
+
+    // Proxy: player vs team splits
+    if (pathname.startsWith('/api/player-splits/')) {
+      const parts = pathname.split('/'); // /api/player-splits/{playerId}/{group}/{oppTeamId}
+      const playerId = parts[3];
+      const group = parts[4] || 'hitting';
+      const oppTeamId = parts[5] || '';
+      const season = new Date().getFullYear();
+      const url = `${MLB_BASE}/people/${playerId}/stats?stats=vsTeam&group=${group}&season=${season}${oppTeamId ? `&opposingTeamId=${oppTeamId}` : ''}`;
+      const data = await fetchJson(url);
+      return sendJson(res, 200, data);
+    }
+
+    // Pregame risk signals — combines savant intel + matchup context for FanDuel risk panel
+    if (pathname === '/api/pregame-risk') {
+      if (!gamePk) return sendJson(res, 400, { error: 'Missing gamePk' });
+      const intel = loadIntel().players || {};
+      const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
+      const gd = gameData.gameData || {};
+      const season = new Date().getFullYear();
+
+      const awayId = gd.teams?.away?.id;
+      const homeId = gd.teams?.home?.id;
+      const awayAbbr = gd.teams?.away?.abbreviation || '';
+      const homeAbbr = gd.teams?.home?.abbreviation || '';
+      const venue = gd.venue?.name || '';
+      const awayStarter = gd.probablePitchers?.away || null;
+      const homeStarter = gd.probablePitchers?.home || null;
+
+      // Park factor lookup (rough index — top HR parks)
+      const HR_PARKS = { 'Coors Field': 1.35, 'Great American Ball Park': 1.18, 'Globe Life Field': 1.14,
+        'Fenway Park': 1.12, 'Yankee Stadium': 1.11, 'Guaranteed Rate Field': 1.10,
+        'Truist Park': 1.08, 'Chase Field': 1.07, 'PNC Park': 0.91, 'Oracle Park': 0.88,
+        'Kauffman Stadium': 0.90, 'Petco Park': 0.89, 'T-Mobile Park': 0.88 };
+      const parkHRFactor = HR_PARKS[venue] || 1.0;
+      const parkNote = parkHRFactor >= 1.10 ? `${venue} is a hitter-friendly park (HR factor ${parkHRFactor})` :
+                       parkHRFactor <= 0.91 ? `${venue} suppresses HRs (factor ${parkHRFactor})` : null;
+
+      const signals = [];
+
+      // Pitcher K signals
+      const buildKSignal = async (pitcher, oppTeamId, side) => {
+        if (!pitcher?.id) return null;
+        const p = ensurePlayerIntel(intel, pitcher.id).pitcher;
+        if (p._isFallback) return null;
+        const whiff = p.whiffRate;
+        const k = p.strikeoutRate;
+        if (!whiff || !k) return null;
+        // Get opponent lineup chase %
+        try {
+          const logData = await fetchJson(`${MLB_BASE}/people/${pitcher.id}/stats?stats=gameLog&group=pitching&season=${season}&limit=5`);
+          const games = logData.stats?.[0]?.splits || [];
+          const recentKs = games.map(g => g.stat?.strikeOuts || 0);
+          const avgKs = recentKs.length ? (recentKs.reduce((a,b)=>a+b,0)/recentKs.length).toFixed(1) : null;
+          const trend = recentKs.length >= 3 ? (recentKs[0] > recentKs[recentKs.length-1] ? 'rising' : recentKs[0] < recentKs[recentKs.length-1] ? 'falling' : 'steady') : null;
+          const isKProp = whiff >= 28 && k >= 24;
+          if (isKProp) {
+            signals.push({
+              type: 'PITCHER_K',
+              level: whiff >= 32 ? 'HIGH' : 'MEDIUM',
+              player: pitcher.fullName,
+              team: side === 'away' ? awayAbbr : homeAbbr,
+              stat: `K% ${k} · Whiff ${whiff}%`,
+              detail: `${avgKs ? `Avg ${avgKs} Ks last ${recentKs.length} starts` : 'Strong K rate'}${trend ? `, ${trend} trend` : ''}. Expect heavy Over action on K prop.`,
+              recentGames: recentKs,
+              riskNote: `K line will attract Over bets — whiff rate in top tier, lineup likely to chase.`
+            });
+          }
+        } catch(e) {}
+      };
+
+      // Batter HR signals
+      const buildHRSignal = async (teamId, oppStarterId, teamAbbr) => {
+        try {
+          const rosterData = await fetchJson(`${MLB_BASE}/teams/${teamId}/roster?rosterType=active`);
+          const roster = rosterData.roster || [];
+          for (const player of roster.slice(0, 13)) {
+            const b = ensurePlayerIntel(intel, player.person.id).batter;
+            if (b._isFallback || !b.barrelRate || !b.hardHitRate) continue;
+            if (b.barrelRate >= 10 || b.hardHitRate >= 50) {
+              try {
+                const logData = await fetchJson(`${MLB_BASE}/people/${player.person.id}/stats?stats=gameLog&group=hitting&season=${season}&limit=5`);
+                const games = logData.stats?.[0]?.splits || [];
+                const recentHRs = games.reduce((a,g)=>a+(g.stat?.homeRuns||0),0);
+                if (b.barrelRate >= 10) {
+                  signals.push({
+                    type: 'BATTER_HR',
+                    level: b.barrelRate >= 14 ? 'HIGH' : 'MEDIUM',
+                    player: player.person.fullName,
+                    team: teamAbbr,
+                    stat: `Barrel ${b.barrelRate}% · Hard Hit ${b.hardHitRate}%`,
+                    detail: `${recentHRs > 0 ? `${recentHRs} HR last 5 games — in form. ` : ''}${parkHRFactor >= 1.10 ? parkNote+'. ' : ''}Elite barrel rate signals HR prop value.`,
+                    riskNote: `Anytime HR prop likely to attract action${parkHRFactor >= 1.10 ? ' — park amplifies risk' : ''}.`
+                  });
+                }
+              } catch(e) {}
+            }
+          }
+        } catch(e) {}
+      };
+
+      await Promise.all([
+        buildKSignal(awayStarter, homeId, 'away'),
+        buildKSignal(homeStarter, awayId, 'home'),
+        buildHRSignal(awayId, homeStarter?.id, awayAbbr),
+        buildHRSignal(homeId, awayStarter?.id, homeAbbr),
+      ]);
+
+      // Sort by risk level
+      const order = { HIGH: 0, MEDIUM: 1 };
+      signals.sort((a,b) => (order[a.level]||2) - (order[b.level]||2));
+
+      return sendJson(res, 200, { gamePk: Number(gamePk), venue, parkHRFactor, parkNote, signals });
+    }
 
     return sendJson(res, 404, { error: 'Not found' });
   } catch (err) {
