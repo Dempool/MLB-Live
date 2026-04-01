@@ -129,7 +129,11 @@ function getCurrentPitchEvents(liveData) {
     call: evt.details?.call?.description,
     count: `${evt.count?.balls ?? 0}-${evt.count?.strikes ?? 0}`,
     startSpeed: evt.pitchData?.startSpeed || null,
-    zone: evt.pitchData?.zone || null
+    zone: evt.pitchData?.zone || null,
+    exitVelocity: evt.hitData?.launchSpeed ? Math.round(evt.hitData.launchSpeed * 10) / 10 : null,
+    launchAngle: evt.hitData?.launchAngle ? Math.round(evt.hitData.launchAngle) : null,
+    totalDistance: evt.hitData?.totalDistance ? Math.round(evt.hitData.totalDistance) : null,
+    hardHit: (evt.hitData?.launchSpeed || 0) >= 95
   }));
   return { currentPlay, events, allPlays };
 }
@@ -280,13 +284,33 @@ async function handleApi(reqUrl, res) {
       const gameData = await fetchJson(`${LIVE_BASE}/game/${gamePk}/feed/live`);
       const live = gameData.liveData || {};
       const { currentPlay, events, allPlays } = getCurrentPitchEvents(live);
-      const recentPlays = allPlays.slice(-8).map((play) => ({
-        atBatIndex: play.atBatIndex,
-        inning: play.about?.inning,
-        half: play.about?.halfInning,
-        description: play.result?.description,
-        scoringPlay: Boolean(play.about?.isScoringPlay)
-      }));
+      const recentPlays = allPlays.slice(-12).map((play) => {
+        const desc = play.result?.description || '';
+        const eventType = play.result?.eventType || play.result?.event || '';
+        const isSteal = /stolen base|steals|steal of/i.test(desc) || /stolen_base/i.test(eventType);
+        const isCaughtStealing = /caught stealing/i.test(desc) || /caught_stealing/i.test(eventType);
+        const isDoublePlay = /double play/i.test(desc) || /double_play/i.test(eventType);
+        const isSpecial = /challenge|overturned|balk|hit by pitch|wild pitch|passed ball|ejection/i.test(desc);
+        const bipEvent = (play.playEvents || []).find(e => e.hitData?.launchSpeed);
+        return {
+          atBatIndex: play.atBatIndex,
+          inning: play.about?.inning,
+          half: play.about?.halfInning,
+          description: desc,
+          scoringPlay: Boolean(play.about?.isScoringPlay),
+          startTime: play.about?.startTime || null,
+          endTime: play.about?.endTime || null,
+          isSteal,
+          isCaughtStealing,
+          isDoublePlay,
+          isSpecial,
+          eventType,
+          exitVelocity: bipEvent?.hitData?.launchSpeed ? Math.round(bipEvent.hitData.launchSpeed * 10) / 10 : null,
+          launchAngle: bipEvent?.hitData?.launchAngle ? Math.round(bipEvent.hitData.launchAngle) : null,
+          totalDistance: bipEvent?.hitData?.totalDistance ? Math.round(bipEvent.hitData.totalDistance) : null,
+          hardHit: (bipEvent?.hitData?.launchSpeed || 0) >= 95
+        };
+      });
       return sendJson(res, 200, {
         gamePk: Number(gamePk),
         pitchEvents: events,
