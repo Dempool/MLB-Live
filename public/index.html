@@ -268,13 +268,13 @@
     .spotlight-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px}
     .spotlight-card.is-starter::before{background:var(--blue)}
     .spotlight-card.is-hot::before{background:var(--live)}
-    .spotlight-card.is-cold::before{background:var(--red)}
     .spotlight-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
     .spotlight-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:17px;color:var(--text)}
     .spotlight-badge{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:3px;flex-shrink:0;margin-left:6px}
     .badge-hot{background:var(--live-dim);color:var(--live)}
-    .badge-cold{background:var(--red-dim);color:var(--red)}
+    .badge-cold{background:var(--blue-dim);color:var(--blue)}
     .badge-starter{background:var(--blue-dim);color:var(--blue)}
+    .spotlight-card.is-cold::before{background:var(--blue)}
     .spotlight-stat{font-size:13px;color:var(--text);line-height:1.6}
     .spotlight-stat strong{color:var(--gold)}
     .spotlight-extra{font-size:13px;color:var(--sub);margin-top:3px;line-height:1.5}
@@ -1164,8 +1164,142 @@ function spotlightPitcher(player,intel,ctx,oppAbbr){
 function spotlightBatter(player,intel,ctx,oppAbbr){
   if(!player||!intel) return '';
   const season=new Date().getFullYear();
-  const isHot=intel.hotCold?.recentHot;
+
+  // Hot/cold — use real Savant data if available, otherwise base on last game
+  const hasRealData=intel.hardHitRate!=null||intel.barrelRate!=null;
+  let isHot=intel.hotCold?.recentHot;
   const trend=intel.hotCold?.trend||0;
+
+  // If we have last game data, use it to inform hot/cold
+  if(ctx?.lastGame&&ctx.lastGame.stat){
+    const s=ctx.lastGame.stat;
+    const ab=s.atBats??0;
+    const h=s.hits??0;
+    const hr=s.homeRuns??0;
+    if(ab>0) isHot=(hr>0)||(h/ab>=0.300);
+  }
+
+  const barrel=intel.barrelRate;
+  const hardHit=intel.hardHitRate;
+  const chase=intel.chaseTendency;
+  const fps=intel.firstPitchSwingTendency;
+  const contact=intel.contactTendency;
+  const whiff=intel.whiffTendency;
+  const avgEV=intel.avgEV;
+  const xBA=intel.expectedStats?.xBA;
+  const xSLG=intel.expectedStats?.xSLG;
+  const xwOBA=intel.expectedStats?.xwOBA;
+  const vsR=intel.splitVsHandedness?.vsR?.avg;
+  const vsL=intel.splitVsHandedness?.vsL?.avg;
+  const stand=intel.stand||'R';
+  const name=player.fullName||'Batter';
+  const isFast=intel.isFastRunner;
+
+  // Profile flags — only fire if we have real data
+  const isElitePower=barrel!=null&&barrel>=12;
+  const isSolidContact=hardHit!=null&&hardHit>=48&&!isElitePower;
+  const isContactHitter=contact!=null&&contact>=78&&!isElitePower;
+  const isChaser=chase!=null&&chase>=34;
+  const isDisciplined=chase!=null&&chase<24&&(whiff==null||whiff<20);
+
+  // Build last game summary for use in descriptions
+  const lg=ctx?.lastGame?.stat||{};
+  const lgAB=lg.atBats??0;
+  const lgH=lg.hits??0;
+  const lgHR=lg.homeRuns??0;
+  const lgRBI=lg.rbi??0;
+  const lgK=lg.strikeOuts??0;
+  const hasLastGame=lgAB>0;
+
+  let lines=[];
+  if(state.level==='new'){
+    // Lead with what we actually know — last game first if available
+    if(hasLastGame){
+      const lgOpp=ctx.lastGame.opponent?.abbreviation||'';
+      if(lgHR>0) lines.push(`Last game${lgOpp?` vs ${lgOpp}`:''}: <strong>${lgH}/${lgAB}</strong> with a <strong>home run</strong>${lgRBI>1?` and ${lgRBI} RBI`:''} — came in hot.`);
+      else if(lgH>=2) lines.push(`Last game${lgOpp?` vs ${lgOpp}`:''}: <strong>${lgH}/${lgAB}</strong> — solid outing at the plate.`);
+      else if(lgAB>=3&&lgH===0) lines.push(`Last game${lgOpp?` vs ${lgOpp}`:''}: <strong>0/${lgAB}</strong>${lgK>1?` with ${lgK} strikeouts`:''} — looking for a bounce-back today.`);
+      else lines.push(`Last game${lgOpp?` vs ${lgOpp}`:''}: <strong>${lgH}/${lgAB}</strong>${lgRBI>0?`, ${lgRBI} RBI`:''}.`);
+    }
+    // Power/contact profile from Savant — only if we have real data
+    if(isElitePower) lines.push(`When he connects, watch out — <strong>${barrel}% barrel rate</strong> means he hits the ball with serious authority. Real home run danger.`);
+    else if(isSolidContact) lines.push(`Consistent hard contact — hits it hard <strong>${hardHit}%</strong> of the time${avgEV?` (avg exit velo <strong>${avgEV} mph</strong>)`:''}.`);
+    else if(isContactHitter) lines.push(`Tough to strike out — makes contact <strong>${contact}%</strong> of the time. Gets the bat on the ball.`);
+    // Plate discipline
+    if(isChaser) lines.push(`Tends to chase outside the zone (<strong>${chase}%</strong> chase rate) — pitchers will work him with breaking balls early.`);
+    else if(isDisciplined) lines.push(`Very disciplined eye — only chases <strong>${chase}%</strong> of pitches outside the zone. Pitchers have to throw strikes.`);
+    if(fps!=null&&fps>=32) lines.push(`Aggressive on first pitches (<strong>${fps}%</strong> swing rate) — can't give him an easy one to start.`);
+    if(isFast===true) lines.push(`Quick on the bases — stolen base threat whenever he gets on.`);
+    // If no real Savant data at all
+    if(!hasRealData&&!hasLastGame) lines.push(`Statcast data loading — check back shortly.`);
+
+  } else if(state.level==='intermediate'){
+    const formStr=isHot===true?`🔥 Hot`:isHot===false?`❄ Cold`:`—`;
+    const statBits=[formStr];
+    if(hardHit!=null) statBits.push(`Hard Hit <strong>${hardHit}%</strong>`);
+    if(barrel!=null) statBits.push(`Barrel <strong>${barrel}%</strong>`);
+    if(avgEV!=null) statBits.push(`Avg EV <strong>${avgEV} mph</strong>`);
+    lines.push(statBits.join(' · '));
+    const discBits=[];
+    if(chase!=null) discBits.push(`Chase <strong>${chase}%</strong>`);
+    if(contact!=null) discBits.push(`Contact <strong>${contact}%</strong>`);
+    if(whiff!=null) discBits.push(`Whiff <strong>${whiff}%</strong>`);
+    if(fps!=null) discBits.push(`FPS <strong>${fps}%</strong>`);
+    if(discBits.length) lines.push(discBits.join(' · '));
+    const expBits=[];
+    if(xBA!=null) expBits.push(`xBA <strong>${xBA}</strong>`);
+    if(xSLG!=null) expBits.push(`xSLG <strong>${xSLG}</strong>`);
+    if(xwOBA!=null) expBits.push(`xwOBA <strong>${xwOBA}</strong>`);
+    if(expBits.length) lines.push(expBits.join(' · '));
+    if(vsR&&vsL) lines.push(`vs R: <strong>${vsR}</strong> · vs L: <strong>${vsL}</strong>`);
+    if(isElitePower) lines.push(`Elite barrel rate — premium power threat.`);
+    else if(isChaser) lines.push(`Chase tendency — exploitable with breaking balls away.`);
+    else if(isDisciplined) lines.push(`Disciplined — must throw strikes.`);
+
+  } else {
+    lines.push(`${isHot===true?'HOT':isHot===false?'COLD':'—'} · Hard Hit ${hardHit??'—'}% · Barrel ${barrel??'—'}%${avgEV?` · EV ${avgEV}mph`:''}`);
+    lines.push(`Chase ${chase??'—'}% · Contact ${contact??'—'}% · Whiff ${whiff??'—'}% · FPS ${fps??'—'}%`);
+    if(xwOBA||xBA) lines.push(`xBA ${xBA??'—'} · xSLG ${xSLG??'—'} · xwOBA ${xwOBA??'—'}${vsR?` · vsR ${vsR} vsL ${vsL??'—'}`:''}`);
+  }
+
+  // ── LAST GAME + VS OPP ──
+  if(hasLastGame&&state.level!=='new'){
+    const lgOpp=ctx.lastGame.opponent?.abbreviation||'';
+    const lgDate=ctx.lastGame.date?new Date(ctx.lastGame.date).toLocaleDateString([],{month:'short',day:'numeric'}):'';
+    if(state.level==='intermediate'){
+      lines.push(`Last game${lgOpp?` vs ${lgOpp}`:''} (${lgDate}): ${lgH}/${lgAB}${lgHR>0?` ${lgHR}HR`:''}${lgRBI>0?` ${lgRBI}RBI`:''}${lgK>0?` ${lgK}K`:''}`);
+    } else {
+      lines.push(`Last: ${lgH}/${lgAB}${lgHR>0?` ${lgHR}HR`:''}${lgRBI>0?` ${lgRBI}RBI`:''}${lgK>0?` ${lgK}K`:''}${lgOpp?` vs ${lgOpp}`:''}`);
+    }
+  }
+  if(ctx?.vsOpp&&oppAbbr){
+    const s=ctx.vsOpp.stat||{};
+    const ab=s.atBats??0;
+    const avg=s.avg||null;
+    const hr=s.homeRuns??0;
+    const ops=s.ops||null;
+    if(ab>=5){
+      if(state.level==='new') lines.push(`This season vs ${oppAbbr}: batting <strong>${avg}</strong> in ${ab} at-bats${hr>0?` with ${hr} home run${hr>1?'s':''}`:''}.`);
+      else if(state.level==='intermediate') lines.push(`vs ${oppAbbr} ${season}: ${avg} AVG · ${ab} AB${hr>0?` · ${hr}HR`:''}${ops?` · ${ops} OPS`:''}`);
+      else lines.push(`vs ${oppAbbr}: ${avg}/${ab}AB${hr>0?` ${hr}HR`:''}${ops?` ${ops}OPS`:''}`);
+    }
+  }
+
+  // Hot = green, Cold = blue (not red — red is for danger/alerts)
+  const cls=isHot===true?'is-hot':'is-cold';
+  const badge=isHot===true?'badge-hot':'badge-cold';
+  const badgeLbl=isHot===true?'🔥 HOT':'❄ COLD';
+  return `<div class="spotlight-card ${cls}">
+    <div class="spotlight-top">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="spotlight-name">${name}</span>
+        ${stand?`<span style="font-size:11px;color:var(--sub);font-family:'DM Mono',monospace">Bats ${stand}</span>`:''}
+      </div>
+      <span class="spotlight-badge ${badge}">${badgeLbl}</span>
+    </div>
+    ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
+  </div>`;
+}
   const barrel=intel.barrelRate;
   const hardHit=intel.hardHitRate;
   const chase=intel.chaseTendency;
@@ -1277,20 +1411,6 @@ function spotlightBatter(player,intel,ctx,oppAbbr){
     }
   }
 
-  const cls=isHot?'is-hot':'is-cold';
-  const badge=isHot?'badge-hot':'badge-cold';
-  const badgeLbl=isHot?'🔥 HOT':'❄ COLD';
-  return `<div class="spotlight-card ${cls}">
-    <div class="spotlight-top">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="spotlight-name">${name}</span>
-        ${stand?`<span style="font-size:11px;color:var(--sub);font-family:'DM Mono',monospace">Bats ${stand}</span>`:''}
-      </div>
-      <span class="spotlight-badge ${badge}">${badgeLbl}</span>
-    </div>
-    ${lines.map((l,i)=>`<div class="${i===0?'spotlight-stat':'spotlight-extra'}">${l}</div>`).join('')}
-  </div>`;
-}
 
 /* Name cache so we don't re-fetch the same player twice */
 const _nameCache={};
