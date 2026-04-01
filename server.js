@@ -605,13 +605,63 @@ async function handleApi(reqUrl, res) {
       return sendJson(res, 200, { gamePk: Number(gamePk), venue, parkHRFactor, parkNote, signals });
     }
 
+    // ── ODDS API ──
+    // Live in-play odds with multi-book comparison
+    if (pathname === '/api/odds/live') {
+      if (!ODDS_API_KEY) return sendJson(res, 200, { error: 'no_key', games: [] });
+      try {
+        // Fetch all games from last 6 hours to now+1hour to catch in-progress
+        const from = new Date(Date.now() - 6*60*60*1000).toISOString();
+        const to = new Date(Date.now() + 60*60*1000).toISOString();
+        const data = await fetchJson(
+          `${ODDS_API_BASE}/sports/baseball_mlb/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=decimal&commenceTimeFrom=${from}&commenceTimeTo=${to}&bookmakers=fanduel,draftkings,betmgm,caesars`
+        );
+        const games = (data || []).map(game => {
+          const markets = {};
+          for (const bm of (game.bookmakers || [])) {
+            for (const market of (bm.markets || [])) {
+              if (!markets[market.key]) markets[market.key] = {};
+              for (const outcome of (market.outcomes || [])) {
+                const key = outcome.name;
+                if (!markets[market.key][key]) markets[market.key][key] = { point: outcome.point||null, books: {} };
+                markets[market.key][key].books[bm.title] = outcome.price;
+              }
+            }
+          }
+          // Flag any markets where books differ significantly (>5% spread)
+          const flags = [];
+          for (const [mkt, outcomes] of Object.entries(markets)) {
+            for (const [outcomeName, data] of Object.entries(outcomes)) {
+              const prices = Object.values(data.books).filter(Boolean);
+              if (prices.length >= 2) {
+                const max = Math.max(...prices), min = Math.min(...prices);
+                if (max/min > 1.05) flags.push(`${mkt} ${outcomeName}: spread ${min}–${max}`);
+              }
+            }
+          }
+          return {
+            id: game.id,
+            home: game.home_team,
+            away: game.away_team,
+            commence: game.commence_time,
+            isLive: new Date(game.commence_time).getTime() <= Date.now(),
+            markets,
+            flags
+          };
+        });
+        return sendJson(res, 200, { games });
+      } catch(e) {
+        return sendJson(res, 200, { error: e.message, games: [] });
+      }
+    }
+
     // ── ODDS API ──────────────────────────────────────────────────────────
     // Returns today's MLB game odds (moneyline + totals) from The Odds API
     if (pathname === '/api/odds/games') {
       if (!ODDS_API_KEY) return sendJson(res, 200, { error: 'no_key', games: [] });
       try {
         const data = await fetchJson(
-          `${ODDS_API_BASE}/sports/baseball_mlb/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,totals&oddsFormat=american&bookmakers=fanduel`
+          `${ODDS_API_BASE}/sports/baseball_mlb/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,totals&oddsFormat=decimal&bookmakers=fanduel,draftkings,betmgm,caesars`
         );
         return sendJson(res, 200, { games: data || [] });
       } catch(e) {
@@ -626,24 +676,47 @@ async function handleApi(reqUrl, res) {
       if (!eventId) return sendJson(res, 400, { error: 'Missing eventId' });
       try {
         const data = await fetchJson(
-          `${ODDS_API_BASE}/sports/baseball_mlb/events/${eventId}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=pitcher_strikeouts,batter_home_runs,batter_hits,batter_total_bases&oddsFormat=american&bookmakers=fanduel`
+          `${ODDS_API_BASE}/sports/baseball_mlb/events/${eventId}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=pitcher_strikeouts,batter_home_runs,batter_hits,batter_total_bases&oddsFormat=decimal&bookmakers=fanduel,draftkings,betmgm,caesars`
         );
-        // Flatten into easy-to-use prop list
-        const props = [];
+        // Group by player+market across all books for comparison
+        const propsMap = {};
         for (const bm of (data?.bookmakers || [])) {
           for (const market of (bm.markets || [])) {
             for (const outcome of (market.outcomes || [])) {
-              props.push({
+              const player = outcome.description || outcome.name;
+              const key = player + '|' + market.key;
+              if (!propsMap[key]) propsMap[key] = {
                 market: market.key,
-                player: outcome.description || outcome.name,
-                name: outcome.name, // Over/Under
+                player,
                 point: outcome.point,
-                price: outcome.price,
-                bookmaker: bm.title
-              });
+                over: {}, under: {}
+              };
+              if (outcome.name === 'Over') propsMap[key].over[bm.title] = outcome.price;
+              if (outcome.name === 'Under') propsMap[key].under[bm.title] = outcome.price;
+              if (outcome.point) propsMap[key].point = outcome.point;
             }
           }
         }
+        const props = Object.values(propsMap).map(p => {
+          const fdOver = p.over['FanDuel'];
+          const fdUnder = p.under['FanDuel'];
+          const allOvers = Object.values(p.over).filter(Boolean);
+          const allUnders = Object.values(p.under).filter(Boolean);
+          const avgOver = allOvers.length ? Math.round(allOvers.reduce((a,b)=>a+b,0)/allOvers.length*100)/100 : null;
+          const avgUnder = allUnders.length ? Math.round(allUnders.reduce((a,b)=>a+b,0)/allUnders.length*100)/100 : null;
+
+          // Risk flag: FD offering better odds than market = attractive to bettors = exposure risk
+          let riskFlag = null;
+          if (fdOver && avgOver && fdOver > avgOver * 1.03) riskFlag = 'FD OVER GENEROUS';
+          else if (fdUnder && avgUnder && fdUnder > avgUnder * 1.03) riskFlag = 'FD UNDER GENEROUS';
+
+          // Sharp flag: FD notably shorter than market = sharp money hit FD already
+          let sharpFlag = null;
+          if (fdOver && avgOver && fdOver < avgOver * 0.96) sharpFlag = 'SHARP OVER ACTION';
+          else if (fdUnder && avgUnder && fdUnder < avgUnder * 0.96) sharpFlag = 'SHARP UNDER ACTION';
+
+          return { ...p, fdOver, fdUnder, avgOver, avgUnder, riskFlag, sharpFlag };
+        });
         return sendJson(res, 200, { eventId, props });
       } catch(e) {
         return sendJson(res, 200, { error: e.message, props: [] });
