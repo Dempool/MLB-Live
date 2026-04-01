@@ -465,6 +465,32 @@ async function handleApi(reqUrl, res) {
       if (player?.pitcher && !player.pitcher._isFallback) {
         return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: player.pitcher });
       }
+      // Fall back to MLB Stats API season stats
+      try {
+        const season = new Date().getFullYear();
+        const [statsData, infoData] = await Promise.all([
+          fetchJson(`${MLB_BASE}/people/${playerId}/stats?stats=season&group=pitching&season=${season}`),
+          fetchJson(`${MLB_BASE}/people/${playerId}`)
+        ]);
+        const s = statsData.stats?.[0]?.splits?.[0]?.stat || {};
+        const person = infoData.people?.[0] || {};
+        if (Object.keys(s).length) {
+          return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: {
+            _mlbFallback: true,
+            hand: person.pitchHand?.code || 'R',
+            era: s.era || null,
+            whipSeason: s.whip || null,
+            strikeoutRate: s.strikePercentage ? Math.round(Number(s.strikePercentage)) : null,
+            walkRate: s.walksPer9Inn ? Math.round(Number(s.walksPer9Inn)) : null,
+            inningsPitched: s.inningsPitched || null,
+            strikeouts: s.strikeOuts || null,
+            walks: s.baseOnBalls || null,
+            hitsAllowed: s.hits || null,
+            gamesStarted: s.gamesStarted || null,
+            seasonERA: s.era || null,
+          }});
+        }
+      } catch(e) {}
       return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: null });
     }
 
@@ -472,11 +498,35 @@ async function handleApi(reqUrl, res) {
       const playerId = pathname.split('/').pop();
       const intel = loadIntel().players || {};
       const player = intel[String(playerId)];
-      // If we have real data (not fallback), return it
       if (player?.batter && !player.batter._isFallback) {
         return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: player.batter });
       }
-      // No real data - return null stats so frontend shows last game context only
+      // Fall back to MLB Stats API season stats
+      try {
+        const season = new Date().getFullYear();
+        const [statsData, infoData] = await Promise.all([
+          fetchJson(`${MLB_BASE}/people/${playerId}/stats?stats=season&group=hitting&season=${season}`),
+          fetchJson(`${MLB_BASE}/people/${playerId}`)
+        ]);
+        const s = statsData.stats?.[0]?.splits?.[0]?.stat || {};
+        const person = infoData.people?.[0] || {};
+        if (Object.keys(s).length) {
+          return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: {
+            _mlbFallback: true,
+            stand: person.batSide?.code || 'R',
+            avg: s.avg || null,
+            obp: s.obp || null,
+            slg: s.slg || null,
+            ops: s.ops || null,
+            homeRuns: s.homeRuns || 0,
+            rbi: s.rbi || 0,
+            strikeOuts: s.strikeOuts || 0,
+            stolenBases: s.stolenBases || 0,
+            atBats: s.atBats || 0,
+            hits: s.hits || 0,
+          }});
+        }
+      } catch(e) {}
       return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: null });
     }
 
