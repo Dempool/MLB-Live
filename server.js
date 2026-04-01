@@ -255,7 +255,9 @@ function serveStatic(reqPath, res) {
     }
     const ext = path.extname(absolutePath).toLowerCase();
     const headers = { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' };
-    if (ext === '.html') headers['Cache-Control'] = 'no-store';
+    if (ext === '.html') headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, proxy-revalidate';
+    if (ext === '.html') headers['Pragma'] = 'no-cache';
+    if (ext === '.html') headers['Surrogate-Control'] = 'no-store';
     res.writeHead(200, headers);
     res.end(data);
   });
@@ -266,6 +268,14 @@ async function handleApi(reqUrl, res) {
   const gamePk = reqUrl.searchParams.get('gamePk');
 
   try {
+    if (pathname === '/api/debug') {
+      const idxPath = path.join(publicDir, 'index.html');
+      const exists = fs.existsSync(idxPath);
+      const size = exists ? fs.statSync(idxPath).size : 0;
+      const firstLine = exists ? fs.readFileSync(idxPath,'utf8').split('\n')[1]?.trim() : '';
+      return sendJson(res, 200, { publicDir, indexPath: idxPath, exists, size, firstLine, nodeVersion: process.version, cwd: process.cwd() });
+    }
+
     if (pathname === '/api/schedule') {
       const today = getEtDateString();
       const yesterdayDate = new Date();
