@@ -246,7 +246,7 @@ function serveStatic(reqPath, res) {
       if (reqPath !== '/') {
         fs.readFile(path.join(publicDir, 'index.html'), (idxErr, idxData) => {
           if (idxErr) { res.writeHead(404); res.end('Not found'); return; }
-          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
           res.end(idxData);
         });
         return;
@@ -254,7 +254,9 @@ function serveStatic(reqPath, res) {
       res.writeHead(404); res.end('Not found'); return;
     }
     const ext = path.extname(absolutePath).toLowerCase();
-    res.writeHead(200, { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' });
+    const headers = { 'Content-Type': mimeTypes[ext] || 'application/octet-stream' };
+    if (ext === '.html') headers['Cache-Control'] = 'no-store';
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
@@ -661,6 +663,19 @@ async function handleApi(reqUrl, res) {
       }
     }
 
+    // Debug route - shows what file is being served
+    if (pathname === '/api/debug') {
+      const indexPath = path.join(publicDir, 'index.html');
+      const exists = fs.existsSync(indexPath);
+      const size = exists ? fs.statSync(indexPath).size : 0;
+      const firstLine = exists ? fs.readFileSync(indexPath, 'utf8').split('\n')[1]?.trim() : 'N/A';
+      return sendJson(res, 200, { 
+        publicDir, indexPath, exists, size, firstLine,
+        nodeVersion: process.version,
+        cwd: process.cwd()
+      });
+    }
+
     return sendJson(res, 404, { error: 'Not found' });
   } catch (err) {
     return sendJson(res, 500, { error: 'Request failed', detail: err.message });
@@ -678,6 +693,11 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log(`MLB tracker server listening on http://localhost:${PORT}`);
+  // Log index.html size so we can confirm correct version is deployed
+  try {
+    const idxSize = fs.statSync(path.join(publicDir, 'index.html')).size;
+    console.log(`Serving index.html: ${idxSize} bytes from ${publicDir}`);
+  } catch(e) { console.warn('Could not stat index.html:', e.message); }
   refreshIntelIfStale();
 });
 
