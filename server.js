@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
 
+const ODDS_API_KEY = process.env.ODDS_API_KEY || null;
+const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
 const PORT = process.env.PORT || 8787;
 const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
 const LIVE_BASE = 'https://statsapi.mlb.com/api/v1.1';
@@ -68,11 +70,20 @@ function buildBatterFallback(playerId) {
 function ensurePlayerIntel(intelPlayers, playerId) {
   const id = String(playerId);
   if (!intelPlayers[id]) {
+    // Return minimal shell with null stats - no fake seeded data
     intelPlayers[id] = { name: `Player ${id}`, teamId: null, pitcher: buildPitcherFallback(id), batter: buildBatterFallback(id) };
   }
   if (!intelPlayers[id].pitcher) intelPlayers[id].pitcher = buildPitcherFallback(id);
   if (!intelPlayers[id].batter) intelPlayers[id].batter = buildBatterFallback(id);
   return intelPlayers[id];
+}
+
+// Returns player intel only if real Savant data exists, otherwise null
+function getPlayerIntelIfReal(intelPlayers, playerId) {
+  const id = String(playerId);
+  const p = intelPlayers[id];
+  if (!p) return null;
+  return p;
 }
 
 function normalizeStatus(game) {
@@ -438,15 +449,23 @@ async function handleApi(reqUrl, res) {
     if (pathname.startsWith('/api/savant/pitcher/')) {
       const playerId = pathname.split('/').pop();
       const intel = loadIntel().players || {};
-      const profile = ensurePlayerIntel(intel, playerId).pitcher;
-      return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: profile });
+      const player = intel[String(playerId)];
+      if (player?.pitcher && !player.pitcher._isFallback) {
+        return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: player.pitcher });
+      }
+      return sendJson(res, 200, { playerId: Number(playerId), profileType: 'pitcher', data: null });
     }
 
     if (pathname.startsWith('/api/savant/batter/')) {
       const playerId = pathname.split('/').pop();
       const intel = loadIntel().players || {};
-      const profile = ensurePlayerIntel(intel, playerId).batter;
-      return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: profile });
+      const player = intel[String(playerId)];
+      // If we have real data (not fallback), return it
+      if (player?.batter && !player.batter._isFallback) {
+        return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: player.batter });
+      }
+      // No real data - return null stats so frontend shows last game context only
+      return sendJson(res, 200, { playerId: Number(playerId), profileType: 'batter', data: null });
     }
 
     // Proxy: player game log (avoids CORS on direct MLB API calls from browser)
@@ -572,6 +591,74 @@ async function handleApi(reqUrl, res) {
       signals.sort((a,b) => (order[a.level]||2) - (order[b.level]||2));
 
       return sendJson(res, 200, { gamePk: Number(gamePk), venue, parkHRFactor, parkNote, signals });
+    }
+
+    // ── ODDS API ──────────────────────────────────────────────────────────
+    // Returns today's MLB game odds (moneyline + totals) from The Odds API
+    if (pathname === '/api/odds/games') {
+      if (!ODDS_API_KEY) return sendJson(res, 200, { error: 'no_key', games: [] });
+      try {
+        const data = await fetchJson(
+          `${ODDS_API_BASE}/sports/baseball_mlb/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=h2h,totals&oddsFormat=american&bookmakers=fanduel`
+        );
+        return sendJson(res, 200, { games: data || [] });
+      } catch(e) {
+        return sendJson(res, 200, { error: e.message, games: [] });
+      }
+    }
+
+    // Returns player props for a specific event (pitcher Ks, batter HRs, hits, total bases)
+    if (pathname === '/api/odds/props') {
+      if (!ODDS_API_KEY) return sendJson(res, 200, { error: 'no_key', props: [] });
+      const eventId = reqUrl.searchParams.get('eventId');
+      if (!eventId) return sendJson(res, 400, { error: 'Missing eventId' });
+      try {
+        const data = await fetchJson(
+          `${ODDS_API_BASE}/sports/baseball_mlb/events/${eventId}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=pitcher_strikeouts,batter_home_runs,batter_hits,batter_total_bases&oddsFormat=american&bookmakers=fanduel`
+        );
+        // Flatten into easy-to-use prop list
+        const props = [];
+        for (const bm of (data?.bookmakers || [])) {
+          for (const market of (bm.markets || [])) {
+            for (const outcome of (market.outcomes || [])) {
+              props.push({
+                market: market.key,
+                player: outcome.description || outcome.name,
+                name: outcome.name, // Over/Under
+                point: outcome.point,
+                price: outcome.price,
+                bookmaker: bm.title
+              });
+            }
+          }
+        }
+        return sendJson(res, 200, { eventId, props });
+      } catch(e) {
+        return sendJson(res, 200, { error: e.message, props: [] });
+      }
+    }
+
+    // Match MLB gamePk to Odds API event ID
+    if (pathname === '/api/odds/match') {
+      if (!ODDS_API_KEY) return sendJson(res, 200, { error: 'no_key', eventId: null });
+      const awayTeam = reqUrl.searchParams.get('away');
+      const homeTeam = reqUrl.searchParams.get('home');
+      if (!awayTeam || !homeTeam) return sendJson(res, 400, { error: 'Missing team params' });
+      try {
+        const data = await fetchJson(
+          `${ODDS_API_BASE}/sports/baseball_mlb/events?apiKey=${ODDS_API_KEY}`
+        );
+        // Fuzzy match team names
+        const norm = s => s.toLowerCase().replace(/[^a-z]/g,'');
+        const match = (data || []).find(e => {
+          const ha = norm(e.home_team), aa = norm(e.away_team);
+          const hn = norm(homeTeam), an = norm(awayTeam);
+          return (ha.includes(hn)||hn.includes(ha)) && (aa.includes(an)||an.includes(aa));
+        });
+        return sendJson(res, 200, { eventId: match?.id || null, found: !!match });
+      } catch(e) {
+        return sendJson(res, 200, { error: e.message, eventId: null });
+      }
     }
 
     return sendJson(res, 404, { error: 'Not found' });
