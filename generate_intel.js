@@ -80,11 +80,18 @@ function parseCSV(csv) {
 
     // Savant CSVs: header "last_name, first_name" is ONE quoted column
     // But when the CSV header line itself isn't quoted, it splits into:
-    //   headers[0]="last_name"  headers[1]="first_name"
-    // And the data row has: fields[0]="Arraez, Luis"  fields[1]="650333" (MLBAM ID!)
-    // So the MLBAM ID is actually in the "first_name" column
-    // Detect this pattern: if first_name looks like a 6-digit number, it's the MLBAM ID
-    if (row['first_name'] && /^\d{5,7}$/.test(String(row['first_name']).trim())) {
+    //   headers[0]="last_name, first_name"  (parsed as one field since we handle quotes)
+    //   fields[0]="Arraez, Luis"  fields[1]="650333" (MLBAM ID)
+    // So the MLBAM ID is in fields[1] which maps to "player_id" header
+    // And the name is in fields[0] which maps to "last_name, first_name"
+    const combinedName = row['last_name, first_name'] || row['last_name'] || '';
+    const playerIdVal = String(row['player_id'] || '').trim();
+    if (combinedName && /^\d{5,7}$/.test(playerIdVal)) {
+      // Standard case: name in col 0, MLBAM ID in col 1 (player_id)
+      row._mlbamId = playerIdVal;
+      row._playerName = combinedName;
+    } else if (/^\d{5,7}$/.test(String(row['first_name'] || '').trim())) {
+      // Fallback: first_name column has the ID
       row._mlbamId = String(row['first_name']).trim();
       row._playerName = row['last_name'] || '';
     }
