@@ -892,37 +892,20 @@ server.listen(PORT, () => {
     const idxSize = fs.statSync(path.join(publicDir, 'index.html')).size;
     console.log(`Serving index.html: ${idxSize} bytes from ${publicDir}`);
   } catch(e) { console.warn('Could not stat index.html:', e.message); }
-  // Log intel status and trigger refresh if needed
-  if (fs.existsSync(intelPath)) {
-    try {
-      const intel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
-      console.log(`Intel ready: ${intel.playerCount} players (generated ${intel.generatedAt})`);
-      if ((intel.playerCount || 0) < 400) {
-        console.log('Player count low — triggering background refresh...');
-        setTimeout(refreshIntelIfStale, 3000);
-      } else {
-        setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
-      }
-    } catch {
-      console.log('Intel file unreadable — refreshing...');
-      setTimeout(refreshIntelIfStale, 3000);
-    }
-  } else {
-    console.warn('Intel file missing — refreshing...');
-    setTimeout(refreshIntelIfStale, 3000);
-  }
+  // Always trigger refresh on startup — server runtime can reach Savant, build env cannot
+  console.log('Triggering intel refresh on startup...');
+  setTimeout(refreshIntelIfStale, 2000);
 });
 
-// Auto-refresh intel daily — scheduled check only, build handles initial generation
-function refreshIntelIfStale() {
-  const staleAfterMs = 20 * 60 * 60 * 1000;
-  if (fs.existsSync(intelPath)) {
+// Intel refresh — always runs on startup, then every 20h
+function refreshIntelIfStale(scheduled = false) {
+  if (scheduled && fs.existsSync(intelPath)) {
     try {
       const intel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
       const age = Date.now() - new Date(intel.generatedAt || 0).getTime();
-      if (age < staleAfterMs && (intel.playerCount || 0) >= 400) {
-        console.log(`Intel is fresh (${intel.playerCount} players, ${Math.round(age/3600000)}h ago)`);
-        setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
+      if (age < 20 * 60 * 60 * 1000 && (intel.playerCount || 0) >= 400) {
+        console.log(`Intel fresh: ${intel.playerCount} players, ${Math.round(age/3600000)}h old`);
+        setTimeout(() => refreshIntelIfStale(true), 6 * 60 * 60 * 1000);
         return;
       }
     } catch {}
@@ -936,10 +919,10 @@ function refreshIntelIfStale() {
       else {
         try {
           const newIntel = JSON.parse(fs.readFileSync(intelPath, 'utf8'));
-          console.log(`✅ Intel refreshed: ${newIntel.playerCount} players`);
+          console.log(`✅ Intel done: ${newIntel.playerCount} players`);
         } catch {}
       }
-      setTimeout(refreshIntelIfStale, 6 * 60 * 60 * 1000);
+      setTimeout(() => refreshIntelIfStale(true), 6 * 60 * 60 * 1000);
     }
   );
   proc.stdout?.on('data', d => process.stdout.write(d));

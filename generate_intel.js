@@ -116,10 +116,17 @@ async function fetchAll(urls = URLS) {
       const csv = await get(url);
       const rows = parseCSV(csv);
       results[key] = rows;
-      // Log first row keys to help diagnose ID field name issues
-      if (rows.length > 0 && (key === 'batterEV' || key === 'pitcherEV')) {
-        const idFields = Object.keys(rows[0]).filter(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('player'));
-        console.log(`    ✓ ${rows.length} rows (ID fields: ${idFields.join(', ')})`);
+      if (rows.length > 0) {
+        // Log ID-related field names to diagnose lookup issues
+        const idFields = Object.keys(rows[0]).filter(k => 
+          /id|player|name/i.test(k)
+        ).slice(0, 6);
+        console.log(`    ✓ ${rows.length} rows | fields: ${idFields.join(', ')}`);
+        // Log first player as sample
+        const sample = rows[0];
+        const sampleId = sample.player_id || sample.mlb_id || sample.IDfg || sample.pitcher_id || '?';
+        const sampleName = sample.player_name || sample['last_name, first_name'] || sample.last_name || '?';
+        console.log(`    Sample: id=${sampleId} name=${sampleName}`);
       } else {
         console.log(`    ✓ ${rows.length} rows`);
       }
