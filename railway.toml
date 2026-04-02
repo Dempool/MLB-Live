@@ -1,5 +1,5 @@
 [build]
-buildCommand = "echo 'Build complete'"
+buildCommand = "cp -v public/index.html public/index.html.bak && echo 'Build complete'"
 
 [deploy]
 startCommand = "node server.js"
