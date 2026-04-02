@@ -646,7 +646,7 @@
         </div>
 
         <!-- RIGHT COL ROW 2: Scoring + On Deck + Pitch By Pitch stacked -->
-        <div class="panel" style="display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
+        <div class="panel" id="rightColPanel" style="display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
           <!-- Scoring -->
           <div style="border-bottom:1px solid var(--border-soft)">
             <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border-soft)">
@@ -1143,7 +1143,7 @@ function spotlightPitcher(player,intel,ctx,oppAbbr,propTagFn){
   const topWhiff=topName&&whiffBy[topName]?whiffBy[topName]:null;
   const name=player.fullName||'Pitcher';
   const hand=intel?.hand||'R';
-  const hasRealData=!intel?._isFallback&&(whiff!=null||k!=null||topName!=null);
+  const hasRealData=!intel?._isFallback&&(whiff!=null||k!=null||topName!=null||hardHit!=null||xERA!=null||bb!=null);
 
   const hasPowerFB=topName==='Fastball'&&topVel!=null&&topVel>=96;
   const hasEliteWhiff=whiff!=null&&whiff>=30;
@@ -1787,11 +1787,15 @@ function renderPitcherCard(p, name, teamId, isActive){
     ${p.strikeoutsPer9!=null?`<div class="stat-row"><span class="stat-key">K/9</span><span class="stat-val">${Number(p.strikeoutsPer9).toFixed(1)}</span></div>`:''}
     <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats · Savant loading</div>`;
   }
-  if(!hasMix&&!p.whiffRate&&!p.strikeoutRate) return `${header}<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>`;
+  // Only show loading if we have absolutely nothing
+  const hasAnyPitcherData=hasMix||p.whiffRate||p.strikeoutRate||p.walkRate||p.hardHitAllowed||p.firstPitchStrikeTendency||p.splitsByHandedness?.vsR;
+  if(!hasAnyPitcherData) return `${header}<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>`;
   return`${header}
   ${hasMix?`<div class="mix-grid">${Object.entries(mix).slice(0,4).map(([t,v])=>`<div class="mix-chip"><div class="mix-abbr">${t.substring(0,3).toUpperCase()}</div><div class="mix-pct">${v}%</div><div class="mix-vel">${vel[t]?vel[t]+' mph':'—'}</div></div>`).join('')}</div>`:''}
   ${p.whiffRate!=null?`<div class="bar-group"><div class="bar-label"><span>Whiff Rate</span><span>${p.whiffRate}%${statContext('whiff',p.whiffRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.whiffRate,100)}%"></div></div></div>`:''}${p.strikeoutRate!=null?`<div class="bar-group"><div class="bar-label"><span>K%</span><span>${p.strikeoutRate}%${statContext('k',p.strikeoutRate)}</span></div><div class="bar-track"><div class="bar-fill green" style="width:${Math.min(p.strikeoutRate,100)}%"></div></div></div>`:''}${p.walkRate!=null?`<div class="bar-group"><div class="bar-label"><span>BB%</span><span>${p.walkRate}%${statContext('bb',p.walkRate)}</span></div><div class="bar-track"><div class="bar-fill red" style="width:${Math.min(p.walkRate,100)}%"></div></div></div>`:''}${p.hardHitAllowed!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Allowed</span><span>${p.hardHitAllowed}%${statContext('hardHit',p.hardHitAllowed)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(p.hardHitAllowed,100)}%"></div></div></div>`:''}
   ${p.firstPitchStrikeTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Strike</span><span class="stat-val">${p.firstPitchStrikeTendency}%</span></div>`:''}
+  ${p.expectedStats?.xERA!=null?`<div class="stat-row"><span class="stat-key">xERA</span><span class="stat-val">${p.expectedStats.xERA}</span></div>`:''}
+  ${p.expectedStats?.xFIP!=null?`<div class="stat-row"><span class="stat-key">xFIP</span><span class="stat-val">${p.expectedStats.xFIP}</span></div>`:''}
   ${p.twoStrikePutawayTendency!=null?`<div class="stat-row"><span class="stat-key">2-Strike Putaway</span><span class="stat-val">${p.twoStrikePutawayTendency}%</span></div>`:''}
   ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg allowed</span><span class="stat-val">${Number(vsR).toFixed(3)}</span></div>`:''}
   ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg allowed</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}`;
@@ -1816,18 +1820,21 @@ function renderBatterCard(b){
     <div style="font-size:10px;color:var(--muted);margin-top:4px">MLB Stats · Savant loading</div>`;
   }
   const h=b.hotCold?.recentHot;
-  const hasData=b.barrelRate!=null||b.hardHitRate!=null||b.whiffTendency!=null;
+  const hasData=b.barrelRate!=null||b.hardHitRate!=null||b.whiffTendency!=null||b.chaseTendency!=null||b.contactTendency!=null||b.avgEV!=null||b.splitVsHandedness?.vsR?.avg!=null||b.expectedStats?.xwOBA!=null;
   if(!hasData) return '<div style="font-size:12px;color:var(--sub);padding:4px 0">Stats loading...</div>';
   const vsR=b.splitVsHandedness?.vsR?.avg;
   const vsL=b.splitVsHandedness?.vsL?.avg;
   const topRow=[];
   if(b.barrelRate!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.5px;color:var(--sub)">BARREL</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.barrelRate}%</div>${b.hardHitRate!=null?`<div style="font-size:11px;color:var(--sub)">hard hit ${b.hardHitRate}%</div>`:''}</div>`);
+  else if(b.avgEV!=null) topRow.push(`<div style="flex:1;text-align:center;background:var(--card-2);border:1px solid var(--border-soft);border-radius:5px;padding:6px"><div style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:10px;letter-spacing:0.5px;color:var(--sub)">AVG EV</div><div style="font-family:'DM Mono',monospace;font-weight:700;font-size:17px">${b.avgEV}</div><div style="font-size:10px;color:var(--muted)">mph</div></div>`);
   // FORM removed from batter card - hotCold is season Savant data not recent form
   return`${topRow.length?`<div style="display:flex;gap:6px;margin-bottom:8px">${topRow.join('')}</div>`:''}
   ${b.hardHitRate!=null?`<div class="bar-group"><div class="bar-label"><span>Hard Hit Rate</span><span>${b.hardHitRate}%${statContext('hardHit',b.hardHitRate)}</span></div><div class="bar-track"><div class="bar-fill amber" style="width:${Math.min(b.hardHitRate,100)}%"></div></div></div>`:''}${b.contactTendency!=null?bar('Contact',b.contactTendency,'green'):''}${b.whiffTendency!=null?bar('Whiff',b.whiffTendency,'red'):''}${b.chaseTendency!=null?bar('Chase',b.chaseTendency,'red'):''}
   ${vsR!=null?`<div class="stat-row"><span class="stat-key">vs R avg</span><span class="stat-val">${Number(vsR).toFixed(3)}</span></div>`:''}
   ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}
-  ${b.firstPitchSwingTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Swing</span><span class="stat-val">${b.firstPitchSwingTendency}%</span></div>`:''}`;
+  ${b.firstPitchSwingTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Swing</span><span class="stat-val">${b.firstPitchSwingTendency}%</span></div>`:''}
+  ${b.expectedStats?.xwOBA!=null?`<div class="stat-row"><span class="stat-key">xwOBA</span><span class="stat-val">${b.expectedStats.xwOBA}</span></div>`:''}
+  ${b.expectedStats?.xBA!=null?`<div class="stat-row"><span class="stat-key">xBA</span><span class="stat-val">${b.expectedStats.xBA}</span></div>`:''}\`;
 }
 
 /* ── LINEUPS ── */
@@ -2288,6 +2295,7 @@ async function refreshGame(){
     const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='none';
     const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
     const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='none';
+    const _rightCol=$('rightColPanel');if(_rightCol)_rightCol.style.display='none';
 
 
     // Also clear scoring panel content in preview
@@ -2315,6 +2323,7 @@ async function refreshGame(){
 
   // Show live odds panel if odds API key is configured
   const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='';
+  const _rightCol=$('rightColPanel');if(_rightCol)_rightCol.style.display='';
 
   try{
     const [summary,feed,matchup]=await Promise.all([
