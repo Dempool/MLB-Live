@@ -58,9 +58,9 @@ function get(url) {
 function parseCSV(csv) {
   const lines = csv.trim().split('\n');
   if (lines.length < 2) return [];
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  return lines.slice(1).map(line => {
-    // Handle quoted fields with commas
+
+  // Parse header line respecting quoted fields
+  function parseLine(line) {
     const fields = [];
     let cur = '', inQuote = false;
     for (const ch of line) {
@@ -69,28 +69,35 @@ function parseCSV(csv) {
       cur += ch;
     }
     fields.push(cur.trim());
+    return fields;
+  }
+
+  const headers = parseLine(lines[0]).map(h => h.replace(/^"|"$/g, '').trim());
+
+  return lines.slice(1).map(line => {
+    const fields = parseLine(line);
     const row = Object.fromEntries(headers.map((h, i) => [h, fields[i] ?? '']));
-    // Savant CSVs have a "last_name, first_name" column that causes column shift
-    // The real player_id is a 6-digit MLBAM ID — find it by value pattern
-    // Also store the combined name for lookup
-    const nameKey = 'last_name, first_name';
-    if (row[nameKey]) {
-      row._playerName = row[nameKey];
-      // Find the real numeric MLBAM ID (6 digits) among the values
-      const mlbamId = Object.values(row).find(v => /^\d{6}$/.test(String(v).trim()));
-      if (mlbamId) row._mlbamId = String(mlbamId).trim();
+
+    // Savant CSVs: header "last_name, first_name" is ONE quoted column
+    // But when the CSV header line itself isn't quoted, it splits into:
+    //   headers[0]="last_name"  headers[1]="first_name"
+    // And the data row has: fields[0]="Arraez, Luis"  fields[1]="650333" (MLBAM ID!)
+    // So the MLBAM ID is actually in the "first_name" column
+    // Detect this pattern: if first_name looks like a 6-digit number, it's the MLBAM ID
+    if (row['first_name'] && /^\d{5,7}$/.test(String(row['first_name']).trim())) {
+      row._mlbamId = String(row['first_name']).trim();
+      row._playerName = row['last_name'] || '';
     }
     return row;
   }).filter(r => r[headers[0]]);
 }
 
 function getId(r) {
-  // Try _mlbamId first (detected 6-digit MLBAM ID), then explicit fields
-  return r._mlbamId || 
-    (String(r.player_id||'').length >= 5 ? String(r.player_id).trim() : null) ||
-    String(r.mlb_id||'').trim() ||
-    String(r.IDfg||'').trim() ||
-    '';
+  // _mlbamId is set when first_name column contains the MLBAM ID (Savant CSV quirk)
+  if (r._mlbamId) return r._mlbamId;
+  // Standard fields
+  const pid = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+  return pid.length >= 5 ? pid : '';
 }
 
 function num(v, fallback = null) {
@@ -139,8 +146,9 @@ async function fetchAll(urls = URLS) {
       if (rows.length > 0) {
         if (key === 'batterEV') {
           // Log ALL headers and first row to find real MLBAM ID
-          console.log(`    HEADERS: ${Object.keys(rows[0]).join(' | ')}`);
-          console.log(`    FIRST ROW: ${Object.values(rows[0]).join(' | ')}`);
+          console.log(`    HEADERS: ${Object.keys(rows[0]).filter(k=>!k.startsWith('_')).join(' | ')}`);
+          const r0 = rows[0];
+          console.log(`    Sample: id=${getId(r0)} name=${r0._playerName||r0['last_name']||'?'}`);
         }
         console.log(`    ✓ ${rows.length} rows`);
       } else {
@@ -240,7 +248,7 @@ function buildIntel(data) {
     const whiff = batterWhiffMap[id] || {};
     const sprint = sprintMap[id] || {};
 
-    const name = ev._playerName || exp._playerName || ev.player_name || exp.player_name || `Player ${id}`;
+    const name = ev._playerName || exp._playerName || whiff._playerName || ev.player_name || `Player ${id}`;
     const hardHitRate = pct(ev.hard_hit_percent, null);
     const barrelRate = pct(ev.barrel_batted_rate, null);
     const avgEV = num(ev.avg_hit_speed, null);
@@ -304,7 +312,7 @@ function buildIntel(data) {
     const whiff = pitcherWhiffMap[id] || {};
     const arsenal = arsenalMap[id] || [];
 
-    const name = ev._playerName || exp._playerName || ev.player_name || exp.player_name || `Player ${id}`;
+    const name = ev._playerName || exp._playerName || whiff._playerName || ev.player_name || `Player ${id}`;
     const hardHitAllowed = pct(ev.hard_hit_percent, null);
     const barrelAllowed = pct(ev.barrel_batted_rate, null);
     const avgEVAllowed = num(ev.avg_hit_speed, null);
