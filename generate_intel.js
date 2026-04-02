@@ -137,16 +137,12 @@ async function fetchAll(urls = URLS) {
       const rows = parseCSV(csv);
       results[key] = rows;
       if (rows.length > 0) {
-        // Log ID-related field names to diagnose lookup issues
-        const idFields = Object.keys(rows[0]).filter(k => 
-          /id|player|name/i.test(k)
-        ).slice(0, 6);
-        console.log(`    ✓ ${rows.length} rows | fields: ${idFields.join(', ')}`);
-        // Log first player as sample
-        const sample = rows[0];
-        const sampleId = sample.player_id || sample.mlb_id || sample.IDfg || sample.pitcher_id || '?';
-        const sampleName = sample.player_name || sample['last_name, first_name'] || sample.last_name || '?';
-        console.log(`    Sample: id=${sampleId} name=${sampleName}`);
+        if (key === 'batterEV') {
+          // Log ALL headers and first row to find real MLBAM ID
+          console.log(`    HEADERS: ${Object.keys(rows[0]).join(' | ')}`);
+          console.log(`    FIRST ROW: ${Object.values(rows[0]).join(' | ')}`);
+        }
+        console.log(`    ✓ ${rows.length} rows`);
       } else {
         console.log(`    ✓ ${rows.length} rows`);
       }
