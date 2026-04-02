@@ -69,8 +69,28 @@ function parseCSV(csv) {
       cur += ch;
     }
     fields.push(cur.trim());
-    return Object.fromEntries(headers.map((h, i) => [h, fields[i] ?? '']));
-  }).filter(r => r[headers[0]]); // remove empty rows
+    const row = Object.fromEntries(headers.map((h, i) => [h, fields[i] ?? '']));
+    // Savant CSVs have a "last_name, first_name" column that causes column shift
+    // The real player_id is a 6-digit MLBAM ID — find it by value pattern
+    // Also store the combined name for lookup
+    const nameKey = 'last_name, first_name';
+    if (row[nameKey]) {
+      row._playerName = row[nameKey];
+      // Find the real numeric MLBAM ID (6 digits) among the values
+      const mlbamId = Object.values(row).find(v => /^\d{6}$/.test(String(v).trim()));
+      if (mlbamId) row._mlbamId = String(mlbamId).trim();
+    }
+    return row;
+  }).filter(r => r[headers[0]]);
+}
+
+function getId(r) {
+  // Try _mlbamId first (detected 6-digit MLBAM ID), then explicit fields
+  return r._mlbamId || 
+    (String(r.player_id||'').length >= 5 ? String(r.player_id).trim() : null) ||
+    String(r.mlb_id||'').trim() ||
+    String(r.IDfg||'').trim() ||
+    '';
 }
 
 function num(v, fallback = null) {
@@ -160,52 +180,52 @@ function buildIntel(data) {
   // Index batter EV data by player_id
   const batterEVMap = {};
   for (const r of data.batterEV) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) batterEVMap[id] = r;
   }
 
   // Index pitcher EV data
   const pitcherEVMap = {};
   for (const r of data.pitcherEV) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) pitcherEVMap[id] = r;
   }
 
   // Index expected stats
   const batterExpMap = {};
   for (const r of data.batterExpected) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) batterExpMap[id] = r;
   }
   const pitcherExpMap = {};
   for (const r of data.pitcherExpected) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) pitcherExpMap[id] = r;
   }
 
   // Index whiff data
   const batterWhiffMap = {};
   for (const r of data.batterWhiff) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) batterWhiffMap[id] = r;
   }
   const pitcherWhiffMap = {};
   for (const r of data.pitcherWhiff) {
-    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) pitcherWhiffMap[id] = r;
   }
 
   // Sprint speed by player_id
   const sprintMap = {};
   for (const r of data.sprintSpeed) {
-    const id = String(r.player_id || r.mlb_id || r.id || r.IDfg || '').trim();
+    const id = getId(r);
     if (id) sprintMap[id] = r;
   }
 
   // Pitch arsenal: group by pitcher id
   const arsenalMap = {};
   for (const r of data.pitcherArsenal) {
-    const id = String(r.pitcher_id || r.player_id || r.mlb_id || r.IDfg || '').trim();
+    const id = getId(r);
     if (!id) continue;
     if (!arsenalMap[id]) arsenalMap[id] = [];
     arsenalMap[id].push(r);
@@ -224,7 +244,7 @@ function buildIntel(data) {
     const whiff = batterWhiffMap[id] || {};
     const sprint = sprintMap[id] || {};
 
-    const name = ev.player_name || exp.player_name || whiff.player_name || `Player ${id}`;
+    const name = ev._playerName || exp._playerName || ev.player_name || exp.player_name || `Player ${id}`;
     const hardHitRate = pct(ev.hard_hit_percent, null);
     const barrelRate = pct(ev.barrel_batted_rate, null);
     const avgEV = num(ev.avg_hit_speed, null);
@@ -288,7 +308,7 @@ function buildIntel(data) {
     const whiff = pitcherWhiffMap[id] || {};
     const arsenal = arsenalMap[id] || [];
 
-    const name = ev.player_name || exp.player_name || whiff.player_name || `Player ${id}`;
+    const name = ev._playerName || exp._playerName || ev.player_name || exp.player_name || `Player ${id}`;
     const hardHitAllowed = pct(ev.hard_hit_percent, null);
     const barrelAllowed = pct(ev.barrel_batted_rate, null);
     const avgEVAllowed = num(ev.avg_hit_speed, null);
