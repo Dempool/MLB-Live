@@ -580,7 +580,7 @@
           </div>
         </div>
 
-        <!-- ROW 1: TICKER (wide) | FIELD (right) -->
+        <!-- ROW 1: TICKER (2col) | SITUATION (1col) -->
         <div class="panel grid-wide" id="liveTickerPanel">
           <div class="panel-head">
             <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:2px"></span>Live Ticker</span>
@@ -593,13 +593,13 @@
           <div class="panel-body" id="liveTicker"><div class="empty">No plays yet</div></div>
         </div>
 
-        <!-- FIELD + BUZZ combined right column -->
+        <!-- SITUATION: field + buzz (right col, row 1) -->
         <div class="panel" id="fieldPanel" style="display:none">
           <div class="panel-head">
             <span class="panel-title">Situation</span>
             <span class="panel-badge" id="fieldBadge"></span>
           </div>
-          <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;gap:8px">
+          <div class="panel-body" style="padding:8px;display:flex;flex-direction:column;gap:6px">
             <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
               <svg id="fieldSvg" viewBox="0 0 180 175" width="100%" style="max-width:160px;display:block">
                 <path d="M 25 155 Q 90 15 155 155 Z" fill="#1a3a1a" stroke="#2d5a2d" stroke-width="1.5"/>
@@ -626,26 +626,17 @@
               <div id="fieldOutsDots" style="display:flex;gap:6px;justify-content:center"></div>
               <div id="fieldHitInfo" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);text-align:center"></div>
             </div>
-            <!-- Buzz below field -->
-            <div style="border-top:1px solid var(--border-soft);padding-top:8px;margin-bottom:6px" id="gameBuzz"><div class="empty" style="font-size:11px">—</div></div>
-            <!-- Pitch by Pitch folded in here -->
-            <div style="border-top:1px solid var(--border-soft);padding-top:8px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-                <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)"><span class="live-dot" style="vertical-align:middle;margin-right:3px"></span>Pitch By Pitch</span>
-                <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)" id="pitchBadge"></span>
-              </div>
-              <div id="pitchByPitch"><div class="empty" style="font-size:11px">No pitches yet</div></div>
-            </div>
+            <div style="border-top:1px solid var(--border-soft);padding-top:6px" id="gameBuzz"><div class="empty" style="font-size:11px">—</div></div>
           </div>
         </div>
 
-        <!-- Buzz panel for pregame (field hidden) -->
+        <!-- Buzz panel for pregame -->
         <div class="panel" id="gameBuzzPanel">
           <div class="panel-head"><span class="panel-title">Game Buzz</span></div>
           <div class="panel-body" id="gameBuzzStandalone"><div class="empty">—</div></div>
         </div>
 
-        <!-- ROW 2: AT BAT (wide) — matchup only now | SCORING -->
+        <!-- ROW 2: AT BAT (2col) | SCORING+ONDECK+PBP (1col) -->
         <div class="panel grid-wide" id="atBatPanel">
           <div class="panel-head">
             <span class="panel-title">At Bat</span>
@@ -654,18 +645,28 @@
           <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
         </div>
 
-        <!-- SCORING + ON DECK combined -->
-        <div class="panel">
-          <div class="panel-head">
-            <span class="panel-title">Scoring</span>
-            <span class="panel-badge" id="scoringPlaysBadge"></span>
-          </div>
-          <div class="panel-body" style="padding:0;display:flex;flex-direction:column">
-            <div style="padding:8px 10px;flex:1;overflow-y:auto;max-height:180px" id="scoringPlays"><div class="empty">No scoring plays</div></div>
-            <div id="nextBatterPanel" style="border-top:1px solid var(--border-soft);padding:8px 10px">
-              <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:5px">On Deck</div>
-              <div id="nextBatterCard"><div class="empty">—</div></div>
+        <!-- RIGHT COL ROW 2: Scoring + On Deck + Pitch By Pitch stacked -->
+        <div class="panel" style="display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
+          <!-- Scoring -->
+          <div style="border-bottom:1px solid var(--border-soft)">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--border-soft)">
+              <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)">Scoring</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)" id="scoringPlaysBadge"></span>
             </div>
+            <div style="padding:6px 10px;overflow-y:auto;max-height:120px" id="scoringPlays"><div class="empty">No scoring plays</div></div>
+          </div>
+          <!-- On Deck -->
+          <div id="nextBatterPanel" style="border-bottom:1px solid var(--border-soft);padding:6px 10px">
+            <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">On Deck</div>
+            <div id="nextBatterCard"><div class="empty">—</div></div>
+          </div>
+          <!-- Pitch By Pitch -->
+          <div style="flex:1;padding:6px 10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)"><span class="live-dot" style="vertical-align:middle;margin-right:3px"></span>Pitch By Pitch</span>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)" id="pitchBadge"></span>
+            </div>
+            <div id="pitchByPitch"><div class="empty" style="font-size:11px">No pitches yet</div></div>
           </div>
         </div>
 
@@ -680,7 +681,7 @@
           </div>
         </div>
 
-        <!-- ROW 4: PITCHERS (full width — current pitcher | opposing pitcher | batter intel) -->
+        <!-- ROW 4: PITCHERS (3col: away pitcher | home pitcher | batter intel + bullpen) -->
         <div class="panel grid-full" id="pitchersPanel">
           <div class="panel-head">
             <span class="panel-title">Pitchers</span>
@@ -690,9 +691,19 @@
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;height:100%">
               <div id="awayPitcherCard" style="padding:10px 13px;border-right:1px solid var(--border-soft)"><div class="empty">—</div></div>
               <div id="homePitcherCard" style="padding:10px 13px;border-right:1px solid var(--border-soft)"><div class="empty">—</div></div>
-              <div style="padding:10px 13px">
-                <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Batter Intel</div>
-                <div id="batterCard"><div class="empty">—</div></div>
+              <div style="padding:10px 13px;display:flex;flex-direction:column;gap:8px">
+                <div>
+                  <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:6px">Batter Intel</div>
+                  <div id="batterCard"><div class="empty">—</div></div>
+                </div>
+                <!-- Inline bullpen -->
+                <div id="bullpenInline" style="display:none;border-top:1px solid var(--border-soft);padding-top:8px">
+                  <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">Bullpen</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+                    <div id="bullpenAway"></div>
+                    <div id="bullpenHome"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -707,18 +718,10 @@
           <div class="panel-body" id="liveOddsContent"><div class="empty">—</div></div>
         </div>
 
-        <!-- BULLPEN TRACKER -->
-        <div class="panel grid-full" id="bullpenPanel" style="display:none">
-          <div class="panel-head">
-            <span class="panel-title">🔥 Bullpen Tracker</span>
-            <span class="panel-badge" id="bullpenBadge"></span>
-          </div>
-          <div class="panel-body" style="padding:0">
-            <div style="display:grid;grid-template-columns:1fr 1fr" id="bullpenContent">
-              <div id="bullpenAway" style="padding:10px 13px;border-right:1px solid var(--border-soft)"></div>
-              <div id="bullpenHome" style="padding:10px 13px"></div>
-            </div>
-          </div>
+        <!-- Hidden bullpen panel (keep for JS compat, content moved inline) -->
+        <div style="display:none" id="bullpenPanel">
+          <span id="bullpenBadge"></span>
+          <div id="bullpenContent"></div>
         </div>
 
         <!-- Hidden panels kept for JS compatibility -->
@@ -2104,36 +2107,36 @@ function renderFieldDiagram(summary, feed){
 }
 
 async function fetchAndRenderBullpen(gamePk, g){
-  const panel=$('bullpenPanel');
-  if(!panel) return;
   try{
     const data=await api(`/api/bullpen?gamePk=${gamePk}`);
-    if(!data.away?.length&&!data.home?.length){ panel.style.display='none'; return; }
+    const inline=$('bullpenInline');
+    if(!inline) return;
+    if(!data.away?.length&&!data.home?.length){ inline.style.display='none'; return; }
 
     function renderSide(relievers, teamAbbr){
-      if(!relievers?.length) return `<div class="empty">No bullpen data</div>`;
-      const header=`<div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--sub);text-transform:uppercase;margin-bottom:5px">${teamAbbr} Bullpen</div>`;
-      return header+relievers.map(r=>{
-        const active=r.hasAppeared&&r.pitchCount>0;
-        const pct=active?Math.min(100,Math.round(r.pitchCount/30*100)):0;
-        const barColor=r.pitchCount>=25?'var(--red)':r.pitchCount>=15?'var(--gold)':'var(--live)';
-        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border-soft)">
-          <span style="width:6px;height:6px;border-radius:50%;background:${active?'var(--red)':'var(--border)'};flex-shrink:0"></span>
-          <span style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;color:${active?'var(--text)':'var(--sub)'};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name.split(' ').pop()}</span>
-          ${active
-            ?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)">${r.pitchCount}p</span><div style="width:36px;height:3px;background:var(--border);border-radius:2px;flex-shrink:0"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px"></div></div>`
-            :`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${r.era}</span>`}
-        </div>`;
-      }).join('');
+      if(!relievers?.length) return '';
+      return `<div style="font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;margin-bottom:3px">${teamAbbr}</div>`+
+        relievers.slice(0,6).map(r=>{
+          const active=r.hasAppeared&&r.pitchCount>0;
+          const pct=active?Math.min(100,Math.round(r.pitchCount/30*100)):0;
+          const barColor=r.pitchCount>=25?'var(--red)':r.pitchCount>=15?'var(--gold)':'var(--live)';
+          return `<div style="display:flex;align-items:center;gap:5px;padding:2px 0">
+            <span style="width:5px;height:5px;border-radius:50%;background:${active?'var(--red)':'var(--border)'};flex-shrink:0"></span>
+            <span style="font-size:12px;color:${active?'var(--text)':'var(--sub)'};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name.split(' ').pop()}</span>
+            ${active
+              ?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${r.pitchCount}p</span><div style="width:28px;height:2px;background:var(--border);border-radius:1px"><div style="width:${pct}%;height:100%;background:${barColor}"></div></div>`
+              :`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${r.era}</span>`}
+          </div>`;
+        }).join('');
     }
 
     $('bullpenAway').innerHTML=renderSide(data.away, data.awayTeam);
     $('bullpenHome').innerHTML=renderSide(data.home, data.homeTeam);
-    $('bullpenBadge').textContent=`${data.away.filter(r=>r.hasAppeared).length+data.home.filter(r=>r.hasAppeared).length} pitchers used`;
-    panel.style.display='';
+    $('bullpenBadge').textContent=`${data.away.filter(r=>r.hasAppeared).length+data.home.filter(r=>r.hasAppeared).length} used`;
+    inline.style.display='';
   }catch(e){
-    const panel=$('bullpenPanel');
-    if(panel) panel.style.display='none';
+    const inline=$('bullpenInline');
+    if(inline) inline.style.display='none';
     console.warn('Bullpen fetch failed:',e?.message);
   }
 }
@@ -2286,7 +2289,7 @@ async function refreshGame(){
     const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
     const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='none';
 
-    const _bp=$('bullpenPanel');if(_bp)_bp.style.display='none';
+
     // Also clear scoring panel content in preview
     $('scoringPlays').innerHTML='<div class="empty">No scoring plays yet</div>';
     // Clear dual pitcher panel
@@ -2309,7 +2312,7 @@ async function refreshGame(){
   const _atBat=$('atBatPanel');if(_atBat)_atBat.style.display='';
   const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='';
 
-  const _bp2=$('bullpenPanel');if(_bp2)_bp2.style.display='';
+
   // Show live odds panel if odds API key is configured
   const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='';
 
