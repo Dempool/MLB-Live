@@ -1,0 +1,7 @@
+[build]
+buildCommand = "node generate_intel.js && echo done"
+
+[deploy]
+startCommand = "node server.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
