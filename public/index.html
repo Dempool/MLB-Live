@@ -1834,7 +1834,7 @@ function renderBatterCard(b){
   ${vsL!=null?`<div class="stat-row"><span class="stat-key">vs L avg</span><span class="stat-val">${Number(vsL).toFixed(3)}</span></div>`:''}
   ${b.firstPitchSwingTendency!=null?`<div class="stat-row"><span class="stat-key">1st Pitch Swing</span><span class="stat-val">${b.firstPitchSwingTendency}%</span></div>`:''}
   ${b.expectedStats?.xwOBA!=null?`<div class="stat-row"><span class="stat-key">xwOBA</span><span class="stat-val">${b.expectedStats.xwOBA}</span></div>`:''}
-  ${b.expectedStats?.xBA!=null?`<div class="stat-row"><span class="stat-key">xBA</span><span class="stat-val">${b.expectedStats.xBA}</span></div>`:''}\`;
+  ${b.expectedStats?.xBA!=null?`<div class="stat-row"><span class="stat-key">xBA</span><span class="stat-val">${b.expectedStats.xBA}</span></div>`:''}`;
 }
 
 /* ── LINEUPS ── */
