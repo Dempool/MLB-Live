@@ -680,7 +680,7 @@
           </div>
         </div>
 
-        <!-- ROW 4: PITCHERS (full width — both cards + batter intel) -->
+        <!-- ROW 4: PITCHERS (full width — current pitcher | opposing pitcher | batter intel) -->
         <div class="panel grid-full" id="pitchersPanel">
           <div class="panel-head">
             <span class="panel-title">Pitchers</span>
@@ -2112,22 +2112,19 @@ async function fetchAndRenderBullpen(gamePk, g){
 
     function renderSide(relievers, teamAbbr){
       if(!relievers?.length) return `<div class="empty">No bullpen data</div>`;
-      return `<div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;color:var(--sub);margin-bottom:8px">${teamAbbr} BULLPEN</div>`+
-        relievers.map(r=>{
-          const active=r.hasAppeared&&r.pitchCount>0;
-          const pitchBar=active?`<div style="width:${Math.min(100,Math.round(r.pitchCount/30*100))}%;height:3px;background:${r.pitchCount>=25?'var(--red)':r.pitchCount>=15?'var(--gold)':'var(--live)'};border-radius:2px;margin-top:3px"></div>`:'';
-          return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-soft)">
-            <div style="flex:1">
-              <div style="display:flex;align-items:center;gap:6px">
-                <span style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;color:var(--text)">${r.name.split(' ').pop()}</span>
-                ${active?`<span style="background:var(--red-dim);color:var(--red);font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px">IN GAME</span>`:''}
-              </div>
-              ${active?`<div style="font-size:11px;color:var(--sub)">${r.pitchCount}p · ${r.inningsPitched} IP · ${r.strikeouts}K${r.earnedRuns>0?` · ${r.earnedRuns}ER`:''}</div>`
-                :`<div style="font-size:11px;color:var(--muted)">ERA ${r.era} · ${r.seasonApps} G this season</div>`}
-              ${pitchBar}
-            </div>
-          </div>`;
-        }).join('');
+      const header=`<div style="font-family:'DM Sans',sans-serif;font-weight:700;font-size:11px;letter-spacing:1px;color:var(--sub);text-transform:uppercase;margin-bottom:5px">${teamAbbr} Bullpen</div>`;
+      return header+relievers.map(r=>{
+        const active=r.hasAppeared&&r.pitchCount>0;
+        const pct=active?Math.min(100,Math.round(r.pitchCount/30*100)):0;
+        const barColor=r.pitchCount>=25?'var(--red)':r.pitchCount>=15?'var(--gold)':'var(--live)';
+        return `<div style="display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid var(--border-soft)">
+          <span style="width:6px;height:6px;border-radius:50%;background:${active?'var(--red)':'var(--border)'};flex-shrink:0"></span>
+          <span style="font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;color:${active?'var(--text)':'var(--sub)'};flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.name.split(' ').pop()}</span>
+          ${active
+            ?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)">${r.pitchCount}p</span><div style="width:36px;height:3px;background:var(--border);border-radius:2px;flex-shrink:0"><div style="width:${pct}%;height:100%;background:${barColor};border-radius:2px"></div></div>`
+            :`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${r.era}</span>`}
+        </div>`;
+      }).join('');
     }
 
     $('bullpenAway').innerHTML=renderSide(data.away, data.awayTeam);
@@ -2378,26 +2375,16 @@ async function refreshGame(){
 
     // ── SPECIAL PLAYS ──
     const specialPlays=matchup.specialPlays||[];
-    if(specialPlays.length){
-      $('specialPlaysPanel').style.display='';
-      $('specialPlays').innerHTML=specialPlays.map(sp=>{
-        const tag=sp.eventType.includes('double_play')?'DOUBLE PLAY':
-                  sp.description.toLowerCase().includes('challenge')?'CHALLENGE':
-                  sp.description.toLowerCase().includes('balk')?'BALK':
-                  sp.description.toLowerCase().includes('hit by pitch')?'HIT BY PITCH':
-                  sp.description.toLowerCase().includes('wild pitch')?'WILD PITCH':'NOTABLE';
-        return `<div class="item item-special">
-          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
-            <span class="tag tag-special">${tag}</span>
-            <span class="tag tag-info">${sp.half||''} ${sp.inning||''}</span>
-            ${sp.time?`<span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub);margin-left:auto">${fmtPlayTime(sp.time)}</span>`:''}
-          </div>
-          <div style="font-size:13px;color:var(--text)">${sp.description}</div>
-        </div>`;
-      }).join('');
-    } else {
-      $('specialPlaysPanel').style.display='none';
-    }
+    $('specialPlaysPanel').style.display='none'; // merged into buzz
+    // Inject notable plays into buzz feed at the top
+    const specialBuzzItems=specialPlays.slice(0,2).map(sp=>{
+      const tag=sp.eventType?.includes('double_play')?'Double Play':
+                sp.description?.toLowerCase().includes('challenge')?'Challenge':
+                sp.description?.toLowerCase().includes('balk')?'Balk':
+                sp.description?.toLowerCase().includes('hit by pitch')?'Hit by Pitch':
+                sp.description?.toLowerCase().includes('wild pitch')?'Wild Pitch':'Notable Play';
+      return {type:tag.toLowerCase().replace(/ /g,'_'),dot:'amber',text:`<strong>${tag}:</strong> ${sp.description}`};
+    });
 
     // ── NEXT BATTER (ON DECK) — rendered inside getLiveStats below ──
     if(!matchup.onDeck?.id) $('nextBatterPanel').style.display='none';
@@ -2543,14 +2530,17 @@ async function refreshGame(){
     $('pitchersBadge').textContent=`${g.teams.away.abbr} vs ${g.teams.home.abbr}`;
     async function renderSidePitcher(pitcherObj, teamId, containerId){
       if(!pitcherObj?.id){ $(containerId).innerHTML='<div class="empty">TBD</div>'; return; }
+      // A pitcher is ON MOUND if they match the active pitcher ID
       const isActive=pitcherObj.id===activePitcherId||pitcherObj.id===pid;
       try{
         const p=await api(`/api/savant/pitcher/${pitcherObj.id}`);
         $(containerId).innerHTML=renderPitcherCard(p.data, pitcherObj.fullName||pitcherObj.name, teamId, isActive);
       }catch{
-        $(containerId).innerHTML=`<div class="empty">No Statcast data for ${pitcherObj.fullName||'this pitcher'}</div>`;
+        $(containerId).innerHTML=renderPitcherCard(null, pitcherObj.fullName||pitcherObj.name, teamId, isActive);
       }
     }
+    // Always show away pitcher on left, home pitcher on right
+    // The ON MOUND / NEXT UP badge inside each card tells the real story
     renderSidePitcher(matchup.awayPitcher, g.teams.away.id, 'awayPitcherCard');
     renderSidePitcher(matchup.homePitcher, g.teams.home.id, 'homePitcherCard');
 
@@ -2623,6 +2613,8 @@ async function refreshGame(){
     if(scoreDiff===0&&inning>=5) buzzItems.push({type:'general',dot:'blue',text:'Tied game — both teams pitching and defending for every out. Run environment is tight.'});
     else if(scoreDiff===1&&inning>=6) buzzItems.push({type:'general',dot:'amber',text:'One-run game in the late innings — a single swing can flip this.'});
 
+    // Inject notable plays at top
+    buzzItems.unshift(...specialBuzzItems);
     // Fallback
     if(!buzzItems.length) buzzItems.push({type:'steady',dot:'muted',text:'Game state is stable — no immediate high-leverage situation flagged.'});
 
