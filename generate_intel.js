@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// v2 - dual year fetch
 /**
  * generate_intel.js
  * Fetches real Statcast data from Baseball Savant leaderboard CSVs
@@ -117,7 +116,13 @@ async function fetchAll(urls = URLS) {
       const csv = await get(url);
       const rows = parseCSV(csv);
       results[key] = rows;
-      console.log(`    ✓ ${rows.length} rows`);
+      // Log first row keys to help diagnose ID field name issues
+      if (rows.length > 0 && (key === 'batterEV' || key === 'pitcherEV')) {
+        const idFields = Object.keys(rows[0]).filter(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('player'));
+        console.log(`    ✓ ${rows.length} rows (ID fields: ${idFields.join(', ')})`);
+      } else {
+        console.log(`    ✓ ${rows.length} rows`);
+      }
     } catch (e) {
       console.warn(`    ✗ ${key} failed: ${e.message}`);
       results[key] = [];
@@ -148,52 +153,52 @@ function buildIntel(data) {
   // Index batter EV data by player_id
   const batterEVMap = {};
   for (const r of data.batterEV) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) batterEVMap[id] = r;
   }
 
   // Index pitcher EV data
   const pitcherEVMap = {};
   for (const r of data.pitcherEV) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) pitcherEVMap[id] = r;
   }
 
   // Index expected stats
   const batterExpMap = {};
   for (const r of data.batterExpected) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) batterExpMap[id] = r;
   }
   const pitcherExpMap = {};
   for (const r of data.pitcherExpected) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) pitcherExpMap[id] = r;
   }
 
   // Index whiff data
   const batterWhiffMap = {};
   for (const r of data.batterWhiff) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) batterWhiffMap[id] = r;
   }
   const pitcherWhiffMap = {};
   for (const r of data.pitcherWhiff) {
-    const id = r.player_id || r.mlb_id;
+    const id = String(r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (id) pitcherWhiffMap[id] = r;
   }
 
   // Sprint speed by player_id
   const sprintMap = {};
   for (const r of data.sprintSpeed) {
-    const id = r.player_id || r.mlb_id || r.id;
+    const id = String(r.player_id || r.mlb_id || r.id || r.IDfg || '').trim();
     if (id) sprintMap[id] = r;
   }
 
   // Pitch arsenal: group by pitcher id
   const arsenalMap = {};
   for (const r of data.pitcherArsenal) {
-    const id = r.pitcher_id || r.player_id || r.mlb_id;
+    const id = String(r.pitcher_id || r.player_id || r.mlb_id || r.IDfg || '').trim();
     if (!id) continue;
     if (!arsenalMap[id]) arsenalMap[id] = [];
     arsenalMap[id].push(r);
