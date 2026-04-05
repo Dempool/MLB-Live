@@ -471,6 +471,19 @@
       .panel-head{padding:6px 10px}
       .panel-body{padding:7px 9px}
     }
+    /* ── PLAYER PA MODAL ── */
+    .pa-modal-row{display:grid;grid-template-columns:44px 1fr auto auto;gap:8px;align-items:start;padding:9px 10px;border-radius:6px;margin-bottom:3px;background:var(--card-2);border:1px solid var(--border-soft)}
+    .pa-inn-badge{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:15px;letter-spacing:.5px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:3px 7px;text-align:center;white-space:nowrap}
+    .pa-inn-badge.top{color:var(--blue)}
+    .pa-inn-badge.bot{color:var(--live)}
+    .pa-result-text{font-size:13px;font-weight:600;color:var(--text);line-height:1.4}
+    .pa-result-text.hit{color:var(--live)}
+    .pa-result-text.hr{color:var(--red);font-weight:700}
+    .pa-result-text.out{color:var(--sub)}
+    .pa-pitches{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;padding-top:2px}
+    .pa-score-flag{color:var(--live);font-size:13px;padding-top:1px}
+    .player-clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;text-decoration-color:var(--muted)}
+    .player-clickable:hover{color:var(--gold) !important;text-decoration-color:var(--gold)}
   </style>
 </head>
 <body>
@@ -636,7 +649,7 @@
           <div class="panel-body" id="gameBuzzStandalone"><div class="empty">—</div></div>
         </div>
 
-        <!-- ROW 2: AT BAT (2col) | SCORING+ONDECK+PBP (1col) -->
+        <!-- ROW 2: AT BAT (2col) | SCORING+ONDECK (1col) -->
         <div class="panel grid-wide" id="atBatPanel">
           <div class="panel-head">
             <span class="panel-title">At Bat</span>
@@ -645,7 +658,7 @@
           <div class="panel-body" id="currentMatchup"><div class="empty">—</div></div>
         </div>
 
-        <!-- RIGHT COL ROW 2: Scoring + On Deck + Pitch By Pitch stacked -->
+        <!-- RIGHT COL ROW 2: Scoring + On Deck -->
         <div class="panel" id="rightColPanel" style="display:flex;flex-direction:column;gap:0;padding:0;overflow:hidden">
           <!-- Scoring -->
           <div style="border-bottom:1px solid var(--border-soft)">
@@ -653,21 +666,22 @@
               <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)">Scoring</span>
               <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)" id="scoringPlaysBadge"></span>
             </div>
-            <div style="padding:6px 10px;overflow-y:auto;max-height:120px" id="scoringPlays"><div class="empty">No scoring plays</div></div>
+            <div style="padding:6px 10px;overflow-y:auto;max-height:140px" id="scoringPlays"><div class="empty">No scoring plays</div></div>
           </div>
           <!-- On Deck -->
-          <div id="nextBatterPanel" style="border-bottom:1px solid var(--border-soft);padding:6px 10px">
+          <div id="nextBatterPanel" style="padding:6px 10px;flex:1">
             <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sub);margin-bottom:4px">On Deck</div>
             <div id="nextBatterCard"><div class="empty">—</div></div>
           </div>
-          <!-- Pitch By Pitch -->
-          <div style="flex:1;padding:6px 10px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-              <span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)"><span class="live-dot" style="vertical-align:middle;margin-right:3px"></span>Pitch By Pitch</span>
-              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--sub)" id="pitchBadge"></span>
-            </div>
-            <div id="pitchByPitch"><div class="empty" style="font-size:11px">No pitches yet</div></div>
+        </div>
+
+        <!-- ROW 2b: PITCH BY PITCH (full width, directly below At Bat) -->
+        <div class="panel grid-full" id="pitchByPitchPanel">
+          <div class="panel-head">
+            <span class="panel-title"><span class="live-dot" style="vertical-align:middle;margin-right:4px"></span>Pitch By Pitch</span>
+            <span class="panel-badge" id="pitchBadge"></span>
           </div>
+          <div class="panel-body" id="pitchByPitch"><div class="empty">No pitches yet</div></div>
         </div>
 
         <!-- ROW 3: LINEUPS (full width) -->
@@ -724,6 +738,20 @@
           <div id="bullpenContent"></div>
         </div>
 
+        <!-- PLAYER PA MODAL -->
+        <div id="paModal" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.75);backdrop-filter:blur(2px)" onclick="if(event.target===this)closePAModal()">
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;max-width:95vw;max-height:85vh;background:var(--card);border:1px solid var(--border);border-radius:10px;display:flex;flex-direction:column;overflow:hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--card-2);border-bottom:1px solid var(--border);flex-shrink:0">
+              <div>
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:18px;letter-spacing:.5px" id="paModalName">Player</div>
+                <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--sub);margin-top:2px" id="paModalSummary"></div>
+              </div>
+              <button onclick="closePAModal()" style="background:var(--border);border:none;color:var(--text);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+            </div>
+            <div id="paModalBody" style="overflow-y:auto;padding:12px 16px;flex:1"></div>
+          </div>
+        </div>
+
         <!-- Hidden panels kept for JS compatibility -->
         <div style="display:none" id="inplayPanel"><div id="inplayStats"></div></div>
         <div style="display:none" id="nextPitch"></div>
@@ -738,7 +766,7 @@
 </div>
 
 <script>
-const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null,allPlays:[],tickerPage:0};
+const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null,allPlays:[],gamePk:null,tickerPage:0};
 window.tickerPage=function(dir){
   const maxPage=Math.max(0,Math.ceil(state.allPlays.length/8)-1);
   state.tickerPage=Math.max(0,Math.min(maxPage,state.tickerPage+dir));
@@ -1852,9 +1880,10 @@ function renderLineups(data){
       const hasHit=p.todayH>0;
       // Colour code today's line: HR=red, hit=green, 0fer=muted
       const todayColor=hasHR?'var(--red)':hasHit?'var(--live)':p.todayAB>0?'var(--muted)':'var(--muted)';
+      const _n=encodeURIComponent(p.name||""); const clickable=`onclick="showPlayerPA(${p.id},decodeURIComponent('${_n}'));event.stopPropagation()" class="player-clickable"`;
       return `<div class="lineup-row ${isUp?'active-batter':''}">
         <div class="lineup-num">${p.order}</div>
-        <div class="lineup-name">${isUp?`<span style="color:var(--gold);font-weight:700">${p.name}</span>`:p.name}${p.hand?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:5px;font-weight:500">${p.hand}</span>`:''}</div>
+        <div class="lineup-name"><span ${clickable} style="${isUp?'color:var(--gold);font-weight:700':''}">${p.name}</span>${p.hand?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:5px;font-weight:500">${p.hand}</span>`:''}</div>
         <div class="lineup-pos">${p.position}</div>
         <div class="lineup-today" style="color:${todayColor}">${p.note}</div>
         <div class="lineup-season">${p.avg} / ${p.obp}</div>
@@ -1886,9 +1915,10 @@ function renderInplayStats(data){
     const p=data.pitcher;
     const pct=Math.min(100,Math.round((p.pitchCount/p.avgHook)*100));
     const meterColor=pct>=90?'var(--red)':pct>=70?'var(--gold)':'var(--live)';
+    const pSafeName=encodeURIComponent(p.name||'');
     html+=`<div class="inplay-section">
       <div class="inplay-role">Pitcher — Today</div>
-      <div class="inplay-player">${p.name}</div>
+      <div class="inplay-player player-clickable" onclick="showPlayerPA(${p.id},decodeURIComponent('${pSafeName}'))">${p.name}</div>
       <div class="inplay-summary">
         <strong>${p.pitchCount}</strong> pitches · <strong>${p.inningsPitched}</strong> IP ·
         <strong>${p.strikeouts}K</strong> · <strong>${p.walksAllowed}BB</strong> ·
@@ -1911,6 +1941,7 @@ function renderInplayStats(data){
 
   if(data.batter){
     const b=data.batter;
+    const bSafeName=encodeURIComponent(b.name||'');
     const paRows=b.paDetails.map(pa=>{
       const isHit=['Single','Double','Triple','Home Run'].some(h=>pa.result.includes(h));
       const isHR=pa.result.includes('Home Run');
@@ -1924,7 +1955,7 @@ function renderInplayStats(data){
     }).join('');
     html+=`<div class="inplay-section">
       <div class="inplay-role">Batter — Today</div>
-      <div class="inplay-player">${b.name}</div>
+      <div class="inplay-player player-clickable" onclick="showPlayerPA(${b.id},decodeURIComponent('${bSafeName}'))">${b.name}</div>
       <div class="inplay-summary"><strong>${b.summary}</strong> · Season: ${b.seasonAvg} AVG / ${b.seasonOBP} OBP</div>
       ${paRows?`<div class="pa-log">${paRows}</div>`:'<div style="font-size:12px;color:var(--sub)">No plate appearances yet</div>'}
     </div>`;
@@ -1995,12 +2026,14 @@ async function fetchAndRenderLineups(gamePk, matchup){
 
 /* ── DIRECT MLB API IN-PLAY STATS FETCH ── */
 async function fetchAndRenderInplay(gamePk, matchup){
+  state.gamePk=gamePk; // ensure cached for PA modal
   try{
     const r=await fetch(`https://statsapi.mlb.com/api/v1.1/game/${gamePk}/feed/live`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}});
     if(!r.ok)throw new Error();
     const d=await r.json();
     const box=d.liveData?.boxscore?.teams||{};
     const allPlays=d.liveData?.plays?.allPlays||[];
+    state.allPlays=allPlays; // cache for player click lookups
     const pitcherId=matchup?.currentPitcher?.id;
     const batterId=matchup?.currentBatter?.id;
 
@@ -2029,7 +2062,7 @@ async function fetchAndRenderInplay(gamePk, matchup){
         const stressNote=pitchCount>=avgHook?`⚠ Over avg hook point (${avgHook}) — bullpen likely warming`
           :pitchCount>=avgHook*0.85?`Approaching hook point — watch for pull at ${avgHook} pitches`
           :`Comfortably within pitch count limit`;
-        pitcherData={name:pp.person?.fullName||'Pitcher',pitchCount,inningsPitched:ip,strikeouts:k,walksAllowed:bb,hitsAllowed:h,earnedRuns:er,era,avgHook,stressNote};
+        pitcherData={id:pitcherId,name:pp.person?.fullName||'Pitcher',pitchCount,inningsPitched:ip,strikeouts:k,walksAllowed:bb,hitsAllowed:h,earnedRuns:er,era,avgHook,stressNote};
       }
     }
 
@@ -2050,7 +2083,7 @@ async function fetchAndRenderInplay(gamePk, matchup){
           pitchCount:p.playEvents?.filter(e=>e.isPitch).length||0,
           scoringPlay:p.about?.isScoringPlay||false
         }));
-        batterData={name:bp.person?.fullName||'Batter',summary,seasonAvg:season.avg||'.000',seasonOBP:season.obp||'.000',paDetails:pas};
+        batterData={id:batterId,name:bp.person?.fullName||'Batter',summary,seasonAvg:season.avg||'.000',seasonOBP:season.obp||'.000',paDetails:pas};
       }
     }
 
@@ -2296,6 +2329,7 @@ async function refreshGame(){
     const _pitchers=$('pitchersPanel');if(_pitchers)_pitchers.style.display='none';
     const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='none';
     const _rightCol=$('rightColPanel');if(_rightCol)_rightCol.style.display='none';
+    const _pbp=$('pitchByPitchPanel');if(_pbp)_pbp.style.display='none';
 
 
     // Also clear scoring panel content in preview
@@ -2324,8 +2358,10 @@ async function refreshGame(){
   // Show live odds panel if odds API key is configured
   const _liveOdds=$('liveOddsPanel');if(_liveOdds)_liveOdds.style.display='';
   const _rightCol=$('rightColPanel');if(_rightCol)_rightCol.style.display='';
+  const _pbp=$('pitchByPitchPanel');if(_pbp)_pbp.style.display='';
 
   try{
+    state.gamePk=gamePk; // cache for player click modal
     const [summary,feed,matchup]=await Promise.all([
       api(`/api/live-summary?gamePk=${gamePk}`),
       api(`/api/pitch-feed?gamePk=${gamePk}`),
@@ -2469,7 +2505,7 @@ async function refreshGame(){
           <div class="matchup-role">Pitcher</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
             <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.9);padding:1px">${logoImg(pitcherTeamId,20)}</div>
-            <div class="matchup-name">${matchup.currentPitcher?.fullName||'TBD'}</div>
+            <div class="matchup-name player-clickable" onclick="showPlayerPA(${matchup.currentPitcher?.id},''+decodeURIComponent(encodeURIComponent(matchup.currentPitcher?.fullName||'TBD'))+'')">${matchup.currentPitcher?.fullName||'TBD'}</div>
           </div>
           <div class="matchup-hand">${pitcherHand}HP</div>
           ${pitcherStatLine(pitcherBox)}
@@ -2479,7 +2515,7 @@ async function refreshGame(){
           <div class="matchup-role">Batter</div>
           <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin:4px 0">
             <div style="width:22px;height:22px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,0.9);padding:1px">${logoImg(batterTeamId,20)}</div>
-            <div class="matchup-name">${matchup.currentBatter?.fullName||'TBD'}</div>
+            <div class="matchup-name player-clickable" onclick="showPlayerPA(${matchup.currentBatter?.id},''+decodeURIComponent(encodeURIComponent(matchup.currentBatter?.fullName||'TBD'))+'')">${matchup.currentBatter?.fullName||'TBD'}</div>
           </div>
           <div class="matchup-hand">Bats ${batterSide}</div>
           ${batterStatLine(batterBox)}
@@ -2512,7 +2548,7 @@ async function refreshGame(){
           </div>`;
         }).catch(()=>{
           $('nextBatterCard').innerHTML=`<div class="ondeck-card">
-            <div class="ondeck-name">${matchup.onDeck.fullName||'On Deck'}</div>
+            <div class="ondeck-name player-clickable" onclick="showPlayerPA(${matchup.onDeck.id},''+decodeURIComponent(encodeURIComponent(matchup.onDeck.fullName||''))+'')">${matchup.onDeck.fullName||'On Deck'}</div>
             ${batterStatLine(onDeckBox)}
           </div>`;
         });
@@ -2650,8 +2686,91 @@ $('knowledgeLevel').value=state.level;
 $('knowledgeLevel').addEventListener('change',async e=>{state.level=e.target.value;localStorage.setItem('knowledgeLevel',state.level);await refreshGame();});
 $('refreshSlate').addEventListener('click',()=>loadSlate());
 
+// ── PLAYER PA MODAL ──
+function closePAModal(){
+  const m=$('paModal'); if(m) m.style.display='none';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePAModal();});
+
+function showPlayerPA(playerId, playerName){
+  const modal=$('paModal'), nameEl=$('paModalName'), summaryEl=$('paModalSummary'), bodyEl=$('paModalBody');
+  if(!modal) return;
+  nameEl.textContent=playerName||'Player';
+  summaryEl.textContent='';
+  bodyEl.innerHTML='<div class="loading"><div class="spin"></div> Loading…</div>';
+  modal.style.display='';
+  const id=Number(playerId);
+  if(state.allPlays&&state.allPlays.length){
+    renderPAModal(id, state.allPlays, summaryEl, bodyEl);
+  } else if(state.gamePk){
+    fetch(`https://statsapi.mlb.com/api/v1.1/game/${state.gamePk}/feed/live`,{headers:{'User-Agent':'mlb-live-tracker/1.0'}})
+      .then(r=>r.json()).then(d=>{
+        state.allPlays=d.liveData?.plays?.allPlays||[];
+        renderPAModal(id, state.allPlays, summaryEl, bodyEl);
+      }).catch(()=>{bodyEl.innerHTML='<div class="empty">Could not load data</div>';});
+  } else {
+    bodyEl.innerHTML='<div class="empty">No game selected</div>';
+  }
+}
+
+function renderPAModal(id, allPlays, summaryEl, bodyEl){
+  const pas=allPlays.filter(p=>p.matchup?.batter?.id===id);
+  if(!pas.length){
+    // Check if this is a pitcher
+    const asPitcher=allPlays.filter(p=>p.matchup?.pitcher?.id===id);
+    if(asPitcher.length){
+      summaryEl.textContent=`${asPitcher.length} batters faced today`;
+      bodyEl.innerHTML=asPitcher.map(p=>{
+        const isTop=(p.about?.halfInning||'').toLowerCase().startsWith('top');
+        const inn=p.about?.inning||'?';
+        const result=p.result?.event||'—';
+        const pitches=(p.playEvents||[]).filter(e=>e.isPitch).length;
+        return `<div class="pa-modal-row">
+          <div class="pa-inn-badge ${isTop?'top':'bot'}">${isTop?'T':'B'}${inn}</div>
+          <div class="pa-result-text">${p.matchup?.batter?.fullName||'—'}<span style="font-size:11px;color:var(--sub);font-weight:400;margin-left:6px">${result}</span></div>
+          <div class="pa-pitches">${pitches}p</div>
+          <div>${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}</div>
+        </div>`;
+      }).join('')+
+      `<div style="margin-top:10px;font-size:11px;color:var(--muted)">T = Top · B = Bottom · 🔥 = Scoring play</div>`;
+      return;
+    }
+    summaryEl.textContent='No plate appearances yet today';
+    bodyEl.innerHTML='<div class="empty">No PA recorded yet</div>';
+    return;
+  }
+  // Build summary
+  const hits=pas.filter(p=>['Single','Double','Triple','Home Run'].some(h=>(p.result?.event||'').includes(h))).length;
+  const hrs=pas.filter(p=>(p.result?.event||'').includes('Home Run')).length;
+  const rbi=pas.reduce((acc,p)=>acc+(p.result?.rbi||0),0);
+  const abs=pas.filter(p=>!['Walk','Hit By Pitch','Sac Fly','Sac Bunt','Intent Walk'].some(x=>(p.result?.event||'').includes(x))).length;
+  const parts=[`${hits}/${abs}`];
+  if(hrs>0) parts.push(`${hrs}HR`);
+  if(rbi>0) parts.push(`${rbi}RBI`);
+  parts.push(`${pas.length} PA today`);
+  summaryEl.textContent=parts.join(' · ');
+  bodyEl.innerHTML=pas.map(p=>{
+    const isTop=(p.about?.halfInning||'').toLowerCase().startsWith('top');
+    const inn=p.about?.inning||'?';
+    const result=p.result?.description||p.result?.event||'—';
+    const pitches=(p.playEvents||[]).filter(e=>e.isPitch).length;
+    const isHR=(p.result?.event||'').includes('Home Run');
+    const isHit=['Single','Double','Triple','Home Run'].some(h=>(p.result?.event||'').includes(h));
+    const isOut=!isHit&&!['Walk','Hit By Pitch'].some(x=>(p.result?.event||'').includes(x));
+    return `<div class="pa-modal-row">
+      <div class="pa-inn-badge ${isTop?'top':'bot'}">${isTop?'T':'B'}${inn}</div>
+      <div class="pa-result-text ${isHR?'hr':isHit?'hit':isOut?'out':''}">${result}</div>
+      <div class="pa-pitches">${pitches}p</div>
+      <div>${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}</div>
+    </div>`;
+  }).join('')+
+  `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border-soft);font-size:11px;color:var(--muted)">T = Top half · B = Bottom half · 🔥 = Scoring play</div>`;
+  bodyEl.innerHTML = bodyEl.innerHTML; // ensure render
+}
+
 // Ensure mainContent is visible on startup (in case tab state got confused)
 document.getElementById('mainContent').style.display='';
+document.getElementById('allGamesView').style.display='none';
 document.getElementById('allGamesView').style.display='none';
 
 loadSlate();
@@ -2660,3 +2779,4 @@ setInterval(()=>{ if(currentTab==='all') renderAllGamesView(); }, 25000);
 </script>
 </body>
 </html>
+
