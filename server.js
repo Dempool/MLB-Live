@@ -5,6 +5,29 @@ const { URL } = require('url');
 
 const ODDS_API_KEY = process.env.ODDS_API_KEY || null;
 const ODDS_API_BASE = 'https://api.the-odds-api.com/v4';
+
+// FanDuel sbapi — public, no auth required
+// Works across state subdomains: nj, il, pa, ny, co etc
+const FD_SBAPI_HOSTS = [
+  'sbapi.nj.sportsbook.fanduel.com',
+  'sbapi.il.sportsbook.fanduel.com',
+  'sbapi.pa.sportsbook.fanduel.com',
+];
+const FD_AK = 'FhMFpcPWXMeyZxOx'; // public API key embedded in FD's own site
+const FD_BASE_PARAMS = '_ak='+FD_AK+'&betexRegion=GBR&capiJurisdiction=intl&currencyCode=USD&exchangeLocale=en_US&language=en&regionCode=NAMERICA&includePrices=true&priceHistory=1';
+
+async function fetchFDJson(path, extraParams='') {
+  // Try each state host until one responds
+  const params = FD_BASE_PARAMS + (extraParams ? '&'+extraParams : '');
+  for (const host of FD_SBAPI_HOSTS) {
+    try {
+      const url = `https://${host}${path}?${params}`;
+      const data = await fetchJson(url);
+      if (data) return data;
+    } catch(e) { /* try next */ }
+  }
+  throw new Error('All FD sbapi hosts failed');
+}
 const PORT = process.env.PORT || 8787;
 const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
 const LIVE_BASE = 'https://statsapi.mlb.com/api/v1.1';
@@ -753,7 +776,7 @@ async function handleApi(reqUrl, res) {
       if (!eventId) return sendJson(res, 400, { error: 'Missing eventId' });
       try {
         const data = await fetchJson(
-          `${ODDS_API_BASE}/sports/baseball_mlb/events/${eventId}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=pitcher_strikeouts,batter_home_runs,batter_hits,batter_total_bases&oddsFormat=decimal&bookmakers=fanduel,draftkings,betmgm,caesars`
+          `${ODDS_API_BASE}/sports/baseball_mlb/events/${eventId}/odds?apiKey=${ODDS_API_KEY}&regions=us&markets=pitcher_strikeouts,batter_home_runs,batter_hits,batter_total_bases,batter_rbis,batter_walks&oddsFormat=decimal&bookmakers=fanduel,draftkings,betmgm,caesars`
         );
         // Group by player+market across all books for comparison
         const propsMap = {};
@@ -766,11 +789,22 @@ async function handleApi(reqUrl, res) {
                 market: market.key,
                 player,
                 point: outcome.point,
-                over: {}, under: {}
+                over: {}, under: {},
+                lastUpdate: null,
+                fdLastUpdate: null
               };
               if (outcome.name === 'Over') propsMap[key].over[bm.title] = outcome.price;
               if (outcome.name === 'Under') propsMap[key].under[bm.title] = outcome.price;
               if (outcome.point) propsMap[key].point = outcome.point;
+              // Track most recent update timestamp across all books and FD specifically
+              if (market.last_update) {
+                if (!propsMap[key].lastUpdate || market.last_update > propsMap[key].lastUpdate) {
+                  propsMap[key].lastUpdate = market.last_update;
+                }
+                if (bm.key === 'fanduel') {
+                  propsMap[key].fdLastUpdate = market.last_update;
+                }
+              }
             }
           }
         }
@@ -792,7 +826,7 @@ async function handleApi(reqUrl, res) {
           if (fdOver && avgOver && fdOver < avgOver * 0.96) sharpFlag = 'SHARP OVER ACTION';
           else if (fdUnder && avgUnder && fdUnder < avgUnder * 0.96) sharpFlag = 'SHARP UNDER ACTION';
 
-          return { ...p, fdOver, fdUnder, avgOver, avgUnder, riskFlag, sharpFlag };
+          return { ...p, fdOver, fdUnder, avgOver, avgUnder, riskFlag, sharpFlag, lastUpdate: p.lastUpdate, fdLastUpdate: p.fdLastUpdate };
         });
         return sendJson(res, 200, { eventId, props });
       } catch(e) {
@@ -871,6 +905,149 @@ async function handleApi(reqUrl, res) {
       });
     }
 
+    // ── FANDUEL SBAPI: get all MLB events to find FD event ID ──
+    if (pathname === '/api/fd/events') {
+      try {
+        const data = await fetchFDJson('/api/content-managed-page', 'page=CUSTOM&customPageId=mlb');
+        const events = data?.attachments?.events || {};
+        // Extract event list with teams, start time, FD event ID
+        const list = Object.entries(events)
+          .filter(([id]) => /^\d+$/.test(id))
+          .map(([id, ev]) => ({
+            fdEventId: id,
+            name: ev.name,
+            openDate: ev.openDate,
+            inPlay: ev.inPlay || false,
+            awayTeam: ev.teamAwayName || ev.runnerDetails?.[0]?.runnerName,
+            homeTeam: ev.teamHomeName || ev.runnerDetails?.[1]?.runnerName,
+          }))
+          .filter(ev => ev.name); // filter out empty
+        return sendJson(res, 200, { events: list });
+      } catch(e) {
+        return sendJson(res, 500, { error: e.message, events: [] });
+      }
+    }
+
+    // ── FANDUEL SBAPI: get plate appearance markets for a specific FD event ID ──
+    if (pathname === '/api/fd/plate-appearances') {
+      const fdEventId = reqUrl.searchParams.get('eventId');
+      if (!fdEventId) return sendJson(res, 400, { error: 'Missing eventId' });
+      try {
+        const data = await fetchFDJson('/api/event-page', `eventId=${fdEventId}&tab=plate-appearance`);
+        
+        // Extract markets from attachments
+        const markets = data?.attachments?.markets || {};
+        const runners = data?.attachments?.runners || {};
+        const events = data?.attachments?.events || {};
+        
+        // Build PA market list
+        const paMarkets = [];
+        for (const [mktId, mkt] of Object.entries(markets)) {
+          if (!mkt.marketName && !mkt.name) continue;
+          const marketName = mkt.marketName || mkt.name || '';
+          // Each market has runners (outcomes)
+          const outcomes = (mkt.runners || []).map(r => {
+            const runnerData = runners[r.selectionId] || runners[String(r.selectionId)] || {};
+            return {
+              selectionId: r.selectionId,
+              name: runnerData.runnerName || r.runnerName || r.name,
+              price: r.winRunnerOdds?.decimalPrice || r.lastPriceTraded,
+              status: r.status,
+            };
+          }).filter(o => o.name);
+          
+          paMarkets.push({
+            marketId: mktId,
+            marketName,
+            status: mkt.status,
+            inPlay: mkt.inPlay || false,
+            bettingType: mkt.bettingType,
+            totalMatched: mkt.totalMatched,
+            marketStartTime: mkt.marketStartTime,
+            outcomes,
+          });
+        }
+        
+        return sendJson(res, 200, { 
+          fdEventId, 
+          paMarkets,
+          eventName: Object.values(events)[0]?.name || '',
+          inPlay: Object.values(events)[0]?.inPlay || false,
+        });
+      } catch(e) {
+        return sendJson(res, 500, { error: e.message, paMarkets: [] });
+      }
+    }
+
+    // ── FANDUEL SBAPI: match MLB gamePk to FD event and get PA markets in one call ──
+    if (pathname === '/api/fd/pa-for-game') {
+      const awayTeam = reqUrl.searchParams.get('away');
+      const homeTeam = reqUrl.searchParams.get('home');
+      if (!awayTeam || !homeTeam) return sendJson(res, 400, { error: 'Missing team params' });
+      try {
+        // Step 1: get all MLB events from FD
+        const listData = await fetchFDJson('/api/content-managed-page', 'page=CUSTOM&customPageId=mlb');
+        const events = listData?.attachments?.events || {};
+        const norm = s => (s||'').toLowerCase().replace(/[^a-z]/g,'');
+        const na = norm(awayTeam), nh = norm(homeTeam);
+        
+        // Step 2: fuzzy match to find this game's FD event ID
+        let fdEventId = null;
+        for (const [id, ev] of Object.entries(events)) {
+          if (!/^\d+$/.test(id)) continue;
+          const evName = norm(ev.name || '');
+          const at = norm(ev.teamAwayName || '');
+          const ht = norm(ev.teamHomeName || '');
+          if ((evName.includes(na) || at.includes(na.slice(0,5)) || na.includes(at.slice(0,5))) &&
+              (evName.includes(nh) || ht.includes(nh.slice(0,5)) || nh.includes(ht.slice(0,5)))) {
+            fdEventId = id;
+            break;
+          }
+        }
+        
+        if (!fdEventId) return sendJson(res, 200, { found: false, fdEventId: null, paMarkets: [] });
+        
+        // Step 3: get PA markets for this event
+        const paData = await fetchFDJson('/api/event-page', `eventId=${fdEventId}&tab=plate-appearance`);
+        const markets = paData?.attachments?.markets || {};
+        const runners = paData?.attachments?.runners || {};
+        
+        const paMarkets = [];
+        for (const [mktId, mkt] of Object.entries(markets)) {
+          const marketName = mkt.marketName || mkt.name || '';
+          const outcomes = (mkt.runners || []).map(r => {
+            const rd = runners[r.selectionId] || runners[String(r.selectionId)] || {};
+            return {
+              selectionId: r.selectionId,
+              name: rd.runnerName || r.runnerName || r.name,
+              price: r.winRunnerOdds?.decimalPrice || r.lastPriceTraded,
+              status: r.status, // ACTIVE, REMOVED, WINNER, LOSER
+            };
+          }).filter(o => o.name);
+          
+          paMarkets.push({
+            marketId: mktId,
+            marketName,
+            status: mkt.status, // OPEN, SUSPENDED, CLOSED
+            inPlay: mkt.inPlay || false,
+            marketStartTime: mkt.marketStartTime,
+            outcomes,
+          });
+        }
+        
+        return sendJson(res, 200, {
+          found: true,
+          fdEventId,
+          paMarkets,
+          totalMarkets: paMarkets.length,
+          openMarkets: paMarkets.filter(m => m.status === 'OPEN').length,
+          suspendedMarkets: paMarkets.filter(m => m.status === 'SUSPENDED').length,
+        });
+      } catch(e) {
+        return sendJson(res, 500, { error: e.message, found: false, paMarkets: [] });
+      }
+    }
+
     return sendJson(res, 404, { error: 'Not found' });
   } catch (err) {
     return sendJson(res, 500, { error: 'Request failed', detail: err.message });
@@ -928,3 +1105,4 @@ function refreshIntelIfStale(scheduled = false) {
   proc.stdout?.on('data', d => process.stdout.write(d));
   proc.stderr?.on('data', d => process.stderr.write(d));
 }
+
