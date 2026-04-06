@@ -484,6 +484,12 @@
     .pa-score-flag{color:var(--live);font-size:13px;padding-top:1px}
     .player-clickable{cursor:pointer;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px;text-decoration-color:var(--muted)}
     .player-clickable:hover{color:var(--gold) !important;text-decoration-color:var(--gold)}
+    /* ── STALE MARKET FLAG ── */
+    .stale-flag{display:inline-flex;align-items:center;gap:4px;background:rgba(249,115,22,0.15);border:1px solid rgba(249,115,22,0.4);color:#f97316;font-size:10px;font-weight:700;letter-spacing:.8px;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;cursor:help}
+    .stale-alert{background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.35);border-radius:6px;padding:8px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px}
+    .stale-alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+    .stale-alert-body{flex:1;font-size:12px;color:var(--text);line-height:1.5}
+    .stale-alert-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px}
   </style>
 </head>
 <body>
@@ -695,6 +701,9 @@
           </div>
         </div>
 
+        <!-- STALE MARKET ALERTS (hidden until stale props detected) -->
+        <div class="panel grid-full" id="staleAlertsPanel" style="display:none;border:1px solid rgba(249,115,22,0.4)"></div>
+
         <!-- ROW 4: PITCHERS (3col: away pitcher | home pitcher | batter intel + bullpen) -->
         <div class="panel grid-full" id="pitchersPanel">
           <div class="panel-head">
@@ -766,7 +775,7 @@
 </div>
 
 <script>
-const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null,allPlays:[],gamePk:null,tickerPage:0};
+const state={games:[],selectedGamePk:null,level:localStorage.getItem('knowledgeLevel')||'intermediate',playStateToken:null,allPlays:[],gamePk:null,tickerPage:0,propsCache:null,staleMarkets:[],oddsEventId:null};
 window.tickerPage=function(dir){
   const maxPage=Math.max(0,Math.ceil(state.allPlays.length/8)-1);
   state.tickerPage=Math.max(0,Math.min(maxPage,state.tickerPage+dir));
@@ -1558,6 +1567,7 @@ async function renderPregame(g){
     ]).then(async ([risk, matchRes])=>{
       let props = [];
       if (matchRes?.eventId) {
+        state.oddsEventId = matchRes.eventId; // cache for stale checks
         try {
           const pd = await api(`/api/odds/props?eventId=${matchRes.eventId}`);
           props = pd.props || [];
@@ -1881,9 +1891,10 @@ function renderLineups(data){
       // Colour code today's line: HR=red, hit=green, 0fer=muted
       const todayColor=hasHR?'var(--red)':hasHit?'var(--live)':p.todayAB>0?'var(--muted)':'var(--muted)';
       const _n=encodeURIComponent(p.name||""); const clickable=`onclick="showPlayerPA(${p.id},decodeURIComponent('${_n}'));event.stopPropagation()" class="player-clickable"`;
+      const _staleFlag=state.staleMarkets.some(s=>(s.player||'').toLowerCase().includes((p.name||'').toLowerCase().split(' ').pop()))?'<span class="stale-flag" title="Stale prop market detected">⚠</span>':'';
       return `<div class="lineup-row ${isUp?'active-batter':''}">
         <div class="lineup-num">${p.order}</div>
-        <div class="lineup-name"><span ${clickable} style="${isUp?'color:var(--gold);font-weight:700':''}">${p.name}</span>${p.hand?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:5px;font-weight:500">${p.hand}</span>`:''}</div>
+        <div class="lineup-name"><span ${clickable} style="${isUp?'color:var(--gold);font-weight:700':''}">${p.name}</span>${_staleFlag}${p.hand?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-left:5px;font-weight:500">${p.hand}</span>`:''}</div>
         <div class="lineup-pos">${p.position}</div>
         <div class="lineup-today" style="color:${todayColor}">${p.note}</div>
         <div class="lineup-season">${p.avg} / ${p.obp}</div>
@@ -1946,10 +1957,12 @@ function renderInplayStats(data){
       const isHit=['Single','Double','Triple','Home Run'].some(h=>pa.result.includes(h));
       const isHR=pa.result.includes('Home Run');
       const halfShort=(pa.half||'').toLowerCase().startsWith('bot')?'B':'T';
+      const paTime=pa.time?fmtPlayTime(pa.time):'';
       return `<div class="pa-row">
         <span class="pa-inn">${halfShort}${pa.inning||'?'}</span>
         <span class="pa-result ${isHR?'hr':isHit?'positive':''}">${pa.result}</span>
         <span style="margin-left:auto;color:var(--sub)">${pa.pitchCount}p</span>
+        ${paTime?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${paTime}</span>`:''}
         ${pa.scoringPlay?'<span style="color:var(--live);font-size:10px">🔥</span>':''}
       </div>`;
     }).join('');
@@ -2081,7 +2094,8 @@ async function fetchAndRenderInplay(gamePk, matchup){
           half:p.about?.halfInning,
           result:p.result?.description||p.result?.event||'—',
           pitchCount:p.playEvents?.filter(e=>e.isPitch).length||0,
-          scoringPlay:p.about?.isScoringPlay||false
+          scoringPlay:p.about?.isScoringPlay||false,
+          time:p.about?.endTime||p.about?.startTime||null
         }));
         batterData={id:batterId,name:bp.person?.fullName||'Batter',summary,seasonAvg:season.avg||'.000',seasonOBP:season.obp||'.000',paDetails:pas};
       }
@@ -2189,6 +2203,7 @@ async function fetchAndRenderLiveOdds(g){
     // Match game to odds API
     const matchRes=await api(`/api/odds/match?away=${encodeURIComponent(g.teams.away.name||g.teams.away.abbr)}&home=${encodeURIComponent(g.teams.home.name||g.teams.home.abbr)}`);
     if(!matchRes?.eventId){ panel.style.display='none'; return; }
+    state.oddsEventId = matchRes.eventId; // cache for stale market checks
     const pd=await api(`/api/odds/props?eventId=${matchRes.eventId}`);
     const props=pd.props||[];
     if(!props.length){ panel.style.display='none'; return; }
@@ -2372,7 +2387,13 @@ async function refreshGame(){
 
     // Fetch lineups and in-play stats directly from MLB API
     fetchAndRenderLineups(gamePk, matchup);
-    fetchAndRenderInplay(gamePk, matchup);
+    fetchAndRenderInplay(gamePk, matchup).then(()=>{
+      // Run stale market check after allPlays are cached
+      if(state.allPlays.length && state.oddsEventId){
+        renderStaleAlerts([], null); // show "connecting" while fetching
+        checkStaleMarkets(state.allPlays, state.oddsEventId).catch(()=>{});
+      }
+    });
 
     // Fetch live odds non-blocking
     fetchAndRenderLiveOdds(g);
@@ -2696,6 +2717,13 @@ function showPlayerPA(playerId, playerName){
   const modal=$('paModal'), nameEl=$('paModalName'), summaryEl=$('paModalSummary'), bodyEl=$('paModalBody');
   if(!modal) return;
   nameEl.textContent=playerName||'Player';
+  // Check if this player has stale markets
+  const staleForPlayer = state.staleMarkets.filter(s =>
+    (s.player||'').toLowerCase().includes((playerName||'').toLowerCase().split(' ').pop())
+  );
+  if (staleForPlayer.length) {
+    nameEl.innerHTML = `${playerName||'Player'} <span class="stale-flag" title="Stale market detected">⚠ STALE</span>`;
+  }
   summaryEl.textContent='';
   bodyEl.innerHTML='<div class="loading"><div class="spin"></div> Loading…</div>';
   modal.style.display='';
@@ -2725,11 +2753,16 @@ function renderPAModal(id, allPlays, summaryEl, bodyEl){
         const inn=p.about?.inning||'?';
         const result=p.result?.event||'—';
         const pitches=(p.playEvents||[]).filter(e=>e.isPitch).length;
+        const pts=p.about?.endTime||p.about?.startTime||null;
+        const ptsStr=pts?fmtPlayTime(pts):'';
         return `<div class="pa-modal-row">
           <div class="pa-inn-badge ${isTop?'top':'bot'}">${isTop?'T':'B'}${inn}</div>
           <div class="pa-result-text">${p.matchup?.batter?.fullName||'—'}<span style="font-size:11px;color:var(--sub);font-weight:400;margin-left:6px">${result}</span></div>
           <div class="pa-pitches">${pitches}p</div>
-          <div>${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}</div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+            ${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}
+            ${ptsStr?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${ptsStr}</span>`:''}
+          </div>
         </div>`;
       }).join('')+
       `<div style="margin-top:10px;font-size:11px;color:var(--muted)">T = Top · B = Bottom · 🔥 = Scoring play</div>`;
@@ -2757,20 +2790,214 @@ function renderPAModal(id, allPlays, summaryEl, bodyEl){
     const isHR=(p.result?.event||'').includes('Home Run');
     const isHit=['Single','Double','Triple','Home Run'].some(h=>(p.result?.event||'').includes(h));
     const isOut=!isHit&&!['Walk','Hit By Pitch'].some(x=>(p.result?.event||'').includes(x));
+    const ts=p.about?.endTime||p.about?.startTime||null;
+    const tsStr=ts?fmtPlayTime(ts):'';
     return `<div class="pa-modal-row">
       <div class="pa-inn-badge ${isTop?'top':'bot'}">${isTop?'T':'B'}${inn}</div>
       <div class="pa-result-text ${isHR?'hr':isHit?'hit':isOut?'out':''}">${result}</div>
       <div class="pa-pitches">${pitches}p</div>
-      <div>${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        ${p.about?.isScoringPlay?'<span class="pa-score-flag">🔥</span>':''}
+        ${tsStr?`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted)">${tsStr}</span>`:''}
+      </div>
     </div>`;
   }).join('')+
   `<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border-soft);font-size:11px;color:var(--muted)">T = Top half · B = Bottom half · 🔥 = Scoring play</div>`;
   bodyEl.innerHTML = bodyEl.innerHTML; // ensure render
 }
 
+// ── STALE MARKET DETECTION — uses FanDuel sbapi directly ──
+async function checkStaleMarkets(allPlays, _unused) {
+  if (!allPlays.length || !state.selectedGamePk) return [];
+  try {
+    const g = state.games.find(x => x.gamePk === state.selectedGamePk);
+    if (!g) return [];
+    const awayName = g.teams?.away?.name || g.teams?.away?.abbr || '';
+    const homeName = g.teams?.home?.name || g.teams?.home?.abbr || '';
+    if (!awayName || !homeName) return [];
+    // Fetch FD plate appearance markets directly from sbapi.*.sportsbook.fanduel.com
+    const fdData = await api(
+      `/api/fd/pa-for-game?away=${encodeURIComponent(awayName)}&home=${encodeURIComponent(homeName)}`
+    );
+    if (!fdData.found || !fdData.paMarkets?.length) return [];
+    
+    const stale = [];
+    // Also fetch Odds API props for timestamp comparison (best effort)
+    let oddsProps = [];
+    if (state.oddsEventId) {
+      try {
+        const pd = await api(`/api/odds/props?eventId=${state.oddsEventId}`);
+        oddsProps = pd.props || [];
+      } catch(e) {}
+    }
+
+    for (const mkt of fdData.paMarkets) {
+      // Extract player name from market name (e.g. "Josh Bell - Plate Appearance Result")
+      const playerMatch = mkt.marketName.match(/^(.+?)\s*[-–]/);
+      if (!playerMatch) continue;
+      const playerName = playerMatch[1].trim();
+      const lastName = playerName.toLowerCase().split(' ').pop();
+      
+      // Get this player's actual PA count from official play-by-play
+      const playerPlays = allPlays.filter(p =>
+        (p.matchup?.batter?.fullName||'').toLowerCase().includes(lastName)
+      );
+      if (!playerPlays.length) continue;
+      const paCount = playerPlays.length;
+      const lastPA = playerPlays[playerPlays.length-1];
+      const lastPATime = lastPA.about?.endTime||lastPA.about?.startTime;
+      
+      // Flag OPEN markets that FD is still offering AFTER the PA has completed
+      // A suspended market is fine — FD is aware. OPEN after completion = stale.
+      if (mkt.status === 'OPEN' && mkt.inPlay) {
+        // Check if the market description mentions a specific PA number
+        const paNumMatch = mkt.marketName.match(/PA\s*#?(\d+)|(\d+)(?:st|nd|rd|th)\s+PA/i);
+        const offeredPA = paNumMatch ? parseInt(paNumMatch[1]||paNumMatch[2]) : null;
+        
+        if (offeredPA && offeredPA <= paCount) {
+          // FD is still offering PA #N but that PA has already completed
+          const lagSec = lastPATime ? Math.round((Date.now() - new Date(lastPATime)) / 1000) : null;
+          
+          // Cross-reference with Odds API timestamp if available
+          const oddsMatch = oddsProps.find(op =>
+            (op.player||'').toLowerCase().includes(lastName)
+          );
+          
+          stale.push({
+            player: playerName,
+            marketName: mkt.marketName,
+            marketId: mkt.marketId,
+            fdStatus: mkt.status,
+            offeredPA,
+            paCount,
+            lastPATime: lastPATime ? fmtPlayTime(lastPATime) : '—',
+            lagSec,
+            fdLastUpdate: oddsMatch?.fdLastUpdate ? fmtPlayTime(oddsMatch.fdLastUpdate) : '—',
+            outcomes: mkt.outcomes,
+          });
+        } else if (!offeredPA && paCount > 0) {
+          // Generic PA market open with plays completed — flag if lag >60s
+          const lagSec = lastPATime ? Math.round((Date.now() - new Date(lastPATime)) / 1000) : 0;
+          const oddsMatch = oddsProps.find(op => (op.player||'').toLowerCase().includes(lastName));
+          const fdLagMs = oddsMatch?.fdLastUpdate ? (new Date(lastPATime) - new Date(oddsMatch.fdLastUpdate)) : 0;
+          if (fdLagMs > 45000) {
+            stale.push({
+              player: playerName,
+              marketName: mkt.marketName,
+              marketId: mkt.marketId,
+              fdStatus: mkt.status,
+              offeredPA: null,
+              paCount,
+              lastPATime: lastPATime ? fmtPlayTime(lastPATime) : '—',
+              lagSec: Math.round(fdLagMs/1000),
+              fdLastUpdate: oddsMatch?.fdLastUpdate ? fmtPlayTime(oddsMatch.fdLastUpdate) : '—',
+              outcomes: mkt.outcomes,
+            });
+          }
+        }
+      }
+    }
+    
+    state.staleMarkets = stale;
+    state.fdPAMarkets = fdData; // cache for display
+    renderStaleAlerts(stale, fdData);
+    return stale;
+  } catch(e) { console.warn('Stale check failed:',e?.message); return []; }
+}
+
+function renderStaleAlerts(stale, fdData) {
+  const el = document.getElementById('staleAlertsPanel');
+  if (!el) return;
+  // Guard: if no fdData at all, show connecting state
+  if (!fdData) {
+    el.style.display='';
+    el.innerHTML=`<div class="panel-head" style="background:var(--card-2)">
+      <span class="panel-title" style="color:var(--muted)">FD PA Market Check — Connecting…</span>
+      <span class="panel-badge">Fetching live market status from FanDuel sbapi</span>
+    </div>`;
+    return;
+  }
+
+  // Build market summary — show total open/suspended/closed counts
+  const totalMkts = fdData?.totalMarkets || 0;
+  const openMkts = fdData?.openMarkets || 0;
+  const suspMkts = fdData?.suspendedMarkets || 0;
+  const summaryHtml = totalMkts ? `
+    <div style="display:flex;gap:12px;padding:8px 12px;border-bottom:1px solid var(--border-soft);font-size:12px">
+      <span style="color:var(--sub)">FD PA Markets:</span>
+      <span style="color:var(--live);font-weight:700">${openMkts} Open</span>
+      <span style="color:var(--gold);font-weight:700">${suspMkts} Suspended</span>
+      <span style="color:var(--muted)">${totalMkts - openMkts - suspMkts} Closed</span>
+      ${fdData?.fdEventId?`<span style="color:var(--muted);margin-left:auto;font-family:'DM Mono',monospace;font-size:10px">FD Event #${fdData.fdEventId}</span>`:''}
+    </div>` : '';
+
+  if (!stale.length) {
+    // Still show the summary even if no stale markets
+    if (totalMkts) {
+      el.style.display='';
+      el.innerHTML=`<div class="panel-head" style="background:var(--live-dim);border-bottom:1px solid rgba(0,210,106,0.2)">
+        <span class="panel-title" style="color:var(--live)">✓ FD Plate Appearance Markets — No Stale Flags</span>
+        <span class="panel-badge" style="color:var(--live)">${openMkts} open · ${suspMkts} suspended · all in sync with MLB play-by-play</span>
+      </div>${summaryHtml}
+      <div style="padding:8px 12px;font-size:11px;color:var(--muted)">
+        Comparing FanDuel's live sportsbook API against MLB Stats API official play-by-play. Markets showing OPEN after a PA has officially completed will flag here.
+      </div>`;
+    } else if (fdData && !fdData.found) {
+      el.style.display='';
+      el.innerHTML=`<div class="panel-head" style="background:var(--card-2)">
+        <span class="panel-title" style="color:var(--muted)">FD PA Markets — Game Not Found on FanDuel</span>
+        <span class="panel-badge">may not be offered yet</span>
+      </div>
+      <div style="padding:8px 12px;font-size:12px;color:var(--sub)">
+        Could not match this game to a FanDuel event. PA markets may not be offered for this matchup, or the game name didn't fuzzy-match. Check FanDuel manually.
+      </div>`;
+    } else {
+      el.style.display='none';
+    }
+    return;
+  }
+
+  el.style.display='';
+  el.innerHTML=`<div class="panel-head" style="background:rgba(249,115,22,0.08);border-bottom:1px solid rgba(249,115,22,0.3)">
+    <span class="panel-title" style="color:#f97316">⚠ STALE MARKET ALERT — ${stale.length} FD market${stale.length>1?'s':''} need attention</span>
+    <span class="panel-badge" style="color:#f97316">FD showing OPEN but PA already settled per MLB official data</span>
+  </div>
+  ${summaryHtml}
+  <div class="panel-body">
+    ${stale.map(s=>{
+      const outcomes = (s.outcomes||[]).map(o=>
+        `<span style="font-size:11px;background:var(--card);border:1px solid var(--border-soft);border-radius:3px;padding:1px 6px;font-family:'DM Mono',monospace">${o.name} ${o.price?Number(o.price).toFixed(2):''}</span>`
+      ).join(' ');
+      return `<div class="stale-alert">
+        <div class="stale-alert-icon">⚠</div>
+        <div class="stale-alert-body">
+          <strong>${s.player}</strong> · <em style="color:var(--sub)">${s.marketName}</em>
+          <br>FD market status: <strong style="color:#f97316">${s.fdStatus}</strong> (should be SUSPENDED/CLOSED) · MLB official: <strong>${s.paCount} plate appearance${s.paCount!==1?'s':''} completed</strong>
+          ${s.offeredPA?`<br>⚠ FD still offering PA #${s.offeredPA} — this play already happened per MLB Stats API`:''}
+          ${s.lagSec?`<br>⏱ Market is <strong style="color:#f97316">${Math.floor(s.lagSec/60)}m ${s.lagSec%60}s behind</strong> live play-by-play`:''}
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${outcomes}</div>
+          <div class="stale-alert-time">Last PA: ${s.lastPATime} · FD last updated: ${s.fdLastUpdate} · Market ID: ${s.marketId}</div>
+        </div>
+      </div>`;
+    }).join('')}
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border-soft)">
+      <strong>How this works:</strong> Our server calls FanDuel's own sportsbook API (sbapi.*.sportsbook.fanduel.com) to get live market status, then compares against the official MLB Stats API play-by-play. An <strong style="color:#f97316">OPEN</strong> market where that PA has already officially completed = flagged. A <strong style="color:var(--gold)">SUSPENDED</strong> market means FD already knows and paused it — that's normal.
+    </div>
+  </div>`;
+}
+
+// Wire stale check into fetchAndRenderInplay — runs after plays are loaded
+const _origFetchInplay = fetchAndRenderInplay;
+async function fetchAndRenderInplayWithStale(gamePk, matchup) {
+  await _origFetchInplay(gamePk, matchup);
+  // Check stale if we have an eventId cached
+  if (state.allPlays.length && state.oddsEventId) {
+    checkStaleMarkets(state.allPlays, state.oddsEventId).catch(()=>{});
+  }
+}
+
 // Ensure mainContent is visible on startup (in case tab state got confused)
 document.getElementById('mainContent').style.display='';
-document.getElementById('allGamesView').style.display='none';
 document.getElementById('allGamesView').style.display='none';
 
 loadSlate();
